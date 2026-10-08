@@ -140,13 +140,13 @@ ATAC_COLORS = [
 
 
 def definitions(c):
-    c.gradient("input-panel", [("0%", "#fcfeff"), ("50%", "#f4faff"), ("100%", "#e3f2ff")],
+    c.gradient("input-panel", [("0%", "#fafafb"), ("50%", "#f4f4f7"), ("100%", "#e9eaf0")],
                radial=True, cx="50%", cy="46%", r="90%")
-    c.gradient("method-panel", [("0%", "#e0efff"), ("52%", "#e8f4ff"), ("100%", "#dfeeff")],
+    c.gradient("method-panel", [("0%", "#e9eaf0"), ("52%", "#eff0f4"), ("100%", "#e9eaf0")],
                x1="0%", y1="0%", x2="100%", y2="100%")
-    c.gradient("application-panel", [("0%", "#e2f1ff"), ("100%", "#e0efff")],
+    c.gradient("application-panel", [("0%", "#eeeff3"), ("100%", "#e9eaf0")],
                x1="0%", y1="0%", x2="100%", y2="100%")
-    c.gradient("caption-fill", [("0%", "#dcedff"), ("100%", "#d5e9ff")],
+    c.gradient("caption-fill", [("0%", "#e2e3ea"), ("100%", "#dcdee7")],
                x1="0%", y1="0%", x2="100%", y2="100%")
     c.gradient("tf-node", [("0%", "#2d2d2b"), ("100%", "#171817")],
                x1="0%", y1="0%", x2="100%", y2="100%")
@@ -174,7 +174,7 @@ def matrix(c, name, x, colors):
 
 def inputs(c):
     with c.group("input-data", "Single-cell multi-omics inputs", layer=True):
-        c.rect(20, 19, 482, 738, "url(#input-panel)", 20, "#9acdff", 1.8)
+        c.rect(20, 19, 482, 738, "url(#input-panel)", 20, "#b9bcc8", 1.8)
         with c.group("input-content", "Centered input contents"):
             c.parent.set("transform", "translate(0,24)")
             c.rect(31.5, 35, 459, 66, "url(#caption-fill)", 20)
@@ -207,8 +207,8 @@ def inputs(c):
                 with c.group("annotation-database", "Annotation database cylinder"):
                     c.parent.set("transform", "translate(-4,2)")
                     c.path("M277,531 V604 C277,627 360,627 360,604 V531", INK, 4.3, "#ffffff")
-                    c.path("M277,555 C277,578 360,578 360,555", "#506fb0", 4)
-                    c.path("M277,581 C277,604 360,604 360,581", "#506fb0", 4)
+                    c.path("M277,555 C277,578 360,578 360,555", INK, 4)
+                    c.path("M277,581 C277,604 360,604 360,581", INK, 4)
                     c.element("ellipse", cx=318.5, cy=531, rx=41.5, ry=17,
                               fill="#ffffff", stroke=INK, stroke_width=4.3)
 
@@ -392,7 +392,7 @@ def cortex(c):
     with c.group("fetal-cortex", "Fetal cortex examples", layer=True):
         c.rect(1283, 16, 681, 335, "url(#application-panel)", 18)
         c.text(1305, 56, "Fetal cortex", 28, "bold", "start")
-        c.path("M1631,92 V331", "#9aacd0", 1.2)
+        c.path("M1631,92 V331", "#b5b7c2", 1.2)
         neuron(c, "excitatory-neuron", 1376, 160)
         neuron(c, "inhibitory-neuron", 1714, 159, green=True)
         cortex_network(c, "znf804a-network")
@@ -416,9 +416,9 @@ def erythroid(c):
     with c.group("erythroid-maturation", "Erythroid direct-network target turnover", layer=True):
         c.rect(1283, 365, 681, 393, "url(#application-panel)", 18)
         c.text(1303, 404, "Erythroid maturation", 31, "bold", "start")
-        c.path("M1597,447 V689", "#91a5ce", 1.2)
-        c.path("M1454,470 V604", "#91a5ce", 1.1)
-        c.path("M1854,470 V604", "#91a5ce", 1.1)
+        c.path("M1597,447 V689", "#b5b7c2", 1.2)
+        c.path("M1454,470 V604", "#b5b7c2", 1.1)
+        c.path("M1854,470 V604", "#b5b7c2", 1.1)
         with c.group("hmga1-example", "HMGA1 Erythroblast-to-Normoblast lost targets"):
             erythroid_cell(c, "hmga1-erythroblast", 1335, 536, 28, 13)
             erythroid_cell(c, "hmga1-normoblast", 1419, 538, 25.5, 11.5)
