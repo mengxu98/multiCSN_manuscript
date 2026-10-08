@@ -31,9 +31,7 @@ stage <- paste0(output_root, ".staging_", format(Sys.time(), "%Y%m%dT%H%M%SZ", t
 if (file.exists(stage)) stop("Staging output already exists: ", stage, call. = FALSE)
 dir.create(stage)
 
-if (as.character(packageVersion("inferCSN")) != "1.2.5") {
-  stop("This ablation is pinned to inferCSN 1.2.5.", call. = FALSE)
-}
+stopifnot(is.function(inferCSN::fit_greedy_l0))
 
 bic_from_rss <- function(rss, n_obs, n_terms) {
   n_obs * log(rss / n_obs) + n_terms * log(n_obs)

@@ -1,6 +1,5 @@
 # Project-local rendering of the saved Fig. 5 network. No inference is performed.
-# Keep this helper independent of optional multiCSN plotting APIs: the pinned
-# inference package does not implement the state/shape arguments used here.
+# Render the state and shape settings needed for this panel locally.
 plot_focal_network <- function(network_table, tf_nodes, node_state, state_colors,
                                node_size, label_nodes, seed = 42,
                                label.size = 3.5, edge_alpha = 0.55,

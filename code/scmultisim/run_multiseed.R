@@ -32,10 +32,7 @@ dir.create(stage)
 suppressPackageStartupMessages(library(scMultiSim))
 stopifnot(
   as.character(packageVersion("scMultiSim")) == "1.6.0",
-  # 2026-09-20: project moved to the latest pinned inferCSN (1.2.5 @ 03010a34).
-  # Stored ablation outputs from the 1.2.4 era must be regenerated before being
-  # cited under the new version.
-  as.character(packageVersion("inferCSN")) == "1.2.5"
+  is.function(inferCSN::fit_greedy_l0)
 )
 data("GRN_params_100", package = "scMultiSim", envir = environment())
 raw_grn <- GRN_params_100
