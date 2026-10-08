@@ -1,0 +1,11 @@
+# Pando comparator pin (2026-09-21)
+# Installed from GitHub because the historical environment was lost; the user
+# approved using the latest upstream version.
+quadbiolab/Pando@3ffbc21bd827646476357acdc3a3a6ec9048052f   # Pando 1.1.1 (main)
+# Install target: <execution_root>/comparator_r_library (created 2026-09-21).
+# Dependencies: installed with dependencies = NA against the R 4.4 environment.
+# Required workarounds:
+#   - grr 0.9.5 was archived on CRAN; installed from
+#     https://cran.r-project.org/src/contrib/Archive/grr/grr_0.9.5.tar.gz
+#   - Remotes: github::immunogenomics/presto (already present in the R 4.4 env)
+# Provenance record written to logs/gse274113/comparator_install/Pando_source_commit.txt
