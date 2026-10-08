@@ -1,0 +1,18 @@
+--- LL_net.py.orig
++++ LL_net.py
+@@ -634,10 +634,10 @@
+             TFName_temp=TFName[np.array(TFidxtemp)]
+             temps=np.abs(AA0).mean(axis=0)
+             zscored_arr = np.nan_to_num(temps, nan=0.0)
+-        for k in range(len(TFidxtemp)):
+-            TG_1.append(geneName[ii])
+-            TF_1.append(TFName_temp[k])
+-            score_1.append(zscored_arr[k])
++            for k in range(len(TFidxtemp)):
++                TG_1.append(geneName[ii])
++                TF_1.append(TFName_temp[k])
++                score_1.append(zscored_arr[k])
+     TF_TG=pd.DataFrame(TG_1)
+     TF_TG.columns=['TG']
+     TF_TG['TF']=TF_1
+
