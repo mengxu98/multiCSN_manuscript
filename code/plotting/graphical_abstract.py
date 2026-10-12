@@ -29,7 +29,7 @@ class Canvas:
             "width": "1983", "height": "793", "viewBox": "0 0 1983 793",
             "version": "1.1", "font-family": "Arial, Helvetica, sans-serif",
         })
-        ET.SubElement(self.root, tag("title")).text = "Single-cell multi-omics regulatory network inference"
+        ET.SubElement(self.root, tag("title")).text = "Single-cell multiomics regulatory network inference"
         ET.SubElement(self.root, tag("desc")).text = (
             "Independent TF–gene, TF–region and region–gene fits. Exact genomic-region "
             "matching produces region-resolved networks for fetal-cortex examples, "
@@ -173,12 +173,12 @@ def matrix(c, name, x, colors):
 
 
 def inputs(c):
-    with c.group("input-data", "Single-cell multi-omics inputs", layer=True):
+    with c.group("input-data", "Single-cell multiomics inputs", layer=True):
         c.rect(20, 19, 482, 738, "url(#input-panel)", 20, "#b9bcc8", 1.8)
         with c.group("input-content", "Centered input contents"):
             c.parent.set("transform", "translate(0,24)")
             c.rect(31.5, 35, 459, 66, "url(#caption-fill)", 20)
-            c.text(261, 79, "Single-cell multi-omics", 40, "bold")
+            c.text(261, 79, "Single-cell multiomics", 40, "bold")
             c.text(148.5, 157, "RNA", 33, "bold")
             c.text(373.5, 157, "ATAC", 33, "bold")
             matrix(c, "rna", 53.5, RNA_COLORS)
@@ -430,8 +430,8 @@ def erythroid(c):
             c.arrow(1532, 511, 1550, 557, width=2.4, head=13, dash="9 7")
             c.gene(1498, 575, 17.5)
             c.gene(1550, 575, 17.5)
-            c.text(1443, 648, "Lost targets", 24, "bold")
-            c.text(1440, 678, "Translation / mitochondria", 24)
+            c.text(1443, 648, "Lost inferred links", 24, "bold")
+            c.text(1440, 678, "Translation / mitochondrial genes", 20)
         with c.group("bnc2-example", "BNC2 targets gained and lost across successive transitions"):
             erythroid_cell(c, "bnc2-proerythroblast", 1642, 537, 26, 12)
             erythroid_cell(c, "bnc2-erythroblast", 1726, 537, 25, 12)
@@ -450,8 +450,8 @@ def erythroid(c):
             c.arrow(1918, 515, 1936, 557, width=2.4, head=13, dash="9 7")
             c.gene(1883, 575, 17.5)
             c.gene(1936, 575, 17.5)
-            c.text(1779, 648, "Gained / lost targets", 24, "bold")
-            c.text(1785, 678, "Immune responses", 24)
+            c.text(1779, 648, "Gained / lost inferred links", 22, "bold")
+            c.text(1785, 678, "Immune-response genes", 24)
         with c.group("edge-style-key", "Gained and lost relation styles"):
             c.arrow(1473, 725, 1535, 725, GREEN, 2.5, 16)
             c.text(1552, 732, "Gained", 21, anchor="start")

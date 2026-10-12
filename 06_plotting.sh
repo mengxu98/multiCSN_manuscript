@@ -2,6 +2,7 @@
 set -euo pipefail
 cd -- "$(dirname -- "${BASH_SOURCE[0]}")"
 source code/functions/runtime.sh
+run_task code/plotting/fig1.py
 run_task code/plotting/fig2.R
 run_task code/plotting/fig3.R
 run_task code/plotting/figs7.R
