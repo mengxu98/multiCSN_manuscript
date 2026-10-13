@@ -1,4 +1,5 @@
 from collections import Counter
+from copy import deepcopy
 from pathlib import Path
 import os
 import subprocess
@@ -141,12 +142,19 @@ def validate(root, formulas=False):
     return counts
 
 
-def draw():
-    root = build_element(SCENE)
-    validate(root)
-    add_formulas(root)
-    counts = validate(root, formulas=True)
-    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+def dark_variant(root):
+    dark = deepcopy(root)
+    for node in dark.iter():
+        for attribute in ("fill", "stroke"):
+            color = node.get(attribute, "")
+            if color.startswith("#") and len(color) == 7:
+                node.set(attribute, "#" + "".join(
+                    f"{255 - int(color[i:i + 2], 16):02x}" for i in (1, 3, 5)))
+    dark.set("fill", "#ffffff")
+    return dark
+
+
+def write_svg(root, destination):
     ET.indent(root, space="  ")
     for text in root.iter(f"{{{SVG_NS}}}text"):
         if text.text is not None and not text.text.strip():
@@ -154,9 +162,21 @@ def draw():
         for span in text:
             if span.tail is not None and not span.tail.strip():
                 span.tail = None
-    temporary = OUTPUT.with_suffix(".svg.tmp")
+    temporary = destination.with_suffix(".svg.tmp")
     ET.ElementTree(root).write(temporary, encoding="utf-8", xml_declaration=True)
-    temporary.replace(OUTPUT)
+    temporary.replace(destination)
+
+
+def draw():
+    root = build_element(SCENE)
+    validate(root)
+    add_formulas(root)
+    counts = validate(root, formulas=True)
+    dark = dark_variant(root)
+    validate(dark, formulas=True)
+    OUTPUT.parent.mkdir(parents=True, exist_ok=True)
+    write_svg(root, OUTPUT)
+    write_svg(dark, OUTPUT.with_name(f"{OUTPUT.stem}-dark.svg"))
     for format_name in ("pdf", "png"):
         destination = OUTPUT.with_suffix(f".{format_name}")
         temporary = destination.with_suffix(destination.suffix + ".tmp")
@@ -166,7 +186,7 @@ def draw():
         subprocess.run(command + ["--output", str(temporary), str(OUTPUT)], check=True,
                        env={**os.environ, "PANGOCAIRO_BACKEND": "fc"})
         temporary.replace(destination)
-    print(f"{OUTPUT}: {counts['text']} editable text objects; two mathematical formulas")
+    print(f"{OUTPUT}: light/dark SVGs, PDF and PNG; {counts['text']} editable text objects")
     return OUTPUT
 
 
