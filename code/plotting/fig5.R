@@ -20,7 +20,7 @@ suppressPackageStartupMessages({
 })
 
 source(file.path(repo, "code", "functions", "common.R"), local = TRUE)
-source(file.path(repo, "code", "plotting", "focal_network_plot.R"), local = TRUE)
+source(file.path(repo, "code", "functions", "focal_network_plot.R"), local = TRUE)
 analysis_root <- file.path(
   repo,
   "results",

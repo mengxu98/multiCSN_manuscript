@@ -183,6 +183,8 @@ def draw():
         command = ["rsvg-convert", "--format", format_name]
         if format_name == "png":
             command.extend(["--width", "2400"])
+        else:
+            command.extend(["--width", "140.96pt"])
         subprocess.run(command + ["--output", str(temporary), str(OUTPUT)], check=True,
                        env={**os.environ, "PANGOCAIRO_BACKEND": "fc"})
         temporary.replace(destination)
@@ -193,9 +195,7 @@ def draw():
 SCENE = ('svg',
  {'id': 'multicsn-figure-1',
   'version': '1.1',
-  'viewBox': '0 0 140.96 96.12',
-  'width': '140.96pt',
-  'height': '96.12pt'},
+  'viewBox': '0 0 140.96 96.12'},
  None,
  [('title', {}, 'multiCSN overview: shared sparse regression and multiomics network outputs', []),
   ('desc',
@@ -1551,7 +1551,7 @@ SCENE = ('svg',
         '{http://www.w3.org/XML/1998/namespace}space': 'preserve',
         'id': 'a_multiomic_inputs-text-002'},
        None,
-       [('tspan', {'x': '0', 'y': '0', 'id': 'a_multiomic_inputs-tspan-002', 'fill': '#ff0000'}, 'multiomics', []),
+       [('tspan', {'x': '0', 'y': '0', 'id': 'a_multiomic_inputs-tspan-002', 'fill': '#221815'}, 'multiomics', []),
         ('tspan', {'id': 'a_multiomic_inputs-tspan-003', 'fill': '#221815'}, ' inputs', [])]),
       ('line',
        {'fill': 'none',

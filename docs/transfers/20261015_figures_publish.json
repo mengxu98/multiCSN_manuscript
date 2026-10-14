@@ -1,0 +1,65 @@
+{
+  "commit": "9acfc63c64033a38b01b60d7ffc66c6de92f98e2",
+  "files": [
+    {
+      "path": "multiCSN/multiCSN.py",
+      "size": 160821,
+      "sha256": "30f7b5de366e8a81155be41f9b33c671785fda626b87a807eb7135e8c1a82d8f",
+      "destination_path": "multiCSN/multiCSN.py",
+      "remote_sha256": "30f7b5de366e8a81155be41f9b33c671785fda626b87a807eb7135e8c1a82d8f",
+      "verification": "size and SHA-256 match"
+    },
+    {
+      "path": "multiCSN/multiCSN.svg",
+      "size": 121010,
+      "sha256": "a74f3e3ee4e686ad2df269d7c8cb903b8198a9c9de2dfcc5b9839993b4f085c2",
+      "destination_path": "multiCSN/multiCSN.svg",
+      "remote_sha256": "a74f3e3ee4e686ad2df269d7c8cb903b8198a9c9de2dfcc5b9839993b4f085c2",
+      "verification": "size and SHA-256 match"
+    },
+    {
+      "path": "multiCSN/multiCSN-dark.svg",
+      "size": 121025,
+      "sha256": "c36d5ce70db4290b540e3552284094890d2f2687fd3de24be5e4ad48b8508eb6",
+      "destination_path": "multiCSN/multiCSN-dark.svg",
+      "remote_sha256": "c36d5ce70db4290b540e3552284094890d2f2687fd3de24be5e4ad48b8508eb6",
+      "verification": "size and SHA-256 match"
+    }
+  ],
+  "published_at": "2026-10-15T01:20:49.091936+08:00",
+  "source_repository": "/Users/mx/Study/repositories/figures",
+  "destination_repository": "https://github.com/mengxu98/figures",
+  "destination_branch": "main",
+  "result": "pushed",
+  "remote_commit_verified": "9acfc63c64033a38b01b60d7ffc66c6de92f98e2",
+  "derived_local_outputs": [
+    {
+      "path": "figures/fig1.svg",
+      "size": 121010,
+      "sha256": "a831fee26e44f0dcbd0e2ac46f6bd79d80ea8c6a52199b331ef62de699bbf149",
+      "result": "not added to analysis Git repository",
+      "reason": "Generated figures are ignored; website SVGs are published in figures repository and submission PDF is imported by papers"
+    },
+    {
+      "path": "figures/fig1-dark.svg",
+      "size": 121025,
+      "sha256": "df55ff9a46e6d489191f0f5f07beb61664df769affa9daf8fb5a8d37d900e5fd",
+      "result": "not added to analysis Git repository",
+      "reason": "Generated figures are ignored; website SVGs are published in figures repository and submission PDF is imported by papers"
+    },
+    {
+      "path": "figures/fig1.pdf",
+      "size": 81213,
+      "sha256": "564336b39222092e03626b26a1a28c535d704683fdab3379b6c04e515987da27",
+      "result": "not added to analysis Git repository",
+      "reason": "Generated figures are ignored; website SVGs are published in figures repository and submission PDF is imported by papers"
+    },
+    {
+      "path": "figures/fig1.png",
+      "size": 436816,
+      "sha256": "0fc77bc52035452dc608022d370b9d2122ce25cf485d7cde55899b6616ee5000",
+      "result": "not added to analysis Git repository",
+      "reason": "Generated figures are ignored; website SVGs are published in figures repository and submission PDF is imported by papers"
+    }
+  ]
+}
