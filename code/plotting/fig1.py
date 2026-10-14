@@ -33,7 +33,7 @@ LAYERS = {
     "a_motif_database": "a Motif database and editable sequence letters",
     "b_regression": "b Shared sparse-regression engine and BIC formula",
     "b_state_matrices": "b Independent fits within each cell type or state",
-    "c_feature_links": "c Regions TSS links motifs and gene",
+    "c_feature_links": "c Regions Gene domains motifs and gene",
     "c_triplet_formula": "c Exact genomic-region join formula",
     "d_tf_gene": "d Direct TF-gene network",
     "d_tf_region": "d TF-region network",
@@ -131,7 +131,7 @@ def validate(root, formulas=False):
     labels = ["".join(n.itertext()) for n in root.iter(f"{{{SVG_NS}}}text")]
     required = {"Paired or aligned ", "multiomics inputs", "Shared sparse-regression engine",
                 "Within each cell type or state", "TF-gene", "TF-region", "Region-gene",
-                "TF-region-gene triplets", "Network outputs", "CRE", "Gene", "TSS links"}
+                "TF-region-gene triplets", "Network outputs", "CRE", "Gene", "Gene domains"}
     if not required.issubset(labels):
         raise ValueError(f"Missing text labels: {required.difference(labels)}")
     if formulas:
@@ -3235,7 +3235,7 @@ SCENE = ('svg',
         'transform': 'translate(45.24 76.62)',
         'id': 'c_feature_links-text-005'},
        None,
-       [('tspan', {'x': '0', 'y': '0', 'id': 'c_feature_links-tspan-005'}, 'TSS links', [])])]),
+       [('tspan', {'x': '0', 'y': '0', 'id': 'c_feature_links-tspan-005'}, 'Gene domains', [])])]),
     ('g', {'id': 'c_triplet_formula'}, None, []),
     ('g',
      {'id': 'd_tf_gene'},

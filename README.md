@@ -9,6 +9,17 @@ bash code/requirements/install_environments.sh
 bash code/requirements/download_data.sh
 ```
 
+The default package installer follows the development branches. To reproduce the
+multiomics performance snapshot, extract `source_data/performance_reproducibility.zip`
+and install its hash-verified source archives into a separate library:
+
+```bash
+Rscript code/requirements/install_csn_packages.R /path/to/extracted_snapshot /path/to/isolated_library
+```
+
+The snapshot manifest identifies the exact source files even when package versions
+are unchanged. Add that library to the R library search path for the benchmark.
+
 Run the required tasks:
 
 | Command | Task |

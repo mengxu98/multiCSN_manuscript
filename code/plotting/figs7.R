@@ -345,16 +345,8 @@ base_sec <- runtime[clean_label == "multiCSN \u00b7 single core", seconds]
 runtime[, factor_vs_single := seconds / base_sec]
 runtime[, rel_tag := fifelse(
   clean_label == "multiCSN \u00b7 single core",
-  "1.0\u00d7 (Baseline)",
-  fifelse(
-    clean_label == "multiCSN \u00b7 8 cores",
-    "0.46\u00d7 (2.2\u00d7 faster)",
-    fifelse(
-      clean_label == "Pando \u00b7 8 cores",
-      "0.97\u00d7 (~parity)",
-      sprintf("%.1f\u00d7 slower", factor_vs_single)
-    )
-  )
+  "1.00\u00d7 (Baseline)",
+  sprintf("%.2f\u00d7", factor_vs_single)
 )]
 
 order_labels <- c(
