@@ -2,7 +2,9 @@
 
 Analysis, figures and Source Data for the multiCSN manuscript.
 
-Run commands from the repository root. Install dependencies and prepare data:
+Run commands from the repository root. Saved inputs for the manuscript figures and the final Source Data are included at their original paths. After installing dependencies, run `bash 06_plotting.sh` to redraw the figures.
+
+To run the full analyses, install dependencies and prepare the additional raw data:
 
 ```bash
 bash code/requirements/install_environments.sh

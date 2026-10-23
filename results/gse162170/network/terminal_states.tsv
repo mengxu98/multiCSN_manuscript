@@ -1,0 +1,5 @@
+barrier	status	targets	fraction_of_annotated_targets	candidate_pairs	selected_edges	barrier_label	fraction
+candidate_absence	no_domain_peak	1488	0.0557533066057177	0	0	No eligible domain peak	0.0557533066057177
+response_information	constant_response	2823	0.105773914346735	67911	0	Constant RNA response	0.105773914346735
+sparse_selection	empty_support	10717	0.401551200869272	318847	0	Empty sparse support	0.401551200869272
+selected_support	fit	11661	0.436921578178276	634518	37647	Selected support	0.436921578178276

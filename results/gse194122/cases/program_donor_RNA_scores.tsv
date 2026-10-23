@@ -1,0 +1,393 @@
+program	regulator	genes	signal	state	state_order	donor_id	RNA_score
+BNC2_chain_immune	BNC2	39	Target-program RNA	HSC	1	10886	3.0717638224633363
+BNC2_chain_immune	BNC2	39	Target-program RNA	HSC	1	11466	0.25102398362355705
+BNC2_chain_immune	BNC2	39	Target-program RNA	HSC	1	12710	0.27324358490296813
+BNC2_chain_immune	BNC2	39	Target-program RNA	HSC	1	13272	0.13012995376752268
+BNC2_chain_immune	BNC2	39	Target-program RNA	HSC	1	15078	0.4560564698681689
+BNC2_chain_immune	BNC2	39	Target-program RNA	HSC	1	16710	0.8733798872432113
+BNC2_chain_immune	BNC2	39	Target-program RNA	HSC	1	18303	0.3087714489801261
+BNC2_chain_immune	BNC2	39	Target-program RNA	HSC	1	19593	0.47143101809167814
+BNC2_chain_immune	BNC2	39	Target-program RNA	HSC	1	28045	0.15119582849415109
+BNC2_chain_immune	BNC2	39	Target-program RNA	HSC	1	28483	0.16122655541761835
+BNC2_chain_immune	BNC2	39	Target-program RNA	MK/E prog	2	10886	0.6372619951845104
+BNC2_chain_immune	BNC2	39	Target-program RNA	MK/E prog	2	11466	0.1454436828025605
+BNC2_chain_immune	BNC2	39	Target-program RNA	MK/E prog	2	12710	0.07280353309567059
+BNC2_chain_immune	BNC2	39	Target-program RNA	MK/E prog	2	13272	0.08901995230018955
+BNC2_chain_immune	BNC2	39	Target-program RNA	MK/E prog	2	15078	0.10038742694198999
+BNC2_chain_immune	BNC2	39	Target-program RNA	MK/E prog	2	18303	0.1121329709451771
+BNC2_chain_immune	BNC2	39	Target-program RNA	MK/E prog	2	19593	0.003905452247581226
+BNC2_chain_immune	BNC2	39	Target-program RNA	MK/E prog	2	28045	-0.21050573021630284
+BNC2_chain_immune	BNC2	39	Target-program RNA	MK/E prog	2	28483	0.2004902150009502
+BNC2_chain_immune	BNC2	39	Target-program RNA	Proerythroblast	3	10886	0.3061257479533264
+BNC2_chain_immune	BNC2	39	Target-program RNA	Proerythroblast	3	11466	-0.37286474261005725
+BNC2_chain_immune	BNC2	39	Target-program RNA	Proerythroblast	3	12710	-0.3218108492748177
+BNC2_chain_immune	BNC2	39	Target-program RNA	Proerythroblast	3	13272	-0.22804129628594177
+BNC2_chain_immune	BNC2	39	Target-program RNA	Proerythroblast	3	15078	-0.20188894034527322
+BNC2_chain_immune	BNC2	39	Target-program RNA	Proerythroblast	3	16710	0.719046512566913
+BNC2_chain_immune	BNC2	39	Target-program RNA	Proerythroblast	3	18303	-0.19241122069932023
+BNC2_chain_immune	BNC2	39	Target-program RNA	Proerythroblast	3	19593	-0.15816643147212447
+BNC2_chain_immune	BNC2	39	Target-program RNA	Proerythroblast	3	28045	-0.4487193589105708
+BNC2_chain_immune	BNC2	39	Target-program RNA	Proerythroblast	3	28483	-0.2884400695784167
+BNC2_chain_immune	BNC2	39	Target-program RNA	Erythroblast	4	10886	-0.007210503681640412
+BNC2_chain_immune	BNC2	39	Target-program RNA	Erythroblast	4	11466	-0.4774056871016032
+BNC2_chain_immune	BNC2	39	Target-program RNA	Erythroblast	4	12710	-0.4166901821656002
+BNC2_chain_immune	BNC2	39	Target-program RNA	Erythroblast	4	13272	-0.26882756634366334
+BNC2_chain_immune	BNC2	39	Target-program RNA	Erythroblast	4	15078	-0.373409024260387
+BNC2_chain_immune	BNC2	39	Target-program RNA	Erythroblast	4	16710	-0.258452710296109
+BNC2_chain_immune	BNC2	39	Target-program RNA	Erythroblast	4	18303	-0.5278051206661731
+BNC2_chain_immune	BNC2	39	Target-program RNA	Erythroblast	4	19593	-0.37777301756046006
+BNC2_chain_immune	BNC2	39	Target-program RNA	Erythroblast	4	28045	-0.4043193353219536
+BNC2_chain_immune	BNC2	39	Target-program RNA	Erythroblast	4	28483	-0.5662046130688676
+BNC2_chain_immune	BNC2	39	Target-program RNA	Normoblast	5	10886	1.0332382646708753
+BNC2_chain_immune	BNC2	39	Target-program RNA	Normoblast	5	11466	0.10480259850293645
+BNC2_chain_immune	BNC2	39	Target-program RNA	Normoblast	5	12710	-0.4361386878839049
+BNC2_chain_immune	BNC2	39	Target-program RNA	Normoblast	5	13272	-0.19105614262878667
+BNC2_chain_immune	BNC2	39	Target-program RNA	Normoblast	5	15078	-0.45091376913514847
+BNC2_chain_immune	BNC2	39	Target-program RNA	Normoblast	5	16710	-0.4847858985235217
+BNC2_chain_immune	BNC2	39	Target-program RNA	Normoblast	5	18303	-0.6159848290381541
+BNC2_chain_immune	BNC2	39	Target-program RNA	Normoblast	5	19593	-0.4203110347373618
+BNC2_chain_immune	BNC2	39	Target-program RNA	Normoblast	5	28045	-0.5334798795611315
+BNC2_chain_immune	BNC2	39	Target-program RNA	Normoblast	5	28483	-0.439264263697726
+BNC2_chain_immune	BNC2	39	TF RNA	HSC	1	10886	-0.5477929281858718
+BNC2_chain_immune	BNC2	39	TF RNA	HSC	1	11466	-0.5477929281858718
+BNC2_chain_immune	BNC2	39	TF RNA	HSC	1	12710	-0.5477929281858718
+BNC2_chain_immune	BNC2	39	TF RNA	HSC	1	13272	-0.5477929281858718
+BNC2_chain_immune	BNC2	39	TF RNA	HSC	1	15078	0.30205730378769435
+BNC2_chain_immune	BNC2	39	TF RNA	HSC	1	16710	5.8521284064511265
+BNC2_chain_immune	BNC2	39	TF RNA	HSC	1	18303	0.828107798317457
+BNC2_chain_immune	BNC2	39	TF RNA	HSC	1	19593	-0.27221876426396285
+BNC2_chain_immune	BNC2	39	TF RNA	HSC	1	28045	0.28121432733842444
+BNC2_chain_immune	BNC2	39	TF RNA	HSC	1	28483	-0.34656617070608436
+BNC2_chain_immune	BNC2	39	TF RNA	MK/E prog	2	10886	-0.07033638862939522
+BNC2_chain_immune	BNC2	39	TF RNA	MK/E prog	2	11466	-0.5477929281858718
+BNC2_chain_immune	BNC2	39	TF RNA	MK/E prog	2	12710	-0.5477929281858718
+BNC2_chain_immune	BNC2	39	TF RNA	MK/E prog	2	13272	0.018883011637289275
+BNC2_chain_immune	BNC2	39	TF RNA	MK/E prog	2	15078	0.3530555552468847
+BNC2_chain_immune	BNC2	39	TF RNA	MK/E prog	2	18303	-0.5477929281858718
+BNC2_chain_immune	BNC2	39	TF RNA	MK/E prog	2	19593	1.1084015833232448
+BNC2_chain_immune	BNC2	39	TF RNA	MK/E prog	2	28045	1.067966497129473
+BNC2_chain_immune	BNC2	39	TF RNA	MK/E prog	2	28483	-0.3166314647749592
+BNC2_chain_immune	BNC2	39	TF RNA	Proerythroblast	3	10886	-0.5477929281858718
+BNC2_chain_immune	BNC2	39	TF RNA	Proerythroblast	3	11466	-0.5477929281858718
+BNC2_chain_immune	BNC2	39	TF RNA	Proerythroblast	3	12710	-0.26632230706171883
+BNC2_chain_immune	BNC2	39	TF RNA	Proerythroblast	3	13272	0.48257646071610266
+BNC2_chain_immune	BNC2	39	TF RNA	Proerythroblast	3	15078	0.3375778607823221
+BNC2_chain_immune	BNC2	39	TF RNA	Proerythroblast	3	16710	1.0313604506515353
+BNC2_chain_immune	BNC2	39	TF RNA	Proerythroblast	3	18303	-0.20996244693047428
+BNC2_chain_immune	BNC2	39	TF RNA	Proerythroblast	3	19593	-0.0094692404869236
+BNC2_chain_immune	BNC2	39	TF RNA	Proerythroblast	3	28045	0.6326088757743297
+BNC2_chain_immune	BNC2	39	TF RNA	Proerythroblast	3	28483	0.8366840970299596
+BNC2_chain_immune	BNC2	39	TF RNA	Erythroblast	4	10886	-0.343293086334807
+BNC2_chain_immune	BNC2	39	TF RNA	Erythroblast	4	11466	-0.5477929281858718
+BNC2_chain_immune	BNC2	39	TF RNA	Erythroblast	4	12710	-0.30515688921160417
+BNC2_chain_immune	BNC2	39	TF RNA	Erythroblast	4	13272	0.08453363179553532
+BNC2_chain_immune	BNC2	39	TF RNA	Erythroblast	4	15078	-0.009401431277426722
+BNC2_chain_immune	BNC2	39	TF RNA	Erythroblast	4	16710	-0.5477929281858718
+BNC2_chain_immune	BNC2	39	TF RNA	Erythroblast	4	18303	-0.2337670870839219
+BNC2_chain_immune	BNC2	39	TF RNA	Erythroblast	4	19593	-0.5477929281858718
+BNC2_chain_immune	BNC2	39	TF RNA	Erythroblast	4	28045	-0.5477929281858718
+BNC2_chain_immune	BNC2	39	TF RNA	Erythroblast	4	28483	0.06961571862775932
+BNC2_chain_immune	BNC2	39	TF RNA	Normoblast	5	10886	0.899079263012077
+BNC2_chain_immune	BNC2	39	TF RNA	Normoblast	5	11466	-0.5477929281858718
+BNC2_chain_immune	BNC2	39	TF RNA	Normoblast	5	12710	-0.2990740729566309
+BNC2_chain_immune	BNC2	39	TF RNA	Normoblast	5	13272	-0.5477929281858718
+BNC2_chain_immune	BNC2	39	TF RNA	Normoblast	5	15078	-0.5477929281858718
+BNC2_chain_immune	BNC2	39	TF RNA	Normoblast	5	16710	-0.5477929281858718
+BNC2_chain_immune	BNC2	39	TF RNA	Normoblast	5	18303	-0.5477929281858718
+BNC2_chain_immune	BNC2	39	TF RNA	Normoblast	5	19593	-0.5477929281858718
+BNC2_chain_immune	BNC2	39	TF RNA	Normoblast	5	28045	-0.5477929281858718
+BNC2_chain_immune	BNC2	39	TF RNA	Normoblast	5	28483	-0.5477929281858718
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	HSC	1	10886	1.297607495085755
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	HSC	1	11466	0.4296664469749182
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	HSC	1	12710	1.1493592096998022
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	HSC	1	13272	0.026674957489941455
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	HSC	1	15078	0.25902994499643367
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	HSC	1	16710	0.8517549977207053
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	HSC	1	18303	0.3550113270790668
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	HSC	1	19593	-0.17197739147818178
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	HSC	1	28045	-1.3032864700646711
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	HSC	1	28483	0.3124161136105795
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	MK/E prog	2	10886	2.1648036601195932
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	MK/E prog	2	11466	0.9186509142869375
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	MK/E prog	2	12710	1.0854657618250285
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	MK/E prog	2	13272	0.3183185254703847
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	MK/E prog	2	15078	0.2628130380487814
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	MK/E prog	2	18303	1.3987060412756684
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	MK/E prog	2	19593	-0.2841719803237831
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	MK/E prog	2	28045	-1.066008889393326
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	MK/E prog	2	28483	0.7918574295413899
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Proerythroblast	3	10886	1.0627187417446669
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Proerythroblast	3	11466	0.7842796029416901
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Proerythroblast	3	12710	0.9750700779135804
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Proerythroblast	3	13272	0.33714468191792357
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Proerythroblast	3	15078	0.21022444947329091
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Proerythroblast	3	16710	1.108278889444257
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Proerythroblast	3	18303	0.9623343256295319
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Proerythroblast	3	19593	-0.08251710155202006
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Proerythroblast	3	28045	-1.028376285318837
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Proerythroblast	3	28483	0.6868860078849666
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Erythroblast	4	10886	0.5209488199689691
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Erythroblast	4	11466	0.5085111831932819
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Erythroblast	4	12710	0.4292630486008255
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Erythroblast	4	13272	-1.0055572928083236
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Erythroblast	4	15078	-0.2237869589964204
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Erythroblast	4	16710	0.1466017099731367
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Erythroblast	4	18303	0.14276798612906907
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Erythroblast	4	19593	-1.3987469781501567
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Erythroblast	4	28045	-1.2883386324555763
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Erythroblast	4	28483	-0.6279988746845014
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Normoblast	5	10886	-0.39393149676378003
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Normoblast	5	11466	-1.0266976640946557
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Normoblast	5	12710	-0.3441482644397123
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Normoblast	5	13272	-1.5675186355934383
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Normoblast	5	15078	-0.9038727931432883
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Normoblast	5	16710	-0.9610524625135212
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Normoblast	5	18303	-1.1488189370588295
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Normoblast	5	19593	-1.5127332438336432
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Normoblast	5	28045	-1.7825306227124682
+HMGA1_recurrent_translation	HMGA1	16	Target-program RNA	Normoblast	5	28483	-1.3750944126610407
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	HSC	1	10886	0.5960963374907331
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	HSC	1	11466	0.14642715779705304
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	HSC	1	12710	-0.042908944938990036
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	HSC	1	13272	-0.819951694697929
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	HSC	1	15078	-0.4210932697781109
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	HSC	1	16710	0.18768872434284412
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	HSC	1	18303	-0.21615461208068415
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	HSC	1	19593	-0.7880946668522003
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	HSC	1	28045	-1.0263313993726535
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	HSC	1	28483	-0.5415698038557545
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	MK/E prog	2	10886	1.9412495931166271
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	MK/E prog	2	11466	1.614635224800615
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	MK/E prog	2	12710	0.9191073889304842
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	MK/E prog	2	13272	0.46450711001678335
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	MK/E prog	2	15078	0.3841739414507101
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	MK/E prog	2	18303	1.3576054873033814
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	MK/E prog	2	19593	-0.5268198275964002
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	MK/E prog	2	28045	-0.5979865637804004
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	MK/E prog	2	28483	0.29343387005143495
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Proerythroblast	3	10886	1.198150675329192
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Proerythroblast	3	11466	2.410323814934553
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Proerythroblast	3	12710	0.917311368237736
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Proerythroblast	3	13272	0.37680820358617767
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Proerythroblast	3	15078	0.7806512403668627
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Proerythroblast	3	16710	2.175254515907891
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Proerythroblast	3	18303	1.2600177696401287
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Proerythroblast	3	19593	0.2696238926267943
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Proerythroblast	3	28045	0.0029882827317712305
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Proerythroblast	3	28483	1.1345156393423348
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Erythroblast	4	10886	0.30983024324506486
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Erythroblast	4	11466	1.4872906475022498
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Erythroblast	4	12710	-0.28741688960817413
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Erythroblast	4	13272	-1.1297059668429288
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Erythroblast	4	15078	-0.30903149846280775
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Erythroblast	4	16710	-0.06656542268636349
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Erythroblast	4	18303	-0.08503811731718935
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Erythroblast	4	19593	-1.0206777153539845
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Erythroblast	4	28045	-0.5760781907721166
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Erythroblast	4	28483	-0.6268068608796583
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Normoblast	5	10886	-1.0398834916323965
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Normoblast	5	11466	-1.2068152000229344
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Normoblast	5	12710	-0.930587577123261
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Normoblast	5	13272	-1.2068152000229344
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Normoblast	5	15078	-1.0817824097395745
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Normoblast	5	16710	-1.2068152000229344
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Normoblast	5	18303	-1.1642137129850783
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Normoblast	5	19593	-1.1179503312075925
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Normoblast	5	28045	-1.2068152000229344
+HMGA1_recurrent_translation	HMGA1	16	TF RNA	Normoblast	5	28483	-0.9837813610954341
+KLF1_heme	KLF1	13	Target-program RNA	HSC	1	10886	-0.6843425221449573
+KLF1_heme	KLF1	13	Target-program RNA	HSC	1	11466	-0.8531834997302377
+KLF1_heme	KLF1	13	Target-program RNA	HSC	1	12710	-0.8736245787164887
+KLF1_heme	KLF1	13	Target-program RNA	HSC	1	13272	-1.0143292369119687
+KLF1_heme	KLF1	13	Target-program RNA	HSC	1	15078	-0.9465882015196315
+KLF1_heme	KLF1	13	Target-program RNA	HSC	1	16710	-0.6845208307805787
+KLF1_heme	KLF1	13	Target-program RNA	HSC	1	18303	-0.8478905346299122
+KLF1_heme	KLF1	13	Target-program RNA	HSC	1	19593	-1.0088477183818658
+KLF1_heme	KLF1	13	Target-program RNA	HSC	1	28045	-0.9562372093225563
+KLF1_heme	KLF1	13	Target-program RNA	HSC	1	28483	-0.8706095788889588
+KLF1_heme	KLF1	13	Target-program RNA	MK/E prog	2	10886	-0.3641367156138771
+KLF1_heme	KLF1	13	Target-program RNA	MK/E prog	2	11466	-0.4714110982545676
+KLF1_heme	KLF1	13	Target-program RNA	MK/E prog	2	12710	-0.33113858194936346
+KLF1_heme	KLF1	13	Target-program RNA	MK/E prog	2	13272	-0.4580799073469669
+KLF1_heme	KLF1	13	Target-program RNA	MK/E prog	2	15078	-0.46287406416239235
+KLF1_heme	KLF1	13	Target-program RNA	MK/E prog	2	18303	-0.3932804923494775
+KLF1_heme	KLF1	13	Target-program RNA	MK/E prog	2	19593	-0.865729864209287
+KLF1_heme	KLF1	13	Target-program RNA	MK/E prog	2	28045	-0.559819003056882
+KLF1_heme	KLF1	13	Target-program RNA	MK/E prog	2	28483	-0.3623257707619095
+KLF1_heme	KLF1	13	Target-program RNA	Proerythroblast	3	10886	0.8348982800653604
+KLF1_heme	KLF1	13	Target-program RNA	Proerythroblast	3	11466	-0.4337947421268046
+KLF1_heme	KLF1	13	Target-program RNA	Proerythroblast	3	12710	0.29523554506250416
+KLF1_heme	KLF1	13	Target-program RNA	Proerythroblast	3	13272	-0.02625438214533091
+KLF1_heme	KLF1	13	Target-program RNA	Proerythroblast	3	15078	0.24829462128308719
+KLF1_heme	KLF1	13	Target-program RNA	Proerythroblast	3	16710	0.6554116346602867
+KLF1_heme	KLF1	13	Target-program RNA	Proerythroblast	3	18303	0.5593554248685667
+KLF1_heme	KLF1	13	Target-program RNA	Proerythroblast	3	19593	-0.27310858139150357
+KLF1_heme	KLF1	13	Target-program RNA	Proerythroblast	3	28045	0.26807330587735695
+KLF1_heme	KLF1	13	Target-program RNA	Proerythroblast	3	28483	0.7207728740727799
+KLF1_heme	KLF1	13	Target-program RNA	Erythroblast	4	10886	1.582474220179808
+KLF1_heme	KLF1	13	Target-program RNA	Erythroblast	4	11466	0.5104606810101026
+KLF1_heme	KLF1	13	Target-program RNA	Erythroblast	4	12710	0.8030063875283019
+KLF1_heme	KLF1	13	Target-program RNA	Erythroblast	4	13272	0.09385458655927228
+KLF1_heme	KLF1	13	Target-program RNA	Erythroblast	4	15078	0.973710185137401
+KLF1_heme	KLF1	13	Target-program RNA	Erythroblast	4	16710	1.2798747719782182
+KLF1_heme	KLF1	13	Target-program RNA	Erythroblast	4	18303	1.1356284811229456
+KLF1_heme	KLF1	13	Target-program RNA	Erythroblast	4	19593	-0.01456142600639293
+KLF1_heme	KLF1	13	Target-program RNA	Erythroblast	4	28045	0.5984608537025993
+KLF1_heme	KLF1	13	Target-program RNA	Erythroblast	4	28483	1.036639335997635
+KLF1_heme	KLF1	13	Target-program RNA	Normoblast	5	10886	0.4585228733835431
+KLF1_heme	KLF1	13	Target-program RNA	Normoblast	5	11466	0.43656727810628315
+KLF1_heme	KLF1	13	Target-program RNA	Normoblast	5	12710	-0.0586135003978492
+KLF1_heme	KLF1	13	Target-program RNA	Normoblast	5	13272	0.007921562286678917
+KLF1_heme	KLF1	13	Target-program RNA	Normoblast	5	15078	0.2913213534392943
+KLF1_heme	KLF1	13	Target-program RNA	Normoblast	5	16710	0.3489350421332989
+KLF1_heme	KLF1	13	Target-program RNA	Normoblast	5	18303	0.05662647433569217
+KLF1_heme	KLF1	13	Target-program RNA	Normoblast	5	19593	0.12385237251278515
+KLF1_heme	KLF1	13	Target-program RNA	Normoblast	5	28045	0.27751260366614755
+KLF1_heme	KLF1	13	Target-program RNA	Normoblast	5	28483	0.21789129182981287
+KLF1_heme	KLF1	13	TF RNA	HSC	1	10886	-1.2026436015770792
+KLF1_heme	KLF1	13	TF RNA	HSC	1	11466	-1.2026436015770792
+KLF1_heme	KLF1	13	TF RNA	HSC	1	12710	-1.1295150673433474
+KLF1_heme	KLF1	13	TF RNA	HSC	1	13272	-1.2026436015770792
+KLF1_heme	KLF1	13	TF RNA	HSC	1	15078	-1.1594746945338548
+KLF1_heme	KLF1	13	TF RNA	HSC	1	16710	-0.6142123007932017
+KLF1_heme	KLF1	13	TF RNA	HSC	1	18303	-1.1181779380787138
+KLF1_heme	KLF1	13	TF RNA	HSC	1	19593	-1.126770170975578
+KLF1_heme	KLF1	13	TF RNA	HSC	1	28045	-1.2026436015770792
+KLF1_heme	KLF1	13	TF RNA	HSC	1	28483	-1.193445883401514
+KLF1_heme	KLF1	13	TF RNA	MK/E prog	2	10886	-0.7984989973998357
+KLF1_heme	KLF1	13	TF RNA	MK/E prog	2	11466	-0.916193926357855
+KLF1_heme	KLF1	13	TF RNA	MK/E prog	2	12710	0.044663843757441264
+KLF1_heme	KLF1	13	TF RNA	MK/E prog	2	13272	-0.5592717998075399
+KLF1_heme	KLF1	13	TF RNA	MK/E prog	2	15078	-0.5379043819060267
+KLF1_heme	KLF1	13	TF RNA	MK/E prog	2	18303	-0.18111816728965158
+KLF1_heme	KLF1	13	TF RNA	MK/E prog	2	19593	-1.0251721165785754
+KLF1_heme	KLF1	13	TF RNA	MK/E prog	2	28045	-1.0403365234352613
+KLF1_heme	KLF1	13	TF RNA	MK/E prog	2	28483	-0.6141502518351092
+KLF1_heme	KLF1	13	TF RNA	Proerythroblast	3	10886	0.9490972338485643
+KLF1_heme	KLF1	13	TF RNA	Proerythroblast	3	11466	0.6275917237469788
+KLF1_heme	KLF1	13	TF RNA	Proerythroblast	3	12710	0.4274695345224315
+KLF1_heme	KLF1	13	TF RNA	Proerythroblast	3	13272	-0.21609620424396608
+KLF1_heme	KLF1	13	TF RNA	Proerythroblast	3	15078	-0.02706718989142422
+KLF1_heme	KLF1	13	TF RNA	Proerythroblast	3	16710	0.5874758457364377
+KLF1_heme	KLF1	13	TF RNA	Proerythroblast	3	18303	0.9291067315054241
+KLF1_heme	KLF1	13	TF RNA	Proerythroblast	3	19593	-0.5424765736826328
+KLF1_heme	KLF1	13	TF RNA	Proerythroblast	3	28045	-0.3148288504578738
+KLF1_heme	KLF1	13	TF RNA	Proerythroblast	3	28483	0.8642753891028574
+KLF1_heme	KLF1	13	TF RNA	Erythroblast	4	10886	2.3351434785097194
+KLF1_heme	KLF1	13	TF RNA	Erythroblast	4	11466	0.8919274980421078
+KLF1_heme	KLF1	13	TF RNA	Erythroblast	4	12710	1.2046050972755689
+KLF1_heme	KLF1	13	TF RNA	Erythroblast	4	13272	-0.38942603814375315
+KLF1_heme	KLF1	13	TF RNA	Erythroblast	4	15078	1.3941335633267382
+KLF1_heme	KLF1	13	TF RNA	Erythroblast	4	16710	2.4017889369136247
+KLF1_heme	KLF1	13	TF RNA	Erythroblast	4	18303	1.8974893862279583
+KLF1_heme	KLF1	13	TF RNA	Erythroblast	4	19593	-0.5131322936752475
+KLF1_heme	KLF1	13	TF RNA	Erythroblast	4	28045	-0.2457558640952081
+KLF1_heme	KLF1	13	TF RNA	Erythroblast	4	28483	1.7505296105273236
+KLF1_heme	KLF1	13	TF RNA	Normoblast	5	10886	0.8283373762066032
+KLF1_heme	KLF1	13	TF RNA	Normoblast	5	11466	0.4495982881543711
+KLF1_heme	KLF1	13	TF RNA	Normoblast	5	12710	0.20761110146304415
+KLF1_heme	KLF1	13	TF RNA	Normoblast	5	13272	-0.7901572071342645
+KLF1_heme	KLF1	13	TF RNA	Normoblast	5	15078	0.8647898432909078
+KLF1_heme	KLF1	13	TF RNA	Normoblast	5	16710	0.5570633948041618
+KLF1_heme	KLF1	13	TF RNA	Normoblast	5	18303	0.8584374030824953
+KLF1_heme	KLF1	13	TF RNA	Normoblast	5	19593	-0.7852162887231573
+KLF1_heme	KLF1	13	TF RNA	Normoblast	5	28045	0.4995599951135409
+KLF1_heme	KLF1	13	TF RNA	Normoblast	5	28483	0.07827786093360097
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	HSC	1	10886	-0.7393492951416516
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	HSC	1	11466	-0.9971101379213224
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	HSC	1	12710	-0.6369140080173008
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	HSC	1	13272	-0.9593774994014603
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	HSC	1	15078	-0.9278867514717273
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	HSC	1	16710	-0.8156272820615237
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	HSC	1	18303	-0.8932802951857309
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	HSC	1	19593	-1.0899165305066894
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	HSC	1	28045	-1.0218949761992888
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	HSC	1	28483	-0.9373462753433177
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	MK/E prog	2	10886	-0.8557690842263781
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	MK/E prog	2	11466	-0.7312080648400269
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	MK/E prog	2	12710	-0.352852368013731
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	MK/E prog	2	13272	-0.6199363719893883
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	MK/E prog	2	15078	-0.7435855953317299
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	MK/E prog	2	18303	-0.7745084548297742
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	MK/E prog	2	19593	-1.0501615735962306
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	MK/E prog	2	28045	-0.630279278567261
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	MK/E prog	2	28483	-0.7115215582588456
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Proerythroblast	3	10886	0.29534990625396373
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Proerythroblast	3	11466	-0.4148626901837202
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Proerythroblast	3	12710	0.027259537855411863
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Proerythroblast	3	13272	-0.2547087260032543
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Proerythroblast	3	15078	-0.01749172814009819
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Proerythroblast	3	16710	-0.13903171164310565
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Proerythroblast	3	18303	0.12081338345402391
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Proerythroblast	3	19593	-0.3978929896487161
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Proerythroblast	3	28045	0.0322612355219312
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Proerythroblast	3	28483	0.4519790796396554
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Erythroblast	4	10886	1.2353254266722635
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Erythroblast	4	11466	0.168079272774436
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Erythroblast	4	12710	0.8526896647651119
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Erythroblast	4	13272	0.5710830726463981
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Erythroblast	4	15078	1.0722974548405844
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Erythroblast	4	16710	1.1680059758199757
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Erythroblast	4	18303	1.0668741826808028
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Erythroblast	4	19593	0.39814621539755757
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Erythroblast	4	28045	0.8004280930314046
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Erythroblast	4	28483	1.2192916047068463
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Normoblast	5	10886	0.8926597271798674
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Normoblast	5	11466	1.1550088455237724
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Normoblast	5	12710	0.5633101298555999
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Normoblast	5	13272	0.4602590690021599
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Normoblast	5	15078	0.8643849858883497
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Normoblast	5	16710	0.7827629936937279
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Normoblast	5	18303	0.8101896067161014
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Normoblast	5	19593	0.43200643816422335
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Normoblast	5	28045	0.4128341311360009
+SOX6_positive_erythroid	SOX6	14	Target-program RNA	Normoblast	5	28483	0.8592132133021045
+SOX6_positive_erythroid	SOX6	14	TF RNA	HSC	1	10886	-1.1189066387144555
+SOX6_positive_erythroid	SOX6	14	TF RNA	HSC	1	11466	-1.1286270092068276
+SOX6_positive_erythroid	SOX6	14	TF RNA	HSC	1	12710	-1.0919289573722284
+SOX6_positive_erythroid	SOX6	14	TF RNA	HSC	1	13272	-1.1170937998894932
+SOX6_positive_erythroid	SOX6	14	TF RNA	HSC	1	15078	-1.0962113068178447
+SOX6_positive_erythroid	SOX6	14	TF RNA	HSC	1	16710	-1.1070948809163361
+SOX6_positive_erythroid	SOX6	14	TF RNA	HSC	1	18303	-1.136534554055794
+SOX6_positive_erythroid	SOX6	14	TF RNA	HSC	1	19593	-1.1193594578256332
+SOX6_positive_erythroid	SOX6	14	TF RNA	HSC	1	28045	-1.0295125303761052
+SOX6_positive_erythroid	SOX6	14	TF RNA	HSC	1	28483	-1.0970914496439634
+SOX6_positive_erythroid	SOX6	14	TF RNA	MK/E prog	2	10886	-1.1212721902046694
+SOX6_positive_erythroid	SOX6	14	TF RNA	MK/E prog	2	11466	-1.1526166279706005
+SOX6_positive_erythroid	SOX6	14	TF RNA	MK/E prog	2	12710	-0.8251508059046773
+SOX6_positive_erythroid	SOX6	14	TF RNA	MK/E prog	2	13272	-0.8665569443517077
+SOX6_positive_erythroid	SOX6	14	TF RNA	MK/E prog	2	15078	-1.0136602201156428
+SOX6_positive_erythroid	SOX6	14	TF RNA	MK/E prog	2	18303	-1.0724763649737354
+SOX6_positive_erythroid	SOX6	14	TF RNA	MK/E prog	2	19593	-1.1230200348166879
+SOX6_positive_erythroid	SOX6	14	TF RNA	MK/E prog	2	28045	-1.0321603756069717
+SOX6_positive_erythroid	SOX6	14	TF RNA	MK/E prog	2	28483	-1.100056288497926
+SOX6_positive_erythroid	SOX6	14	TF RNA	Proerythroblast	3	10886	0.09392335917751159
+SOX6_positive_erythroid	SOX6	14	TF RNA	Proerythroblast	3	11466	-0.6134411634525446
+SOX6_positive_erythroid	SOX6	14	TF RNA	Proerythroblast	3	12710	-0.0912161506141987
+SOX6_positive_erythroid	SOX6	14	TF RNA	Proerythroblast	3	13272	-0.2715303836225246
+SOX6_positive_erythroid	SOX6	14	TF RNA	Proerythroblast	3	15078	-0.08495903837886738
+SOX6_positive_erythroid	SOX6	14	TF RNA	Proerythroblast	3	16710	-0.4396113348518133
+SOX6_positive_erythroid	SOX6	14	TF RNA	Proerythroblast	3	18303	0.033396017494318475
+SOX6_positive_erythroid	SOX6	14	TF RNA	Proerythroblast	3	19593	-0.3730293725017032
+SOX6_positive_erythroid	SOX6	14	TF RNA	Proerythroblast	3	28045	0.010593658744391417
+SOX6_positive_erythroid	SOX6	14	TF RNA	Proerythroblast	3	28483	0.4072996956181313
+SOX6_positive_erythroid	SOX6	14	TF RNA	Erythroblast	4	10886	0.725853664427109
+SOX6_positive_erythroid	SOX6	14	TF RNA	Erythroblast	4	11466	0.5910221749892363
+SOX6_positive_erythroid	SOX6	14	TF RNA	Erythroblast	4	12710	0.8387680533770265
+SOX6_positive_erythroid	SOX6	14	TF RNA	Erythroblast	4	13272	1.1414314221984294
+SOX6_positive_erythroid	SOX6	14	TF RNA	Erythroblast	4	15078	0.9093966543882376
+SOX6_positive_erythroid	SOX6	14	TF RNA	Erythroblast	4	16710	0.9105631500752528
+SOX6_positive_erythroid	SOX6	14	TF RNA	Erythroblast	4	18303	0.8040588432527177
+SOX6_positive_erythroid	SOX6	14	TF RNA	Erythroblast	4	19593	1.1203152435948263
+SOX6_positive_erythroid	SOX6	14	TF RNA	Erythroblast	4	28045	1.0456300729311978
+SOX6_positive_erythroid	SOX6	14	TF RNA	Erythroblast	4	28483	1.2589809234188378
+SOX6_positive_erythroid	SOX6	14	TF RNA	Normoblast	5	10886	0.5756436438662271
+SOX6_positive_erythroid	SOX6	14	TF RNA	Normoblast	5	11466	1.3863807788675575
+SOX6_positive_erythroid	SOX6	14	TF RNA	Normoblast	5	12710	1.1308211510578108
+SOX6_positive_erythroid	SOX6	14	TF RNA	Normoblast	5	13272	1.5434341742370823
+SOX6_positive_erythroid	SOX6	14	TF RNA	Normoblast	5	15078	1.2619958872911257
+SOX6_positive_erythroid	SOX6	14	TF RNA	Normoblast	5	16710	1.1211384902455959
+SOX6_positive_erythroid	SOX6	14	TF RNA	Normoblast	5	18303	1.0563409565846071
+SOX6_positive_erythroid	SOX6	14	TF RNA	Normoblast	5	19593	1.3040891176523774
+SOX6_positive_erythroid	SOX6	14	TF RNA	Normoblast	5	28045	1.3414036212223688
+SOX6_positive_erythroid	SOX6	14	TF RNA	Normoblast	5	28483	1.6106371259709766

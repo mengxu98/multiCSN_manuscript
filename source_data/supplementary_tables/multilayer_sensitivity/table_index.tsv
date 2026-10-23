@@ -1,0 +1,21 @@
+Figure	File	Rows	Columns
+Figure 5e	erythroid_cell_budget/module_coupling.tsv	5820	5
+Figure 5e	erythroid_cell_budget/module_state_profiles.tsv.gz	29100	7
+Methods: Erythroid network stability and program analysis	erythroid_cell_budget/focal_GO_summary.tsv	33	7
+Methods: Erythroid network stability and program analysis	erythroid_cell_budget/focal_GO_all_tests.tsv.gz	167310	15
+Figure 5i; Figure S15a; Methods: Erythroid network stability and program analysis	erythroid_application_validation/HMGA1_gene_recurrence.tsv	1552	13
+Figure 5i; Methods: Erythroid network stability and program analysis	erythroid_application_validation/HMGA1_GO_all_tests.tsv.gz	138144	20
+Methods: Erythroid network stability and program analysis	erythroid_application_validation/HMGA1_size_only_reference.tsv	150	12
+Table S6; Methods	erythroid_application_validation/GATA1_all_reference_chain_tests.tsv.gz	20	18
+Table S6; Methods	erythroid_application_validation/GATA1_all_timepoint_tests.tsv.gz	70	20
+Figure 5i,j; Figure S15c	erythroid_functional_programs/focal_TF_raw_expression.tsv	196	7
+Figure 5j; Figure S15c; Methods: Erythroid network stability and program analysis	erythroid_regulatory_programs/direct_module_GO_all_tests.tsv.gz	5146050	9
+Figure S15d; Methods: Erythroid network stability and program analysis	erythroid_regulatory_programs/chain_module_GO_all_tests.tsv.gz	2950740	9
+Methods: Erythroid network stability and program analysis	erythroid_regulatory_programs/all_module_RNA_summary.tsv	1597	9
+Methods: Erythroid network stability and program analysis	erythroid_regulatory_programs/all_module_RNA_contrasts.tsv	6388	9
+Methods: Erythroid network stability and program analysis	erythroid_regulatory_programs/HMGA1_BNC2_background_GO_all_tests.tsv.gz	17633	13
+Figure 5f; Figure S14; Methods: Erythroid network stability and program analysis	erythroid_link_recurrence/all_TF_state_support.tsv.gz	70675	7
+Figure 5i; Figure S15d; Methods: Erythroid network stability and program analysis	erythroid_link_recurrence/focal_TF_transition_sizes.tsv	968	9
+Methods: Erythroid network stability and program analysis	erythroid_link_recurrence/all_TF_expression_by_state.tsv	3220	6
+Methods: Erythroid network stability and program analysis	erythroid_link_recurrence/all_TF_paired_expression_changes.tsv	2576	7
+Table S4	locus_display_ordering.tsv	2	8

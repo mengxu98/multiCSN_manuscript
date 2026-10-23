@@ -1,0 +1,448 @@
+<?xml version='1.0' encoding='utf-8'?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="1983" height="793" viewBox="0 0 1983 793" version="1.1" font-family="Arial, Helvetica, sans-serif">
+  <title>Single-cell multiomics regulatory network inference</title>
+  <desc>Independent TF–gene, TF–region and region–gene fits. Exact genomic-region matching produces region-resolved networks for fetal-cortex examples, with direct TF–gene overlap assessed separately; direct TF–gene associations and RNA profiles describe contrasting HMGA1 and SOX6 erythroid programs.</desc>
+  <defs>
+    <radialGradient id="input-panel" cx="50%" cy="46%" r="90%">
+      <stop offset="0%" stop-color="#fafafb" />
+      <stop offset="50%" stop-color="#f4f4f7" />
+      <stop offset="100%" stop-color="#e9eaf0" />
+    </radialGradient>
+    <linearGradient id="method-panel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e9eaf0" />
+      <stop offset="52%" stop-color="#eff0f4" />
+      <stop offset="100%" stop-color="#e9eaf0" />
+    </linearGradient>
+    <linearGradient id="application-panel" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#eeeff3" />
+      <stop offset="100%" stop-color="#e9eaf0" />
+    </linearGradient>
+    <linearGradient id="caption-fill" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#e2e3ea" />
+      <stop offset="100%" stop-color="#dcdee7" />
+    </linearGradient>
+    <linearGradient id="tf-node" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#2d2d2b" />
+      <stop offset="100%" stop-color="#171817" />
+    </linearGradient>
+    <linearGradient id="region-node" x1="0%" y1="0%" x2="20%" y2="100%">
+      <stop offset="0%" stop-color="#07c76f" />
+      <stop offset="100%" stop-color="#00b94d" />
+    </linearGradient>
+    <radialGradient id="gene-node" cx="35%" cy="35%" r="75%">
+      <stop offset="0%" stop-color="#ff8434" />
+      <stop offset="100%" stop-color="#ff6c13" />
+    </radialGradient>
+    <radialGradient id="cell-body" cx="37%" cy="30%" r="76%">
+      <stop offset="0%" stop-color="#fff0f6" />
+      <stop offset="55%" stop-color="#ffc0d8" />
+      <stop offset="100%" stop-color="#ff8fb8" />
+    </radialGradient>
+    <radialGradient id="cell-nucleus" cx="33%" cy="32%" r="76%">
+      <stop offset="0%" stop-color="#8248a3" />
+      <stop offset="100%" stop-color="#54216f" />
+    </radialGradient>
+    <radialGradient id="neuron-blue" cx="36%" cy="30%" r="73%">
+      <stop offset="0%" stop-color="#79dfff" />
+      <stop offset="100%" stop-color="#00a8f0" />
+    </radialGradient>
+    <radialGradient id="neuron-green" cx="36%" cy="30%" r="73%">
+      <stop offset="0%" stop-color="#95e1ad" />
+      <stop offset="100%" stop-color="#3cbd75" />
+    </radialGradient>
+  </defs>
+  <rect x="0" y="0" width="1983" height="793" rx="0" fill="#ffffff" id="canvas-background" />
+  <g id="input-data" inkscape:label="Single-cell multiomics inputs" inkscape:groupmode="layer">
+    <rect x="20" y="19" width="482" height="738" rx="20" fill="url(#input-panel)" stroke="#b9bcc8" stroke-width="1.8" id="object-002" />
+    <g id="input-content" inkscape:label="Centered input contents" transform="translate(0,24)">
+      <rect x="31.5" y="35" width="459" height="66" rx="20" fill="url(#caption-fill)" id="object-003" />
+      <text x="261" y="79" fill="#090765" font-size="40" font-weight="bold" text-anchor="middle" id="object-004">Single-cell multiomics</text>
+      <text x="148.5" y="157" fill="#090765" font-size="33" font-weight="bold" text-anchor="middle" id="object-005">RNA</text>
+      <text x="373.5" y="157" fill="#090765" font-size="33" font-weight="bold" text-anchor="middle" id="object-006">ATAC</text>
+      <g id="rna" inkscape:label="RNA matrix cells">
+        <rect x="53.5" y="170" width="27.142857142857142" height="29" rx="0" fill="#b0d5fd" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-1-column-1" />
+        <rect x="80.64285714285714" y="170" width="27.142857142857142" height="29" rx="0" fill="#a1d1fd" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-1-column-2" />
+        <rect x="107.78571428571428" y="170" width="27.142857142857142" height="29" rx="0" fill="#d8e7fd" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-1-column-3" />
+        <rect x="134.92857142857144" y="170" width="27.142857142857142" height="29" rx="0" fill="#61b4fd" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-1-column-4" />
+        <rect x="162.07142857142856" y="170" width="27.142857142857142" height="29" rx="0" fill="#019afd" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-1-column-5" />
+        <rect x="189.21428571428572" y="170" width="27.142857142857142" height="29" rx="0" fill="#86cbfe" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-1-column-6" />
+        <rect x="216.35714285714286" y="170" width="27.142857142857142" height="29" rx="0" fill="#019afc" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-1-column-7" />
+        <rect x="53.5" y="199" width="27.142857142857142" height="29" rx="0" fill="#f5f9fd" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-2-column-1" />
+        <rect x="80.64285714285714" y="199" width="27.142857142857142" height="29" rx="0" fill="#85bffd" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-2-column-2" />
+        <rect x="107.78571428571428" y="199" width="27.142857142857142" height="29" rx="0" fill="#0280fd" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-2-column-3" />
+        <rect x="134.92857142857144" y="199" width="27.142857142857142" height="29" rx="0" fill="#f6fafe" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-2-column-4" />
+        <rect x="162.07142857142856" y="199" width="27.142857142857142" height="29" rx="0" fill="#85c3fe" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-2-column-5" />
+        <rect x="189.21428571428572" y="199" width="27.142857142857142" height="29" rx="0" fill="#cde7fd" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-2-column-6" />
+        <rect x="216.35714285714286" y="199" width="27.142857142857142" height="29" rx="0" fill="#88ccfc" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-2-column-7" />
+        <rect x="53.5" y="228" width="27.142857142857142" height="29" rx="0" fill="#dcebfd" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-3-column-1" />
+        <rect x="80.64285714285714" y="228" width="27.142857142857142" height="29" rx="0" fill="#fcfdfe" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-3-column-2" />
+        <rect x="107.78571428571428" y="228" width="27.142857142857142" height="29" rx="0" fill="#90c4fd" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-3-column-3" />
+        <rect x="134.92857142857144" y="228" width="27.142857142857142" height="29" rx="0" fill="#e5f0fd" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-3-column-4" />
+        <rect x="162.07142857142856" y="228" width="27.142857142857142" height="29" rx="0" fill="#018bfd" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-3-column-5" />
+        <rect x="189.21428571428572" y="228" width="27.142857142857142" height="29" rx="0" fill="#0096fc" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-3-column-6" />
+        <rect x="216.35714285714286" y="228" width="27.142857142857142" height="29" rx="0" fill="#89cdfd" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-3-column-7" />
+        <rect x="53.5" y="257" width="27.142857142857142" height="29" rx="0" fill="#bfdcfd" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-4-column-1" />
+        <rect x="80.64285714285714" y="257" width="27.142857142857142" height="29" rx="0" fill="#88c0fd" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-4-column-2" />
+        <rect x="107.78571428571428" y="257" width="27.142857142857142" height="29" rx="0" fill="#dce3fd" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-4-column-3" />
+        <rect x="134.92857142857144" y="257" width="27.142857142857142" height="29" rx="0" fill="#6eb9fd" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-4-column-4" />
+        <rect x="162.07142857142856" y="257" width="27.142857142857142" height="29" rx="0" fill="#deedfe" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-4-column-5" />
+        <rect x="189.21428571428572" y="257" width="27.142857142857142" height="29" rx="0" fill="#60c0fe" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-4-column-6" />
+        <rect x="216.35714285714286" y="257" width="27.142857142857142" height="29" rx="0" fill="#91d3fe" stroke="#eaf2fa" stroke-width="0.45" id="rna-row-4-column-7" />
+      </g>
+      <g id="atac" inkscape:label="ATAC matrix cells">
+        <rect x="278.5" y="170" width="27.142857142857142" height="29" rx="0" fill="#d9efd8" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-1-column-1" />
+        <rect x="305.64285714285717" y="170" width="27.142857142857142" height="29" rx="0" fill="#d6eed6" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-1-column-2" />
+        <rect x="332.7857142857143" y="170" width="27.142857142857142" height="29" rx="0" fill="#8dd295" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-1-column-3" />
+        <rect x="359.92857142857144" y="170" width="27.142857142857142" height="29" rx="0" fill="#d3ecd3" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-1-column-4" />
+        <rect x="387.07142857142856" y="170" width="27.142857142857142" height="29" rx="0" fill="#63c473" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-1-column-5" />
+        <rect x="414.2142857142857" y="170" width="27.142857142857142" height="29" rx="0" fill="#7ccb93" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-1-column-6" />
+        <rect x="441.3571428571429" y="170" width="27.142857142857142" height="29" rx="0" fill="#82cd9b" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-1-column-7" />
+        <rect x="278.5" y="199" width="27.142857142857142" height="29" rx="0" fill="#e4f4e2" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-2-column-1" />
+        <rect x="305.64285714285717" y="199" width="27.142857142857142" height="29" rx="0" fill="#a8dcb2" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-2-column-2" />
+        <rect x="332.7857142857143" y="199" width="27.142857142857142" height="29" rx="0" fill="#ddf2de" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-2-column-3" />
+        <rect x="359.92857142857144" y="199" width="27.142857142857142" height="29" rx="0" fill="#6ec87e" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-2-column-4" />
+        <rect x="387.07142857142856" y="199" width="27.142857142857142" height="29" rx="0" fill="#d8eed7" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-2-column-5" />
+        <rect x="414.2142857142857" y="199" width="27.142857142857142" height="29" rx="0" fill="#018354" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-2-column-6" />
+        <rect x="441.3571428571429" y="199" width="27.142857142857142" height="29" rx="0" fill="#97d4af" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-2-column-7" />
+        <rect x="278.5" y="228" width="27.142857142857142" height="29" rx="0" fill="#afddb4" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-3-column-1" />
+        <rect x="305.64285714285717" y="228" width="27.142857142857142" height="29" rx="0" fill="#e2f2e1" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-3-column-2" />
+        <rect x="332.7857142857143" y="228" width="27.142857142857142" height="29" rx="0" fill="#bde6c1" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-3-column-3" />
+        <rect x="359.92857142857144" y="228" width="27.142857142857142" height="29" rx="0" fill="#35be5d" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-3-column-4" />
+        <rect x="387.07142857142856" y="228" width="27.142857142857142" height="29" rx="0" fill="#69c480" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-3-column-5" />
+        <rect x="414.2142857142857" y="228" width="27.142857142857142" height="29" rx="0" fill="#d5edd7" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-3-column-6" />
+        <rect x="441.3571428571429" y="228" width="27.142857142857142" height="29" rx="0" fill="#9bd8ac" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-3-column-7" />
+        <rect x="278.5" y="257" width="27.142857142857142" height="29" rx="0" fill="#ddf1db" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-4-column-1" />
+        <rect x="305.64285714285717" y="257" width="27.142857142857142" height="29" rx="0" fill="#aadbac" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-4-column-2" />
+        <rect x="332.7857142857143" y="257" width="27.142857142857142" height="29" rx="0" fill="#dcf0db" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-4-column-3" />
+        <rect x="359.92857142857144" y="257" width="27.142857142857142" height="29" rx="0" fill="#bfe4c2" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-4-column-4" />
+        <rect x="387.07142857142856" y="257" width="27.142857142857142" height="29" rx="0" fill="#02b540" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-4-column-5" />
+        <rect x="414.2142857142857" y="257" width="27.142857142857142" height="29" rx="0" fill="#9fdbb1" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-4-column-6" />
+        <rect x="441.3571428571429" y="257" width="27.142857142857142" height="29" rx="0" fill="#02ba3e" stroke="#eaf2fa" stroke-width="0.45" id="atac-row-4-column-7" />
+      </g>
+      <text x="148.5" y="321" fill="#090765" font-size="28" font-weight="normal" text-anchor="middle" id="object-063">Genes × cells</text>
+      <text x="373.5" y="321" fill="#090765" font-size="28" font-weight="normal" text-anchor="middle" id="object-064">Regions × cells</text>
+      <g id="paired-or-aligned" inkscape:label="Paired or aligned profiles">
+        <rect x="101" y="348" width="320" height="49" rx="21" fill="url(#caption-fill)" id="object-065" />
+        <text x="261" y="381" fill="#090765" font-size="29" font-weight="normal" text-anchor="middle" id="object-066">Paired or aligned</text>
+      </g>
+      <g id="candidate-resources" inkscape:label="Motifs and annotation candidate resources" transform="translate(42,12)">
+        <text x="219" y="496" fill="#090765" font-size="35" font-weight="normal" text-anchor="middle" id="object-067">Motifs + annotations</text>
+        <g id="motif-logo" inkscape:label="Editable motif letters" transform="translate(28,14)">
+          <text x="0" y="0" fill="#ff0711" font-size="110" font-weight="bold" text-anchor="start" transform="translate(56,596) scale(0.50587710,1)" id="object-068">T</text>
+          <text x="0" y="0" fill="#ffad00" font-size="61" font-weight="bold" text-anchor="start" transform="translate(85,572) scale(0.61106663,1)" id="object-069">G</text>
+          <text x="0" y="0" fill="#00b840" font-size="35" font-weight="bold" text-anchor="start" transform="translate(89,596) scale(1.02888801,1)" id="object-070">A</text>
+          <text x="0" y="0" fill="#ff0711" font-size="110" font-weight="bold" text-anchor="start" transform="translate(116,596) scale(0.49099836,1)" id="object-071">T</text>
+          <text x="0" y="0" fill="#ff0711" font-size="65" font-weight="bold" text-anchor="start" transform="translate(150,576) scale(0.67984389,1)" id="object-072">T</text>
+          <text x="0" y="0" fill="#ffad00" font-size="34" font-weight="bold" text-anchor="start" transform="translate(151,596) scale(0.94510812,1)" id="object-073">G</text>
+          <text x="0" y="0" fill="#ff0711" font-size="52" font-weight="bold" text-anchor="start" transform="translate(179,576) scale(0.72390784,1)" id="object-074">T</text>
+          <text x="0" y="0" fill="#ffad00" font-size="34" font-weight="bold" text-anchor="start" transform="translate(181,596) scale(0.90730380,1)" id="object-075">G</text>
+        </g>
+        <g id="annotation-database" inkscape:label="Annotation database cylinder" transform="translate(-4,2)">
+          <path d="M277,531 V604 C277,627 360,627 360,604 V531" fill="#ffffff" stroke="#090765" stroke-width="4.3" stroke-linejoin="round" stroke-linecap="round" id="object-076" />
+          <path d="M277,555 C277,578 360,578 360,555" fill="none" stroke="#090765" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" id="object-077" />
+          <path d="M277,581 C277,604 360,604 360,581" fill="none" stroke="#090765" stroke-width="4" stroke-linejoin="round" stroke-linecap="round" id="object-078" />
+          <ellipse cx="318.5" cy="531" rx="41.5" ry="17" fill="#ffffff" stroke="#090765" stroke-width="4.3" id="object-079" />
+        </g>
+      </g>
+    </g>
+  </g>
+  <g id="inference-framework" inkscape:label="Independent fits and region matching" inkscape:groupmode="layer">
+    <rect x="550" y="16" width="704" height="743" rx="19" fill="url(#method-panel)" id="object-080" />
+    <g id="method-content" inkscape:label="Inference contents" transform="translate(0,24)">
+      <text x="909" y="67" fill="#090765" font-size="39" font-weight="bold" text-anchor="middle" id="object-081">Independent sparse fits</text>
+      <text x="902" y="118" fill="#090765" font-size="31" font-weight="normal" text-anchor="middle" id="object-082">Greedy–ℓ₀ · <tspan font-style="italic">BIC</tspan>
+      </text>
+      <g id="network-flow" inkscape:label="Regulatory fits and application connections" transform="translate(0,28)">
+        <g id="independent-tf-gene-fit" inkscape:label="Independent TF–gene fit">
+          <rect x="567" y="160" width="201" height="121" rx="19" fill="#ffffff" id="object-083" />
+          <text x="664" y="202" fill="#090765" font-size="29" font-weight="normal" text-anchor="middle" id="object-084">TF–gene</text>
+          <rect x="591.0" y="220.0" width="42" height="40" rx="0" fill="url(#tf-node)" stroke="#eef6fb" stroke-width="0.8" id="object-085" />
+          <path d="M644,241 L679,241" fill="none" stroke="#687fb9" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round" id="object-086" />
+          <polygon points="697,241 679,250 679,232" fill="#687fb9" id="object-087" />
+          <circle cx="724" cy="241" r="23" fill="url(#gene-node)" stroke="#fff9ed" stroke-width="1.2" id="object-088" />
+        </g>
+        <g id="independent-tf-region-fit" inkscape:label="Independent TF–region fit">
+          <rect x="787" y="160" width="220" height="121" rx="19" fill="#ffffff" id="object-089" />
+          <text x="899" y="202" fill="#090765" font-size="29" font-weight="normal" text-anchor="middle" id="object-090">TF–region</text>
+          <rect x="813.5" y="220.0" width="41" height="40" rx="0" fill="url(#tf-node)" stroke="#eef6fb" stroke-width="0.8" id="object-091" />
+          <path d="M866,241 L903,241" fill="none" stroke="#687fb9" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round" id="object-092" />
+          <polygon points="921,241 903,250 903,232" fill="#687fb9" id="object-093" />
+          <polygon points="953,217 978,241 953,265 928,241" fill="url(#region-node)" stroke="#f8ffff" stroke-width="0.8" id="object-094" />
+        </g>
+        <g id="independent-region-gene-fit" inkscape:label="Independent Region–gene fit">
+          <rect x="1025" y="160" width="207" height="121" rx="19" fill="#ffffff" id="object-095" />
+          <text x="1128" y="202" fill="#090765" font-size="29" font-weight="normal" text-anchor="middle" id="object-096">Region–gene</text>
+          <polygon points="1070,217 1095,241 1070,265 1045,241" fill="url(#region-node)" stroke="#f8ffff" stroke-width="0.8" id="object-097" />
+          <path d="M1104,241 L1142,241" fill="none" stroke="#687fb9" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round" id="object-098" />
+          <polygon points="1160,241 1142,250 1142,232" fill="#687fb9" id="object-099" />
+          <circle cx="1188" cy="241" r="23" fill="url(#gene-node)" stroke="#fff9ed" stroke-width="1.2" id="object-100" />
+        </g>
+        <g id="exact-region-matching" inkscape:label="Only two chromatin layers enter exact matching">
+          <path d="M875,282 V315 Q875,334 894,334 H921 Q941,334 941,355" fill="none" stroke="#687fb9" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round" id="object-101" />
+          <path d="M1109,282 V315 Q1109,334 1090,334 H1063 Q1043,334 1043,355" fill="none" stroke="#687fb9" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round" id="object-102" />
+          <rect x="807" y="357" width="309" height="48" rx="22" fill="url(#caption-fill)" id="object-103" />
+          <text x="962" y="391" fill="#090765" font-size="28" font-weight="normal" text-anchor="middle" id="object-104">Exact region matching</text>
+          <path d="M943,407 L943,435" fill="none" stroke="#687fb9" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round" id="object-105" />
+          <polygon points="943,455 933,435 953,435" fill="#687fb9" id="object-106" />
+        </g>
+        <g id="region-resolved-chain" inkscape:label="Region-resolved TF→Region→Gene chain">
+          <rect x="715.0" y="459.0" width="56" height="50" rx="0" fill="url(#tf-node)" stroke="#eef6fb" stroke-width="0.8" id="object-107" />
+          <text x="742" y="543" fill="#090765" font-size="27" font-weight="bold" text-anchor="middle" id="object-108">TF</text>
+          <path d="M783,484 L881,484" fill="none" stroke="#687fb9" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round" id="object-109" />
+          <polygon points="903,484 881,495 881,473" fill="#687fb9" id="object-110" />
+          <polygon points="943,455 974,484 943,513 912,484" fill="url(#region-node)" stroke="#f8ffff" stroke-width="0.8" id="object-111" />
+          <text x="943" y="540" fill="#090765" font-size="29" font-weight="bold" text-anchor="middle" id="object-112">Region</text>
+          <path d="M986,484 L1101,484" fill="none" stroke="#687fb9" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round" id="object-113" />
+          <polygon points="1123,484 1101,495 1101,473" fill="#687fb9" id="object-114" />
+          <circle cx="1161" cy="484" r="28.5" fill="url(#gene-node)" stroke="#fff9ed" stroke-width="1.2" id="object-115" />
+          <text x="1158" y="545" fill="#090765" font-size="28" font-weight="bold" text-anchor="middle" id="object-116">Gene</text>
+          <g id="genomic-region-strip" inkscape:label="Genomic region peaks">
+            <path d="M861,586 L864,573 L868,571 L869,559 L883,559 L885,573 L889,586 Z" fill="url(#region-node)" stroke-linejoin="round" stroke-linecap="round" id="genomic-peak-1" />
+            <path d="M928,586 L930,572 L933,571 L934,559 L946,559 L948,573 L951,586 Z" fill="url(#region-node)" stroke-linejoin="round" stroke-linecap="round" id="genomic-peak-2" />
+            <path d="M972,586 L975,575 L994,575 L997,586 Z" fill="url(#region-node)" stroke-linejoin="round" stroke-linecap="round" id="genomic-peak-3" />
+            <path d="M1000,586 L1003,573 L1007,571 L1008,559 L1020,559 L1022,574 L1025,586 Z" fill="url(#region-node)" stroke-linejoin="round" stroke-linecap="round" id="genomic-peak-4" />
+            <path d="M824,588 H1062" fill="none" stroke="#687fb9" stroke-width="3.2" stroke-linejoin="round" stroke-linecap="round" id="object-121" />
+            <text x="945" y="619" fill="#090765" font-size="26" font-weight="normal" text-anchor="middle" id="object-122">Genomic region</text>
+          </g>
+        </g>
+        <g id="direct-network-output" inkscape:label="Direct TF–gene output to erythroid">
+          <path d="M657,282 V553" fill="none" stroke="#687fb9" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round" id="object-123" />
+          <rect x="559" y="555" width="193" height="75" rx="18" fill="url(#caption-fill)" id="object-124" />
+          <text x="655" y="590" fill="#090765" font-size="27" font-weight="normal" text-anchor="middle" id="object-125">Direct TF–gene</text>
+          <text x="655" y="618" fill="#090765" font-size="27" font-weight="normal" text-anchor="middle" id="object-126">networks</text>
+          <path d="M657,631 V653 Q657,663 667,663 H1254" fill="none" stroke="#687fb9" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round" id="object-127" />
+          <path d="M1254,663 L1260,663" fill="none" stroke="#687fb9" stroke-width="4.3" stroke-linejoin="round" stroke-linecap="round" id="object-128" />
+          <polygon points="1282,663 1260,674 1260,652" fill="#687fb9" id="object-129" />
+        </g>
+        <g id="region-chain-output" inkscape:label="Region chain output to fetal cortex">
+          <path d="M1198,484 H1239 Q1249,484 1249,474 V171" fill="none" stroke="#687fb9" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round" id="object-130" />
+        </g>
+        <g id="direct-network-cortex-output" inkscape:label="Direct TF–gene overlap comparison in fetal cortex">
+          <path d="M768,220 H778 V150 Q778,140 788,140 H1239 Q1249,140 1249,150 V171" fill="none" stroke="#687fb9" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round" id="object-131" />
+          <text x="1085" y="132" fill="#090765" font-size="21" font-weight="normal" text-anchor="middle" id="object-132">Direct-link overlap</text>
+        </g>
+        <g id="cortex-network-output" inkscape:label="Both network outputs enter the fetal-cortex analysis">
+          <path d="M1249,171 H1254" fill="none" stroke="#687fb9" stroke-width="3.4" stroke-linejoin="round" stroke-linecap="round" id="object-133" />
+          <path d="M1254,171 L1260,171" fill="none" stroke="#687fb9" stroke-width="4.3" stroke-linejoin="round" stroke-linecap="round" id="object-134" />
+          <polygon points="1282,171 1260,182 1260,160" fill="#687fb9" id="object-135" />
+        </g>
+      </g>
+    </g>
+  </g>
+  <g id="fetal-cortex" inkscape:label="Fetal cortex examples" inkscape:groupmode="layer">
+    <rect x="1283" y="16" width="681" height="335" rx="18" fill="url(#application-panel)" id="object-136" />
+    <text x="1305" y="56" fill="#090765" font-size="28" font-weight="bold" text-anchor="start" id="object-137">Fetal cortex</text>
+    <path d="M1631,92 V331" fill="none" stroke="#b5b7c2" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round" id="object-138" />
+    <g id="excitatory-neuron" inkscape:label="Excitatory neuron">
+      <path d="M1386,96 L1384,108 L1380,115" fill="none" stroke="#009bfa" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-1" />
+      <path d="M1345,112 L1350,122" fill="none" stroke="#009bfa" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-2" />
+      <path d="M1380,116 L1381,129 L1382,130" fill="none" stroke="#009bfa" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-3" />
+      <path d="M1403,117 L1392,126 L1383,130" fill="none" stroke="#009bfa" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-4" />
+      <path d="M1351,123 L1351,125 L1355,132 L1359,136 L1359,140 L1363,148" fill="none" stroke="#009bfa" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-5" />
+      <path d="M1412,130 L1405,141 L1405,144" fill="none" stroke="#009bfa" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-6" />
+      <path d="M1382,131 L1382,134 L1379,138 L1378,143" fill="none" stroke="#009bfa" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-7" />
+      <path d="M1344,141 L1346,147" fill="none" stroke="#009bfa" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-8" />
+      <path d="M1422,142 L1411,145 L1406,145" fill="none" stroke="#009bfa" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-9" />
+      <path d="M1377,144 L1373,144 L1364,148" fill="none" stroke="#009bfa" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-10" />
+      <path d="M1379,144 L1384,146 L1391,152" fill="none" stroke="#009bfa" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-11" />
+      <path d="M1405,145 L1402,148 L1392,152" fill="none" stroke="#009bfa" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-12" />
+      <path d="M1347,148 L1360,152" fill="none" stroke="#009bfa" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-13" />
+      <path d="M1346,149 L1339,153 L1330,152 L1322,155 L1317,155" fill="none" stroke="#009bfa" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-14" />
+      <path d="M1363,149 L1361,152" fill="none" stroke="#009bfa" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-15" />
+      <path d="M1361,153 L1360,154 L1360,165 L1362,171" fill="none" stroke="#009bfa" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-16" />
+      <path d="M1391,153 L1391,158 L1392,159 L1391,167" fill="none" stroke="#009bfa" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-17" />
+      <path d="M1390,168 L1382,175" fill="none" stroke="#009bfa" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-18" />
+      <path d="M1392,168 L1397,169 L1400,172 L1408,173 L1417,176" fill="none" stroke="#009bfa" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-19" />
+      <path d="M1361,172 L1351,180 L1328,203" fill="none" stroke="#009bfa" stroke-width="3.8" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-20" />
+      <path d="M1363,172 L1375,176 L1380,175" fill="none" stroke="#009bfa" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-21" />
+      <path d="M1381,176 L1383,189 L1389,196 L1392,203 L1394,219" fill="none" stroke="#009bfa" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-22" />
+      <path d="M1418,177 L1427,187" fill="none" stroke="#009bfa" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-23" />
+      <path d="M1399,183 L1403,188" fill="none" stroke="#009bfa" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-24" />
+      <path d="M1307,192 L1323,199 L1326,202" fill="none" stroke="#009bfa" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-25" />
+      <path d="M1326,203 L1323,206 L1316,209" fill="none" stroke="#009bfa" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-26" />
+      <path d="M1328,203 L1330,205 L1330,207 L1329,208 L1329,216 L1327,225" fill="none" stroke="#009bfa" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-27" />
+      <path d="M1314,209 L1306,210" fill="none" stroke="#009bfa" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-28" />
+      <path d="M1315,210 L1314,215 L1310,219" fill="none" stroke="#009bfa" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" id="excitatory-neuron-branch-29" />
+      <circle cx="1376" cy="160" r="17.2" fill="url(#neuron-blue)" stroke="#009bfa" stroke-width="1.1" id="object-168" />
+      <circle cx="1376" cy="160.5" r="8.6" fill="#088ad6" id="object-169" />
+      <circle cx="1373" cy="157" r="3.5" fill="#48c6f5" opacity="0.4" id="object-170" />
+    </g>
+    <g id="inhibitory-neuron" inkscape:label="Inhibitory neuron">
+      <path d="M1724,91 L1722,93 L1722,102 L1721,106 L1719,108" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-1" />
+      <path d="M1715,103 L1718,108" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-2" />
+      <path d="M1682,109 L1687,118" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-3" />
+      <path d="M1719,109 L1719,125 L1718,126 L1719,130" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-4" />
+      <path d="M1692,114 L1688,118" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-5" />
+      <path d="M1742,115 L1725,128 L1719,130" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-6" />
+      <path d="M1688,119 L1688,122 L1696,135 L1698,142 L1701,146" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-7" />
+      <path d="M1749,129 L1743,139 L1743,143" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-8" />
+      <path d="M1719,130 L1717,132 L1717,141" fill="none" stroke="#00b74f" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-9" />
+      <path d="M1679,139 L1682,146" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-10" />
+      <path d="M1762,141 L1756,141 L1744,144" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-11" />
+      <path d="M1716,142 L1708,143 L1706,145 L1702,146" fill="none" stroke="#00b74f" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-12" />
+      <path d="M1718,142 L1723,144 L1729,151" fill="none" stroke="#00b74f" stroke-width="3.8" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-13" />
+      <path d="M1742,144 L1739,147 L1730,151" fill="none" stroke="#00b74f" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-14" />
+      <path d="M1682,146 L1686,146 L1699,151" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-15" />
+      <path d="M1682,146 L1678,150 L1664,150 L1655,152" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-16" />
+      <path d="M1701,147 L1699,151" fill="none" stroke="#00b74f" stroke-width="3.5" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-17" />
+      <path d="M1699,151 L1698,153 L1698,162 L1701,169" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-18" />
+      <path d="M1730,152 L1729,165" fill="none" stroke="#00b74f" stroke-width="2.8" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-19" />
+      <path d="M1729,166 L1737,168 L1740,171 L1757,174" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-20" />
+      <path d="M1728,167 L1725,171 L1720,174" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-21" />
+      <path d="M1702,170 L1709,174 L1713,175 L1718,174" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-22" />
+      <path d="M1701,171 L1681,187 L1666,202" fill="none" stroke="#00b74f" stroke-width="3.8" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-23" />
+      <path d="M1719,175 L1721,187 L1725,191 L1730,202 L1731,218 L1732,219" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-24" />
+      <path d="M1758,175 L1765,184 L1768,186" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-25" />
+      <path d="M1738,183 L1742,187" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-26" />
+      <path d="M1642,192 L1652,194 L1662,199 L1665,202" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-27" />
+      <path d="M1664,203 L1654,209" fill="none" stroke="#00b74f" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-28" />
+      <path d="M1666,203 L1667,204 L1667,213 L1666,214 L1665,224" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-29" />
+      <path d="M1652,209 L1641,210" fill="none" stroke="#00b74f" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-30" />
+      <path d="M1653,210 L1652,215 L1648,219" fill="none" stroke="#00b74f" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round" id="inhibitory-neuron-branch-31" />
+      <circle cx="1714" cy="159" r="17.2" fill="url(#neuron-green)" stroke="#00b74f" stroke-width="1.1" id="object-202" />
+      <circle cx="1714" cy="159.5" r="8.6" fill="#2d9b75" id="object-203" />
+      <circle cx="1711" cy="156" r="3.5" fill="#67d197" opacity="0.4" id="object-204" />
+    </g>
+    <g id="znf804a-network" inkscape:label="TF–region–gene cortical example">
+      <rect x="1459.5" y="96.5" width="28" height="29" rx="0" fill="url(#tf-node)" stroke="#eef6fb" stroke-width="0.8" id="object-205" />
+      <rect x="1510.5" y="96.5" width="28" height="29" rx="0" fill="url(#tf-node)" stroke="#eef6fb" stroke-width="0.8" id="object-206" />
+      <rect x="1564.0" y="96.5" width="28" height="29" rx="0" fill="url(#tf-node)" stroke="#eef6fb" stroke-width="0.8" id="object-207" />
+      <polygon points="1487.5,165 1508.5,185 1487.5,205 1466.5,185" fill="url(#region-node)" stroke="#f8ffff" stroke-width="0.8" id="object-208" />
+      <polygon points="1567,165 1588,185 1567,205 1546,185" fill="url(#region-node)" stroke="#f8ffff" stroke-width="0.8" id="object-209" />
+      <circle cx="1527.5" cy="271" r="22" fill="url(#gene-node)" stroke="#fff9ed" stroke-width="1.2" id="object-210" />
+      <g id="znf804a-network-edge-1">
+        <path d="M1475.5,129 L1481.93,151.5" fill="none" stroke="#687fb9" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" id="object-211" />
+        <polygon points="1485.5,164 1475.68,153.286 1488.18,149.715" fill="#687fb9" id="object-212" />
+      </g>
+      <g id="znf804a-network-edge-2">
+        <path d="M1517.5,130 L1499.7,151.911" fill="none" stroke="#687fb9" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" id="object-213" />
+        <polygon points="1491.5,162 1494.65,147.812 1504.74,156.009" fill="#687fb9" id="object-214" />
+      </g>
+      <g id="znf804a-network-edge-3">
+        <path d="M1534.5,130 L1554.5,153.161" fill="none" stroke="#687fb9" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" id="object-215" />
+        <polygon points="1563,163 1549.58,157.41 1559.42,148.913" fill="#687fb9" id="object-216" />
+      </g>
+      <g id="znf804a-network-edge-4">
+        <path d="M1576,129 L1571.55,151.252" fill="none" stroke="#687fb9" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" id="object-217" />
+        <polygon points="1569,164 1565.18,149.978 1577.92,152.527" fill="#687fb9" id="object-218" />
+      </g>
+      <g id="znf804a-network-edge-5">
+        <path d="M1495.5,209 L1512.81,237.853" fill="none" stroke="#687fb9" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" id="object-219" />
+        <polygon points="1519.5,249 1507.24,241.197 1518.39,234.508" fill="#687fb9" id="object-220" />
+      </g>
+      <g id="znf804a-network-edge-6">
+        <path d="M1559,209 L1542.87,237.67" fill="none" stroke="#687fb9" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" id="object-221" />
+        <polygon points="1536.5,249 1537.21,234.483 1548.54,240.856" fill="#687fb9" id="object-222" />
+      </g>
+    </g>
+    <g id="kcnc2-network" inkscape:label="TF–region–gene cortical example">
+      <rect x="1806.0" y="96.5" width="28" height="29" rx="0" fill="url(#tf-node)" stroke="#eef6fb" stroke-width="0.8" id="object-223" />
+      <rect x="1854.0" y="96.5" width="28" height="29" rx="0" fill="url(#tf-node)" stroke="#eef6fb" stroke-width="0.8" id="object-224" />
+      <rect x="1903.0" y="96.5" width="28" height="29" rx="0" fill="url(#tf-node)" stroke="#eef6fb" stroke-width="0.8" id="object-225" />
+      <polygon points="1829,165 1850,185 1829,205 1808,185" fill="url(#region-node)" stroke="#f8ffff" stroke-width="0.8" id="object-226" />
+      <polygon points="1903,165 1924,185 1903,205 1882,185" fill="url(#region-node)" stroke="#f8ffff" stroke-width="0.8" id="object-227" />
+      <circle cx="1866" cy="271" r="22" fill="url(#gene-node)" stroke="#fff9ed" stroke-width="1.2" id="object-228" />
+      <g id="kcnc2-network-edge-1">
+        <path d="M1822,129 L1825.16,151.131" fill="none" stroke="#687fb9" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" id="object-229" />
+        <polygon points="1827,164 1818.73,152.05 1831.6,150.211" fill="#687fb9" id="object-230" />
+      </g>
+      <g id="kcnc2-network-edge-2">
+        <path d="M1861,130 L1841.56,152.217" fill="none" stroke="#687fb9" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" id="object-231" />
+        <polygon points="1833,162 1836.67,147.936 1846.45,156.497" fill="#687fb9" id="object-232" />
+      </g>
+      <g id="kcnc2-network-edge-3">
+        <path d="M1878,130 L1892.02,152.032" fill="none" stroke="#687fb9" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" id="object-233" />
+        <polygon points="1899,163 1886.54,155.522 1897.5,148.543" fill="#687fb9" id="object-234" />
+      </g>
+      <g id="kcnc2-network-edge-4">
+        <path d="M1915,129 L1908.57,151.5" fill="none" stroke="#687fb9" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" id="object-235" />
+        <polygon points="1905,164 1902.32,149.715 1914.82,153.286" fill="#687fb9" id="object-236" />
+      </g>
+      <g id="kcnc2-network-edge-5">
+        <path d="M1837,209 L1851.96,237.49" fill="none" stroke="#687fb9" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" id="object-237" />
+        <polygon points="1858,249 1846.2,240.511 1857.71,234.468" fill="#687fb9" id="object-238" />
+      </g>
+      <g id="kcnc2-network-edge-6">
+        <path d="M1895,209 L1880.81,237.372" fill="none" stroke="#687fb9" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" id="object-239" />
+        <polygon points="1875,249 1875,234.466 1886.63,240.279" fill="#687fb9" id="object-240" />
+      </g>
+    </g>
+    <text x="1371" y="270" fill="#090765" font-size="27" font-weight="normal" text-anchor="middle" id="object-241">Excitatory</text>
+    <text x="1376" y="298" fill="#090765" font-size="27" font-weight="normal" text-anchor="middle" id="object-242">neuron</text>
+    <text x="1717" y="270" fill="#090765" font-size="27" font-weight="normal" text-anchor="middle" id="object-243">Inhibitory</text>
+    <text x="1720" y="299" fill="#090765" font-size="27" font-weight="normal" text-anchor="middle" id="object-244">neuron</text>
+    <text x="1531" y="326" fill="#090765" font-size="26" font-weight="normal" text-anchor="middle" font-style="italic" id="object-245">ZNF804A</text>
+    <text x="1869" y="326" fill="#090765" font-size="26" font-weight="normal" text-anchor="middle" font-style="italic" id="object-246">KCNC2</text>
+  </g>
+  <g id="erythroid-maturation" inkscape:label="Stage-associated erythroid RNA programs" inkscape:groupmode="layer">
+    <rect x="1283" y="365" width="681" height="393" rx="18" fill="url(#application-panel)" id="object-247" />
+    <text x="1303" y="404" fill="#090765" font-size="31" font-weight="bold" text-anchor="start" id="object-248">Erythroid maturation</text>
+    <path d="M1597,447 V689" fill="none" stroke="#b5b7c2" stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round" id="object-249" />
+    <path d="M1454,470 V604" fill="none" stroke="#b5b7c2" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round" id="object-250" />
+    <path d="M1854,470 V604" fill="none" stroke="#b5b7c2" stroke-width="1.1" stroke-linejoin="round" stroke-linecap="round" id="object-251" />
+    <g id="hmga1-example" inkscape:label="HMGA1 Erythroblast-to-Normoblast lost targets">
+      <g id="hmga1-erythroblast" inkscape:label="Nucleated erythroid cell">
+        <circle cx="1335" cy="536" r="28" fill="url(#cell-body)" stroke="#ff1825" stroke-width="2.1" id="object-252" />
+        <circle cx="1335" cy="536" r="25.6" fill="none" stroke="#fff6fc" stroke-width="1.2" id="object-253" />
+        <circle cx="1335" cy="536" r="13" fill="url(#cell-nucleus)" id="object-254" />
+      </g>
+      <g id="hmga1-normoblast" inkscape:label="Nucleated erythroid cell">
+        <circle cx="1419" cy="538" r="25.5" fill="url(#cell-body)" stroke="#ff1825" stroke-width="2.1" id="object-255" />
+        <circle cx="1419" cy="538" r="23.1" fill="none" stroke="#fff6fc" stroke-width="1.2" id="object-256" />
+        <circle cx="1419" cy="538" r="11.5" fill="url(#cell-nucleus)" id="object-257" />
+      </g>
+      <path d="M1368,536 L1378,536" fill="none" stroke="#687fb9" stroke-width="2.6" stroke-linejoin="round" stroke-linecap="round" id="object-258" />
+      <polygon points="1389,536 1378,541.5 1378,530.5" fill="#687fb9" id="object-259" />
+      <text x="1379" y="591" fill="#090765" font-size="22" font-weight="normal" text-anchor="middle" id="object-260">Ery → Norm</text>
+      <text x="1527" y="470" fill="#090765" font-size="26" font-weight="normal" text-anchor="middle" font-style="italic" id="object-261">HMGA1</text>
+      <rect x="1508.0" y="479.5" width="28" height="27" rx="0" fill="url(#tf-node)" stroke="#eef6fb" stroke-width="0.8" id="object-262" />
+      <path d="M1515,511 L1502.51,544.806" fill="none" stroke="#687fb9" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="9 7" id="object-263" />
+      <polygon points="1498,557 1496.41,542.553 1508.6,547.059" fill="#687fb9" id="object-264" />
+      <path d="M1532,511 L1545.26,544.894" fill="none" stroke="#687fb9" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="9 7" id="object-265" />
+      <polygon points="1550,557 1539.21,547.262 1551.32,542.525" fill="#687fb9" id="object-266" />
+      <circle cx="1498" cy="575" r="17.5" fill="url(#gene-node)" stroke="#fff9ed" stroke-width="1.2" id="object-267" />
+      <circle cx="1550" cy="575" r="17.5" fill="url(#gene-node)" stroke="#fff9ed" stroke-width="1.2" id="object-268" />
+      <text x="1443" y="648" fill="#090765" font-size="20" font-weight="bold" text-anchor="middle" id="object-269">Translation-gene RNA declines</text>
+      <text x="1440" y="678" fill="#090765" font-size="19" font-weight="normal" text-anchor="middle" id="object-270">Recurrent TF–gene link losses</text>
+    </g>
+    <g id="sox6-example" inkscape:label="SOX6-associated erythroid-development RNA increases from Proerythroblast to Erythroblast">
+      <g id="sox6-proerythroblast" inkscape:label="Nucleated erythroid cell">
+        <circle cx="1642" cy="537" r="26" fill="url(#cell-body)" stroke="#ff1825" stroke-width="2.1" id="object-271" />
+        <circle cx="1642" cy="537" r="23.6" fill="none" stroke="#fff6fc" stroke-width="1.2" id="object-272" />
+        <circle cx="1642" cy="537" r="12" fill="url(#cell-nucleus)" id="object-273" />
+      </g>
+      <g id="sox6-erythroblast" inkscape:label="Nucleated erythroid cell">
+        <circle cx="1779" cy="537" r="25" fill="url(#cell-body)" stroke="#ff1825" stroke-width="2.1" id="object-274" />
+        <circle cx="1779" cy="537" r="22.6" fill="none" stroke="#fff6fc" stroke-width="1.2" id="object-275" />
+        <circle cx="1779" cy="537" r="12" fill="url(#cell-nucleus)" id="object-276" />
+      </g>
+      <path d="M1675,537 L1737,537" fill="none" stroke="#687fb9" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" id="object-277" />
+      <polygon points="1748,537 1737,542.5 1737,531.5" fill="#687fb9" id="object-278" />
+      <text x="1711" y="496" fill="#090765" font-size="21" font-weight="normal" text-anchor="middle" id="object-279">RNA rises</text>
+      <text x="1642" y="590" fill="#090765" font-size="22" font-weight="normal" text-anchor="middle" id="object-280">ProE</text>
+      <text x="1779" y="590" fill="#090765" font-size="22" font-weight="normal" text-anchor="middle" id="object-281">Ery</text>
+      <text x="1907" y="470" fill="#090765" font-size="26" font-weight="normal" text-anchor="middle" font-style="italic" id="object-282">SOX6</text>
+      <rect x="1893.0" y="480.5" width="28" height="27" rx="0" fill="url(#tf-node)" stroke="#eef6fb" stroke-width="0.8" id="object-283" />
+      <path d="M1900,515 L1887.88,544.95" fill="none" stroke="#00c85b" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" id="object-284" />
+      <polygon points="1883,557 1881.85,542.511 1893.9,547.388" fill="#00c85b" id="object-285" />
+      <path d="M1918,515 L1930.88,545.051" fill="none" stroke="#00c85b" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" id="object-286" />
+      <polygon points="1936,557 1924.9,547.612 1936.85,542.491" fill="#00c85b" id="object-287" />
+      <circle cx="1883" cy="575" r="17.5" fill="url(#gene-node)" stroke="#fff9ed" stroke-width="1.2" id="object-288" />
+      <circle cx="1936" cy="575" r="17.5" fill="url(#gene-node)" stroke="#fff9ed" stroke-width="1.2" id="object-289" />
+      <text x="1779" y="648" fill="#090765" font-size="21" font-weight="bold" text-anchor="middle" id="object-290">Erythroid-development RNA rises</text>
+      <text x="1785" y="678" fill="#090765" font-size="19" font-weight="normal" text-anchor="middle" id="object-291">14 annotated positive direct targets</text>
+    </g>
+    <g id="edge-style-key" inkscape:label="Schematic inferred direct associations and link losses">
+      <path d="M1473,725 L1519,725" fill="none" stroke="#00c85b" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" id="object-292" />
+      <polygon points="1535,725 1519,733 1519,717" fill="#00c85b" id="object-293" />
+      <text x="1552" y="732" fill="#090765" font-size="21" font-weight="normal" text-anchor="start" id="object-294">Positive</text>
+      <path d="M1660,725 L1706,725" fill="none" stroke="#687fb9" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round" stroke-dasharray="10 7" id="object-295" />
+      <polygon points="1722,725 1706,733 1706,717" fill="#687fb9" id="object-296" />
+      <text x="1739" y="732" fill="#090765" font-size="21" font-weight="normal" text-anchor="start" id="object-297">Link loss</text>
+    </g>
+  </g>
+  <g id="common-input-arrow" inkscape:label="All inputs enter the inference framework" inkscape:groupmode="layer">
+    <path d="M502,351 L527,351" fill="none" stroke="#687fb9" stroke-width="4.3" stroke-linejoin="round" stroke-linecap="round" id="object-298" />
+    <polygon points="549,351 527,362 527,340" fill="#687fb9" id="object-299" />
+  </g>
+</svg>

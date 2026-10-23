@@ -1,0 +1,5 @@
+timepoint	tf_region_edges	region_gene_edges	direct_tf_gene_edges	triplets	backbone_selected_triplets	backbone_sign_concordant_triplets	mediated_tf_gene_relations
+day 7	618927	20379	189002	99844	8561	8141	94297
+day 9	504850	15489	195117	70546	7163	6538	67066
+day 11	537163	16476	169003	86440	6184	5321	83386
+day 14	419997	14679	110900	80547	3469	3179	77990

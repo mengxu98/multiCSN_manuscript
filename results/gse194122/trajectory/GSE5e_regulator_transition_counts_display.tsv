@@ -1,0 +1,69 @@
+endpoint	transition_order	previous_state	next_state	transition	regulator	gained	lost	shared_sign_flip	shared_sign_stable	turnover	net_edge_change
+TF-gene	1	HSC	MK/E prog	HSC -> MK/E prog	HMGA1	579	320	1	207	900	259
+TF-gene	1	HSC	MK/E prog	HSC -> MK/E prog	MAZ	402	311	0	51	713	91
+TF-gene	1	HSC	MK/E prog	HSC -> MK/E prog	NFIA	584	102	4	10	690	482
+TF-gene	1	HSC	MK/E prog	HSC -> MK/E prog	JUNB	297	390	1	138	688	-93
+TF-gene	1	HSC	MK/E prog	HSC -> MK/E prog	JAZF1	276	401	2	16	679	-125
+TF-gene	1	HSC	MK/E prog	HSC -> MK/E prog	LYL1	540	125	0	92	665	415
+TF-gene	1	HSC	MK/E prog	HSC -> MK/E prog	ETV6	400	240	0	42	640	160
+TF-gene	1	HSC	MK/E prog	HSC -> MK/E prog	RREB1	441	188	1	21	630	253
+TF-gene	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	HMGA1	751	396	0	391	1147	355
+TF-gene	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	KLF1	797	268	0	127	1065	529
+TF-gene	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	HMGB2	663	294	0	115	957	369
+TF-gene	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	NFIA	514	424	0	174	938	90
+TF-gene	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	LYL1	354	500	0	132	854	-146
+TF-gene	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	MAZ	539	310	1	142	850	229
+TF-gene	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	RREB1	436	396	0	67	832	40
+TF-gene	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	HMGB1	560	252	2	205	814	308
+TF-gene	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	HMGA1	1012	464	0	678	1476	548
+TF-gene	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	JAZF1	997	393	13	199	1403	604
+TF-gene	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	RUNX1	809	383	0	177	1192	426
+TF-gene	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	NFIA	764	327	1	360	1092	437
+TF-gene	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	HMGB2	617	466	1	311	1084	151
+TF-gene	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	HMGB1	690	377	1	389	1068	313
+TF-gene	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	SOX6	617	426	20	277	1063	191
+TF-gene	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	KLF1	424	635	1	288	1060	-211
+TF-gene	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	HMGA1	205	1639	0	51	1844	-1434
+TF-gene	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	JAZF1	411	1021	14	174	1446	-610
+TF-gene	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	ZNF470	943	260	11	12	1214	683
+TF-gene	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	ZNF512B	837	360	5	26	1202	477
+TF-gene	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	ZNF793	868	304	11	20	1183	564
+TF-gene	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	ZXDA	829	302	22	17	1153	527
+TF-gene	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	NFIA	135	1008	3	114	1146	-873
+TF-gene	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	HMGB1	73	1039	2	39	1114	-966
+factorized-chain	1	HSC	MK/E prog	HSC -> MK/E prog	ZNF225	91	152	0	0	243	-61
+factorized-chain	1	HSC	MK/E prog	HSC -> MK/E prog	ZNF880	91	69	0	0	160	22
+factorized-chain	1	HSC	MK/E prog	HSC -> MK/E prog	PRDM8	103	44	0	0	147	59
+factorized-chain	1	HSC	MK/E prog	HSC -> MK/E prog	ZNF470	72	75	0	0	147	-3
+factorized-chain	1	HSC	MK/E prog	HSC -> MK/E prog	TSHZ2	61	77	0	1	138	-16
+factorized-chain	1	HSC	MK/E prog	HSC -> MK/E prog	BNC2	49	86	0	0	135	-37
+factorized-chain	1	HSC	MK/E prog	HSC -> MK/E prog	PRDM10	70	63	0	0	133	7
+factorized-chain	1	HSC	MK/E prog	HSC -> MK/E prog	SPIB	68	65	0	0	133	3
+factorized-chain	1	HSC	MK/E prog	HSC -> MK/E prog	ZNF513	91	42	0	0	133	49
+factorized-chain	1	HSC	MK/E prog	HSC -> MK/E prog	ZNF79	85	42	0	0	127	43
+factorized-chain	1	HSC	MK/E prog	HSC -> MK/E prog	ZNF518B	73	53	0	0	126	20
+factorized-chain	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	PRDM8	128	103	0	0	231	25
+factorized-chain	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	KLF4	147	41	0	1	188	106
+factorized-chain	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	ZNF287	120	63	0	0	183	57
+factorized-chain	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	ZNF513	87	90	0	1	177	-3
+factorized-chain	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	IRF1	118	39	0	1	157	79
+factorized-chain	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	TRERF1	122	33	0	1	155	89
+factorized-chain	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	SPIB	87	66	0	2	153	21
+factorized-chain	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	FOSL2	114	37	0	1	151	77
+factorized-chain	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	TRERF1	234	118	0	5	352	116
+factorized-chain	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	TOX	269	78	0	7	347	191
+factorized-chain	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	HMGA1	287	18	0	0	305	269
+factorized-chain	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	BNC2	233	71	0	3	304	162
+factorized-chain	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	ARID3A	191	95	0	4	286	96
+factorized-chain	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	IRF1	153	113	0	6	266	40
+factorized-chain	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	PRDM8	135	125	0	3	260	10
+factorized-chain	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	ZNF287	139	120	0	0	259	19
+factorized-chain	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	PRDM8	343	135	0	3	478	208
+factorized-chain	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	HIVEP3	249	131	0	7	380	118
+factorized-chain	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	TOX	102	271	0	5	373	-169
+factorized-chain	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	ZNF470	239	124	0	0	363	115
+factorized-chain	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	TRERF1	127	235	0	4	362	-108
+factorized-chain	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	ZNF827	207	155	0	1	362	52
+factorized-chain	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	HMGA1	75	286	0	1	361	-211
+factorized-chain	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	BNC2	115	232	0	4	347	-117
+factorized-chain	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	IRF1	173	157	0	2	330	16
