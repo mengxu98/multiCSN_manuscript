@@ -1,0 +1,6 @@
+regulator	go_id	term	overlap	annotated_set	annotated_universe	term_genes	p_value	p_adjust	test_family	gene_ratio	display_order
+HMGA1	GO:0002181	cytoplasmic translation	16	23	1294	117	1.06680494204631e-12	1.46899040519777e-09	BH across all eligible terms for the 23-gene recurrent-loss core against fixed HMGA1 source-state targets	0.695652173913044	1
+HMGA1	GO:0042274	ribosomal small subunit biogenesis	6	23	1294	49	0.000133680408645803	0.0460194806763175	BH across all eligible terms for the 23-gene recurrent-loss core against fixed HMGA1 source-state targets	0.260869565217391	2
+SOX6	GO:0007059	chromosome segregation	68	607	9384	369	1.16138850756345e-15	6.22558680140299e-11	Global BH across all signed direct-target programs and eligible GO terms	0.112026359143328	3
+SOX6	GO:0140014	mitotic nuclear division	48	607	9384	240	1.07161269933787e-12	2.61354148408892e-08	Global BH across all signed direct-target programs and eligible GO terms	0.0790774299835255	4
+SOX6	GO:0048821	erythrocyte development	14	607	9384	46	6.70533937400236e-07	0.00241300781018076	Global BH across all signed direct-target programs and eligible GO terms	0.0230642504118616	5

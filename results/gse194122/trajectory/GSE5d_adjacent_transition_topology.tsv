@@ -1,0 +1,33 @@
+endpoint	transition_order	previous_state	next_state	transition	topology_class	edges	union_edges	fraction
+TF-gene	1	HSC	MK/E prog	HSC -> MK/E prog	gained	108927	209365	0.520273207078547
+TF-gene	1	HSC	MK/E prog	HSC -> MK/E prog	lost	96645	209365	0.461610106751367
+TF-gene	1	HSC	MK/E prog	HSC -> MK/E prog	shared_sign_flip	166	209365	0.000792873689489647
+TF-gene	1	HSC	MK/E prog	HSC -> MK/E prog	shared_sign_stable	3627	209365	0.0173238124805961
+TF-gene	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	gained	106176	218896	0.485052262261531
+TF-gene	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	lost	107440	218896	0.49082669395512
+TF-gene	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	shared_sign_flip	153	218896	0.000698962064176595
+TF-gene	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	shared_sign_stable	5127	218896	0.0234220817191726
+TF-gene	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	gained	119257	230713	0.516906286165062
+TF-gene	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	lost	102150	230713	0.442757885338061
+TF-gene	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	shared_sign_flip	123	230713	0.000533129905987092
+TF-gene	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	shared_sign_stable	9183	230713	0.03980269859089
+TF-gene	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	gained	131845	260408	0.506301649718903
+TF-gene	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	lost	123989	260408	0.476133605726399
+TF-gene	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	shared_sign_flip	349	260408	0.00134020460200916
+TF-gene	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	shared_sign_stable	4225	260408	0.0162245399526896
+factorized-chain	1	HSC	MK/E prog	HSC -> MK/E prog	gained	12024	22118	0.543629622931549
+factorized-chain	1	HSC	MK/E prog	HSC -> MK/E prog	lost	10080	22118	0.45573740844561
+factorized-chain	1	HSC	MK/E prog	HSC -> MK/E prog	shared_sign_flip	0	22118	0
+factorized-chain	1	HSC	MK/E prog	HSC -> MK/E prog	shared_sign_stable	14	22118	0.000632968622841125
+factorized-chain	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	gained	12002	24040	0.499251247920133
+factorized-chain	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	lost	12004	24040	0.499334442595674
+factorized-chain	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	shared_sign_flip	0	24040	0
+factorized-chain	2	MK/E prog	Proerythroblast	MK/E prog -> Proerythroblast	shared_sign_stable	34	24040	0.00141430948419301
+factorized-chain	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	gained	23356	35392	0.659923146473779
+factorized-chain	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	lost	11838	35392	0.334482368896926
+factorized-chain	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	shared_sign_flip	1	35392	2.8254972875226e-05
+factorized-chain	3	Proerythroblast	Erythroblast	Proerythroblast -> Erythroblast	shared_sign_stable	197	35392	0.00556622965641953
+factorized-chain	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	gained	25053	48607	0.515419589771021
+factorized-chain	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	lost	23352	48607	0.480424630197297
+factorized-chain	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	shared_sign_flip	7	48607	0.000144012179315736
+factorized-chain	4	Erythroblast	Normoblast	Erythroblast -> Normoblast	shared_sign_stable	195	48607	0.00401176785236694

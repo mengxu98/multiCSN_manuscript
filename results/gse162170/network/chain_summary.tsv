@@ -1,0 +1,14 @@
+measure	value
+triplets	140786
+unique_regulators	1038
+unique_regions	32969
+unique_targets	11017
+positive_direction	112277
+negative_direction	28509
+backbone_selected	21034
+backbone_selected_fraction	0.14940406006279
+backbone_sign_concordant	18770
+backbone_sign_concordant_fraction_of_selected	0.892364742797376
+mediated_tf_gene	125519
+mediated_tied_paths	0
+mediated_sign_consistent	125519

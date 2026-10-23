@@ -2,7 +2,9 @@
 
 Analysis, figures and Source Data for the multiCSN manuscript.
 
-Run commands from the repository root. Install dependencies and prepare data:
+Run commands from the repository root.
+
+To run the full analyses, install dependencies and prepare the additional raw data:
 
 ```bash
 bash code/requirements/install_environments.sh

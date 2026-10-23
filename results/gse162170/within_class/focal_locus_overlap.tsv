@@ -1,0 +1,9 @@
+cell_class	target	pooled_chains	within_class_chains	shared_unsigned	shared_signed	pooled_signed_recall
+GluN	ZNF804A	32	13	4	4	0.125
+GluN	KCNC2	33	19	7	7	0.212121212121212
+IN	ZNF804A	32	17	3	3	0.09375
+IN	KCNC2	33	8	1	1	0.0303030303030303
+IPC_RG	ZNF804A	32	0	0	0	0
+IPC_RG	KCNC2	33	7	0	0	0
+OPC_Glia	ZNF804A	32	4	0	0	0
+OPC_Glia	KCNC2	33	3	0	0	0

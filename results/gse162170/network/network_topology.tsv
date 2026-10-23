@@ -1,0 +1,7 @@
+relation_type	relation_set	relations
+tf_gene	Candidate pairs	20477103
+tf_region	Candidate pairs	47110296
+region_gene	Candidate pairs	1021276
+tf_gene	Selected edges	311045
+tf_region	Selected edges	967471
+region_gene	Selected edges	37647
