@@ -10,8 +10,8 @@ setDTthreads(1L)
 arguments <- list(
   network_root = "runs/gse274113/LINGER",
   truth_root = "data/gse274113/heldout_pseudobulk_full",
-  formal_metrics = "results/gse274113/method_comparison/stratum_metrics.tsv",
-  output = "results/gse274113/method_comparison"
+  formal_metrics = "results/gse274113/comparison/stratum_metrics.tsv",
+  output = "results/gse274113/comparison"
 )
 # ---------------------------------------------------------------
 network_root <- normalizePath(arguments$network_root, mustWork = TRUE)
@@ -104,43 +104,4 @@ if (nrow(linger) != 76L || anyDuplicated(linger[, .(regulator, timepoint)]) ||
 }
 dir.create(result_root, recursive = TRUE, showWarnings = FALSE)
 fwrite(linger, file.path(result_root, "linger_stratum_metrics.tsv"), sep = "\t", na = "NA")
-combined <- rbindlist(list(formal[endpoint == "TF-gene"], linger), use.names = TRUE)
-fwrite(combined, file.path(result_root, "combined_tf_gene_stratum_metrics.tsv"), sep = "\t", na = "NA")
-
-metric_labels <- c(
-  response_average_precision = "Response AP",
-  response_auroc = "AUROC",
-  truth_response_coverage = "Truth-response coverage",
-  prediction_density = "Prediction density"
-)
-base <- formal[method == "multiCSN" & endpoint == "TF-gene"]
-paired <- merge(
-  base,
-  linger,
-  by = c("endpoint", "comparison_universe", "regulator", "timepoint"),
-  suffixes = c("_multicsn", "_linger"), sort = TRUE
-)
-if (nrow(paired) != 76L) stop("The LINGER and multiCSN strata are not paired.")
-source_rows <- rbindlist(lapply(names(metric_labels), function(metric) {
-  data.table(
-    regulator = paired$regulator,
-    timepoint = paired$timepoint,
-    metric = metric,
-    metric_label = unname(metric_labels[[metric]]),
-    multicsn = paired[[paste0(metric, "_multicsn")]],
-    linger = paired[[paste0(metric, "_linger")]],
-    unit = "TF x time point"
-  )
-}))
-tf_means <- source_rows[
-  is.finite(multicsn) & is.finite(linger),
-  .(multicsn = mean(multicsn), linger = mean(linger)),
-  by = .(regulator, metric, metric_label)
-][, `:=`(
-  timepoint = "Mean of finite time points",
-  unit = "TF mean"
-)]
-figure_source <- rbindlist(list(source_rows, tf_means), use.names = TRUE)
-figure_source[, difference_multicsn_minus_linger := multicsn - linger]
-fwrite(figure_source, file.path(result_root, "figure_source_data.tsv"), sep = "\t", na = "NA")
-cat("linger_tf_gene_evaluation\tPASS\t", result_root, "\n", sep = "")
+cat("Saved LINGER TF-gene stratum metrics: ", result_root, "\n", sep = "")

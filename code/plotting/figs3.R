@@ -19,7 +19,6 @@ path <- file.path(
   "metrics",
   "synthetic__primary_metrics.csv"
 )
-assert_files(path)
 figs3 <- plot_heatmaps_beeline(
   as.data.frame(fread(path)),
   dataset_type = "synthetic"

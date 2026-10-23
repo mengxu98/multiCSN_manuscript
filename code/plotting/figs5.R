@@ -45,7 +45,7 @@ figs5 <- multiCSN::plot_network_heatmap(
 save_grid_pdf(
   function() {
     grid.newpage()
-    grid.draw(figs5)
+    grid.draw(italicise_gene_grobs(grid::forceGrob(figs5), c(regulators, targets)))
   },
   file.path(repo, "figures", "figs5.pdf"), 13, 7
 )

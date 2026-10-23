@@ -52,26 +52,19 @@ distance_bin <- function(distance) {
 
 # ---- Parameters ----
 # Prepared HSPC evidence was rebuilt on 2026-09-14 with recorded UCSC chains.
-# See data/gse274113/raw_external_downloads/README.md for provenance.
-# object: NT control directory; output: region_gene_HSPC_contact.
 evaluate_region_gene_contact <- function(arguments = list(
   endpoints = "results/gse274113/networks",
   evidence = "data/gse274113/external_resources",
   object = "data/gse274113/objects/GSE274113_control_full",
-  output = "results/gse274113/multiomic_endpoint_evidence/region_gene_HSPC_contact",
+  output = "results/gse274113/evidence",
   methods = NULL
 )) {
 endpoint_root <- normalizePath(arguments$endpoints, mustWork = TRUE)
 evidence_root <- normalizePath(arguments$evidence, mustWork = TRUE)
 object_root <- normalizePath(arguments$object, mustWork = TRUE)
 output_root <- normalizePath(arguments$output, mustWork = FALSE)
-if (file.exists(output_root)) {
-  stop("Output already exists and will not be overwritten: ", output_root)
-}
 dir.create(dirname(output_root), recursive = TRUE, showWarnings = FALSE)
-stage_root <- paste0(
-  output_root, ".staging_", format(Sys.time(), "%Y%m%dT%H%M%SZ", tz = "UTC")
-)
+stage_root <- tempfile(".result-files-", tmpdir = dirname(output_root))
 dir.create(stage_root, recursive = FALSE)
 
 loop_path <- file.path(evidence_root, "HSPC_loops_hg38.tsv.gz")
@@ -393,11 +386,11 @@ write_tsv(
   target_gene_summary,
   file.path(stage_root, "HSPC_contact_target_gene_summary.tsv.gz")
 )
-write_tsv(support_table, file.path(stage_root, "HSPC_loop_anchor_gene_map.tsv.gz"))
-
-if (!file.rename(stage_root, output_root)) {
-  stop("Unable to atomically publish HSPC contact evaluation.")
+if (!identical(arguments$methods, "LINGER")) {
+  write_tsv(support_table, file.path(stage_root, "HSPC_loop_anchor_gene_map.tsv.gz"))
 }
+
+publish_result_files(stage_root, output_root, prefix = if (identical(arguments$methods, "LINGER")) "linger_" else "")
 cat("region_gene_HSPC_contact_evaluation\tPASS\t", output_root, "\n", sep = "")
 
 }

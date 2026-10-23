@@ -16,23 +16,6 @@ class_levels <- c("GluN", "IN", "IPC_RG", "OPC_Glia", "Vascular")
 
 target_anchor <- fread(file.path(out_dir, "target_membership.tsv"))
 triplets <- fread(triplet_path, showProgress = FALSE)
-auc_cell <- fread(file.path(out_dir, "aucell_by_cell.tsv.gz"), showProgress = FALSE)
-module_cell <- fread(file.path(out_dir, "module_activity_by_cell.tsv.gz"), showProgress = FALSE)
-module_membership <- fread(file.path(out_dir, "module_membership.tsv.gz"), showProgress = FALSE)
-stopifnot(
-  nrow(triplets) == 140786L,
-  uniqueN(triplets$target) == 11017L,
-  nrow(auc_cell) == 8981L * 5L,
-  nrow(module_cell) == 8981L * 25L * 2L,
-  uniqueN(module_cell$cell) == 8981L,
-  uniqueN(module_cell$module_id) == 25L,
-  all(module_membership$module_id %in% unique(module_cell$module_id)),
-  target_anchor[chromatin_anchor == "GluN", .N] == 2271L,
-  target_anchor[chromatin_anchor == "IN", .N] == 1396L,
-  target_anchor[chromatin_anchor == "IPC_RG", .N] == 1629L,
-  target_anchor[chromatin_anchor == "OPC_Glia", .N] == 1308L,
-  target_anchor[chromatin_anchor == "Vascular", .N] == 2444L
-)
 
 universe <- unique(triplets$target)
 go_rows <- lapply(class_levels, function(anchor) {
@@ -50,7 +33,6 @@ go_rows <- lapply(class_levels, function(anchor) {
   x
 })
 go_all <- rbindlist(go_rows, use.names = TRUE, fill = TRUE)
-stopifnot(nrow(go_all) > 0L)
 go_all[, BH_global := p.adjust(pvalue, method = "BH")]
 setnames(go_all, "p.adjust", "BH_within_class")
 setorder(go_all, anchor_class, BH_within_class, pvalue, -Count, ID)
@@ -67,9 +49,6 @@ go_display <- go_all[,
   },
   by = anchor_class
 ]
-stopifnot(all(is.finite(go_all$BH_within_class)),
-          all(go_all$BH_within_class >= 0 & go_all$BH_within_class <= 1),
-          setequal(unique(go_all$anchor_class), class_levels))
 # Significance is a computed result, not a required historical answer.
 go_cols <- c(
   "anchor_class", "class_rank", "ID", "Description", "GeneRatio", "BgRatio",

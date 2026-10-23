@@ -1,5 +1,13 @@
 #!/usr/bin/env Rscript
 
+if (!l10n_info()[["UTF-8"]]) {
+  for (locale in c("C.UTF-8", "en_US.UTF-8", "UTF-8")) {
+    suppressWarnings(Sys.setlocale("LC_CTYPE", locale))
+    if (l10n_info()[["UTF-8"]]) break
+  }
+  if (!l10n_info()[["UTF-8"]]) stop("Figure S7 rendering requires a UTF-8 character locale.")
+}
+
 suppressPackageStartupMessages({
   library(data.table)
   library(ggplot2)
@@ -10,7 +18,7 @@ data.table::setDTthreads(1L)
 
 repo <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 source(file.path(repo, "code", "functions", "common.R"), local = TRUE)
-input_root <- file.path(repo, "results", "gse274113", "replicate_deletion_stability")
+input_root <- file.path(repo, "results", "gse274113", "stability")
 output_root <- file.path(repo, "figures")
 
 assemble_supp_fig7 <- function() {
@@ -31,11 +39,11 @@ assemble_supp_fig7 <- function() {
 }
 
 input_paths <- c(
-  folds = file.path(input_root, "multilayer_decomposition", "all_fold_metrics.tsv"),
-  pairwise = file.path(input_root, "pairwise_stability", "pairwise_fold_metrics.tsv"),
-  top100 = file.path(input_root, "summary", "top100_decomposition.tsv"),
-  rank_decile = file.path(input_root, "multilayer_decomposition", "rank_decile_decomposition.tsv"),
-  summary = file.path(input_root, "summary", "timepoint_stability_summary.tsv")
+  folds = file.path(input_root, "fold_decomposition.tsv"),
+  pairwise = file.path(input_root, "pairwise_fold_metrics.tsv"),
+  top100 = file.path(input_root, "top100_decomposition.tsv"),
+  rank_decile = file.path(input_root, "rank_decile_decomposition.tsv"),
+  summary = file.path(input_root, "timepoint_stability_summary.tsv")
 )
 if (any(!file.exists(input_paths))) {
   stop(
@@ -71,7 +79,6 @@ if (nrow(folds) != 14L || anyDuplicated(folds[, .(timepoint, heldout_replicate)]
 }
 
 ink <- "#26343E"
-muted <- "#697680"
 grid_colour <- "#DCE3E7"
 base_family <- "Arial"
 theme_paper <- function(base_size = 7.0) {
@@ -101,12 +108,9 @@ theme_paper <- function(base_size = 7.0) {
 
 build_s7_accounting_panel <- function() {
   path <- file.path(
-    repo, "results", "gse274113", "factorized_chains",
-    "timepoint_summary.tsv"
+    repo, "results", "gse274113", "chains", "timepoint_summary.tsv"
   )
-  assert_files(path)
   chains <- fread(path)
-  stopifnot(nrow(chains) == 4L, sum(chains$triplets) == 337377L)
   endpoint_colours <- c(
     `TF–gene` = "#3D7FB1", `TF–region` = "#8064A2",
     `Region–gene` = "#289587", Triplets = MULTICSN_COLOUR
@@ -311,7 +315,7 @@ figs7e <- ggplot(decile_plot, aes(weight_decile, selection_fraction,
 
 # ---- panel a: cross-method runtime comparison ---
 runtime_path <- file.path(
-  repo, "results", "gse274113", "method_comparison", "multiomic_runtime_comparison.tsv"
+  repo, "results", "gse274113", "runtime", "multiomic_runtime_comparison.tsv"
 )
 if (!file.exists(runtime_path)) stop("Missing runtime comparison table: ", runtime_path)
 runtime <- data.table::fread(runtime_path)

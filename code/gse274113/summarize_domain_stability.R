@@ -1,24 +1,25 @@
 #!/usr/bin/env Rscript
 
+source("code/functions/table_io.R")
+
 suppressPackageStartupMessages(library(data.table))
 data.table::setDTthreads(1L)
 
 # ---- Parameters ----
 # run_root: leave-one-replicate tree; output: summary output directory.
 arguments <- list(
-  run_root = "results/gse274113/replicate_deletion_stability",
-  output = "results/gse274113/replicate_deletion_stability/summary"
+  run_root = "results/gse274113/stability",
+  output = "results/gse274113/stability"
 )
 # ---------------------------------------------------------------
 rebuilt_root <- normalizePath(arguments$run_root, mustWork = TRUE)
-input_root <- file.path(rebuilt_root, "multilayer_decomposition")
+input_root <- rebuilt_root
 output_root <- normalizePath(arguments$output, mustWork = FALSE)
-if (file.exists(output_root)) stop("Output already exists: ", output_root)
 
 input_paths <- c(
-  folds = file.path(input_root, "all_fold_metrics.tsv"),
+  folds = file.path(input_root, "fold_decomposition.tsv"),
   pairwise = file.path(
-    rebuilt_root, "pairwise_stability",
+    rebuilt_root,
     "pairwise_fold_metrics.tsv"
   ),
   top_rank = file.path(input_root, "top_rank_decomposition.tsv"),
@@ -203,10 +204,7 @@ layer_attrition[, timepoint_index := match(timepoint, timepoint_order)]
 setorder(layer_attrition, timepoint_index, heldout_replicate)
 layer_attrition[, timepoint_index := NULL]
 
-stage_root <- paste0(output_root, ".staging_", format(
-  Sys.time(), "%Y%m%dT%H%M%SZ",
-  tz = "UTC"
-))
+stage_root <- tempfile(".result-files-", tmpdir = dirname(output_root))
 dir.create(dirname(output_root), recursive = TRUE, showWarnings = FALSE)
 dir.create(stage_root, recursive = FALSE)
 
@@ -214,7 +212,5 @@ fwrite(timepoint_summary, file.path(stage_root, "timepoint_stability_summary.tsv
 fwrite(pairwise_summary, file.path(stage_root, "pairwise_stability_summary.tsv"), sep = "\t")
 fwrite(top100, file.path(stage_root, "top100_decomposition.tsv"), sep = "\t")
 
-if (!file.rename(stage_root, output_root)) {
-  stop("Unable to promote manuscript stability summary.")
-}
+publish_result_files(stage_root, output_root)
 cat("gse274113_rebuilt_domain_manuscript_summary\tPASS\t", output_root, "\n", sep = "")

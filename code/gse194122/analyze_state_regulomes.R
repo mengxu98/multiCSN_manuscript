@@ -1,15 +1,16 @@
 #!/usr/bin/env Rscript
 
+source("code/functions/table_io.R")
+
 suppressPackageStartupMessages({
   library(data.table)
-  library(digest)
   library(Matrix)
 })
 
 repo <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
-stable_root <- file.path(repo, "results", "gse194122", "donor_stable_rewiring")
-expression_root <- file.path(repo, "results", "gse194122", "donor_state_expression")
-output <- file.path(repo, "results", "gse194122", "state_regulomes")
+stable_root <- file.path(repo, "results", "gse194122", "donor_stability")
+expression_root <- file.path(repo, "results", "gse194122", "trajectory")
+output <- file.path(repo, "results", "gse194122", "programs")
 inputs <- c(
   edges = file.path(stable_root, "stable_consensus_edges.tsv.gz"),
   expression = file.path(expression_root, "donor_state_expression.tsv.gz"),
@@ -235,6 +236,5 @@ fwrite(heroes, file.path(stage, "hero_regulons.tsv"), sep = "\t", quote = FALSE,
 fwrite(hero_network_edges, file.path(stage, "hero_regulon_network.tsv.gz"), sep = "\t", quote = FALSE, na = "NA")
 fwrite(hero_target_state, file.path(stage, "hero_regulon_targets.tsv.gz"), sep = "\t", quote = FALSE, na = "NA")
 
-if (dir.exists(output)) unlink(output, recursive = TRUE, force = TRUE)
-if (!file.rename(stage, output)) stop("Unable to promote GSE194122 state regulome analysis.")
+publish_result_files(stage, output)
 cat("gse194122_state_regulomes\tPASS\t", nrow(catalog), " modules; hero ", hero_module, "\n", sep = "")

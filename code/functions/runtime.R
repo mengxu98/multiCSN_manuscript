@@ -1,6 +1,5 @@
 # Settings applied by R tasks before loading their analysis packages.
-configure_task_runtime <- function(threads = 1L, comparator_library = FALSE) {
-  stopifnot(length(threads) == 1L, is.finite(threads), threads >= 1L)
+configure_task_runtime <- function(threads = 1L) {
   Sys.setenv(LC_ALL = "C")
   settings <- c(
     OMP_NUM_THREADS = threads, OPENBLAS_NUM_THREADS = threads,
@@ -9,10 +8,6 @@ configure_task_runtime <- function(threads = 1L, comparator_library = FALSE) {
     BLIS_NUM_THREADS = threads
   )
   do.call(Sys.setenv, as.list(stats::setNames(as.character(settings), names(settings))))
-  if (comparator_library) {
-    path <- file.path(normalizePath("..", mustWork = TRUE), "comparator_r_library")
-    if (dir.exists(path)) .libPaths(c(path, .libPaths()))
-  }
   invisible(NULL)
 }
 

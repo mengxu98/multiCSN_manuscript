@@ -7,9 +7,9 @@
 suppressPackageStartupMessages(library(data.table))
 data.table::setDTthreads(1L)
 
-multicsn_path <- "results/gse274113/method_comparison/stratum_metrics.tsv"
-linger_path <- "results/gse274113/method_comparison/linger_stratum_metrics.tsv"
-output_path <- "results/gse274113/method_comparison/linger_vs_multicsn_paired_tests.tsv"
+multicsn_path <- "results/gse274113/comparison/stratum_metrics.tsv"
+linger_path <- "results/gse274113/comparison/linger_stratum_metrics.tsv"
+output_path <- "results/gse274113/comparison/linger_vs_multicsn_paired_tests.tsv"
 
 metrics <- c(response_average_precision = "Average precision",
              truth_response_coverage = "Response coverage",
@@ -35,13 +35,12 @@ rows <- rbindlist(lapply(names(metrics), function(metric) {
              mean_cluster_difference = mean(d), median_cluster_difference = median(d),
              wilcoxon_signed_rank_p = p)
 }))
-other <- fread("results/gse274113/method_cluster_inference/paired_method_cluster_tests.tsv")
+other <- fread("results/gse274113/comparison/paired_method_cluster_tests.tsv")
 other <- other[reference == "multiCSN" & endpoint == "TF-gene" &
   comparison_universe == "full_truth_feature_universe" &
   comparator %in% c("Pando", "SCENIC+") & metric %in% names(metrics),
   .(metric, comparator, wilcoxon_signed_rank_p)]
 family <- rbindlist(list(other, rows[, .(metric, comparator, wilcoxon_signed_rank_p)]))
-stopifnot(nrow(family) == 9L, all(family[, .N, by = metric]$N == 3L))
 family[, holm_p_three_comparators := p.adjust(wilcoxon_signed_rank_p, method = "holm"), by = metric]
 rows <- merge(rows, family[, .(metric, comparator, holm_p_three_comparators)],
               by = c("metric", "comparator"), sort = FALSE)

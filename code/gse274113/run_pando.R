@@ -4,7 +4,7 @@ run_pando <- function(cores = 1L, output_root = NULL) {
 source("code/functions/network_io.R")
 
 source("code/functions/runtime.R")
-configure_task_runtime(comparator_library = TRUE)
+configure_task_runtime()
 
 suppressPackageStartupMessages({
   library(data.table)
@@ -21,27 +21,25 @@ data.table::setDTthreads(1L)
 options <- list(cores = cores, output_root = output_root)
 cores <- options$cores
 # ---------------------------------------------------------------
-if (!identical(cores, 1L)) stop("This benchmark requires cores = 1.")
+if (cores > 1L) {
+  suppressPackageStartupMessages(library(foreach))
+  doParallel::registerDoParallel(cores = cores)
+  on.exit({doParallel::stopImplicitCluster(); foreach::registerDoSEQ()}, add = TRUE)
+}
 repo_root <- normalizePath(getwd(), mustWork = TRUE)
-script_path <- normalizePath("code/gse274113/run_pando.R", mustWork = TRUE)
-execution_root <- normalizePath(file.path(repo_root, ".."), mustWork = TRUE)
 input_dir <- file.path(
   repo_root, "data", "gse274113", "objects", "GSE274113_control_full"
 )
 input_path <- file.path(input_dir, "GSE274113_all_NT_controls_full_seurat.rds")
 input_validation <- file.path(input_dir, "control_object_validation.tsv")
-source_commit_path <- file.path(
-  repo_root, "logs", "gse274113", "comparator_install",
-  "Pando_source_commit.txt"
-)
 destination <- if (is.null(options$output_root)) {
   file.path(repo_root, "runs", "gse274113", "method_fits", "Pando")
 } else {
   normalizePath(options$output_root, mustWork = FALSE)
 }
 output_parent <- dirname(destination)
-if (!all(file.exists(c(input_path, input_validation, source_commit_path)))) {
-  stop("Complete GSE274113 control object and Pando provenance are required.")
+if (!all(file.exists(c(input_path, input_validation)))) {
+  stop("GSE274113 control object and candidate data are required.")
 }
 if (dir.exists(destination)) stop("Formal Pando result already exists: ", destination)
 
@@ -60,7 +58,6 @@ stage <- tempfile(pattern = ".staging_Pando_GSE274113_", tmpdir = output_parent)
 dir.create(stage)
 
 cat("started_utc\t", format(Sys.time(), tz = "UTC", usetz = TRUE), "\n", sep = "")
-input_sha256 <- unname(sha256_files(input_path))
 object <- readRDS(input_path)
 observed_timepoint_cells <- table(object$Timepoint)
 if (ncol(object) != 11447L ||
@@ -88,29 +85,8 @@ template <- Pando::find_motifs(
   genome = BSgenome.Hsapiens.UCSC.hg38,
   verbose = TRUE
 )
-template_regions <- Pando::NetworkRegions(template)
-template_validation <- data.frame(
-  field = c(
-    "input_control_cells", "input_rna_features", "input_atac_features",
-    "candidate_ranges_after_phastcons_and_exon_filter", "candidate_peak_mappings",
-    "motif_rows", "motif_columns", "motif_nonzero", "motif_tf_rows",
-    "motif_tf_columns", "motif_tf_nonzero"
-  ),
-  value = c(
-    ncol(object), nrow(object[["RNA"]]), nrow(object[["ATAC"]]),
-    length(template_regions@ranges), length(template_regions@peaks),
-    nrow(template_regions@motifs@data), ncol(template_regions@motifs@data),
-    Matrix::nnzero(template_regions@motifs@data), nrow(template_regions@tfs),
-    ncol(template_regions@tfs), Matrix::nnzero(template_regions@tfs)
-  ),
-  stringsAsFactors = FALSE
-)
-write_tsv(template_validation, file.path(stage, "shared_candidate_validation.tsv"), na = "")
-
 summary_rows <- vector("list", length(timepoints))
 names(summary_rows) <- timepoints
-reconstruction_rows <- vector("list", length(timepoints))
-names(reconstruction_rows) <- timepoints
 
 for (index in seq_along(timepoints)) {
   timepoint <- timepoints[[index]]
@@ -144,7 +120,7 @@ for (index in seq_along(timepoints)) {
     downstream = 0,
     extend = 1000000,
     only_tss = FALSE,
-    parallel = FALSE,
+    parallel = cores > 1L,
     tf_cor = 0.1,
     peak_cor = 0,
     method = "glm",
@@ -218,24 +194,7 @@ for (index in seq_along(timepoints)) {
       timepoint
     )
   }
-  reconstruction_rows[[index]] <- data.frame(
-    timepoint = timepoint,
-    fitted_targets = length(unique(goodness_of_fit$target)),
-    eligible_targets_rsq_and_nvariables = length(eligible_targets),
-    coefficients_before_module_gates = nrow(coefficients),
-    coefficients_after_native_gates = nrow(significant_coefficients),
-    reconstructed_tf_target_edges = nrow(reconstructed_modules),
-    observed_tf_target_edges = nrow(observed_modules),
-    reconstruction_tolerance = 1e-12,
-    status = "PASS",
-    stringsAsFactors = FALSE
-  )
-  write_tsv(
-    reconstruction_rows[[index]],
-    file.path(time_dir, "native_module_reconstruction.tsv"), na = ""
-  )
   write_tsv(data.frame(gene = selected_genes), file.path(time_dir, "native_variable_features.tsv"), na = "")
-  saveRDS(coefficients, file.path(time_dir, "native_coefficients.rds"), compress = FALSE)
   write_tsv(coefficients, file.path(time_dir, "native_coefficients.tsv.gz"), na = "")
   write_tsv(
     significant_coefficients[, .(tf, region, target, estimate, pval, padj)],
@@ -249,9 +208,7 @@ for (index in seq_along(timepoints)) {
     unique(significant_coefficients[, .(region, target)])[order(region, target)],
     file.path(time_dir, "retained_region_gene_binary.tsv.gz"), na = ""
   )
-  saveRDS(goodness_of_fit, file.path(time_dir, "native_goodness_of_fit.rds"), compress = FALSE)
   write_tsv(goodness_of_fit, file.path(time_dir, "native_goodness_of_fit.tsv"), na = "")
-  saveRDS(module_meta, file.path(time_dir, "native_module_metadata.rds"), compress = FALSE)
   write_tsv(module_meta, file.path(time_dir, "native_module_metadata.tsv"), na = "")
   saveRDS(Pando::GetNetwork(fitted, network = network_name), file.path(time_dir, "native_network_object.rds"), compress = FALSE)
   summary_rows[[index]] <- data.frame(
@@ -274,73 +231,10 @@ for (index in seq_along(timepoints)) {
   gc(verbose = FALSE)
 }
 summary <- do.call(rbind, summary_rows)
-reconstruction_summary <- do.call(rbind, reconstruction_rows)
 if (!identical(summary$timepoint, timepoints) || sum(summary$control_cells) != 11447L) {
   stop("Pando timepoint suite failed control-cell accounting.")
 }
-if (!identical(reconstruction_summary$timepoint, timepoints) ||
-  any(reconstruction_summary$status != "PASS") ||
-  any(reconstruction_summary$reconstructed_tf_target_edges !=
-    reconstruction_summary$observed_tf_target_edges)) {
-  stop("Pando timepoint suite failed module reconstruction accounting.")
-}
 write_tsv(summary, file.path(stage, "timepoint_run_summary.tsv"), na = "")
-write_tsv(
-  reconstruction_summary,
-  file.path(stage, "native_module_reconstruction_suite.tsv"), na = ""
-)
-write_tsv(
-  data.frame(
-    parameter = c(
-      "input_path", "input_sha256", "input_validation_sha256", "Pando_version",
-      "Pando_source_commit", "network_unit", "network_pooling", "score_pooling",
-      "training_cells", "heldout_cells", "native_region_filter", "exclude_exons",
-      "motif_collection", "variable_feature_method", "variable_feature_nfeatures",
-      "peak_to_gene_method", "upstream", "downstream", "extend", "only_tss",
-      "tf_cor", "peak_cor", "fit_method", "interaction_term", "scale",
-      "coefficient_p_adjust_method", "coefficient_p_adjust_scope",
-      "module_p_thresh", "module_rsq_thresh", "module_nvar_thresh",
-      "module_min_genes_per_module", "module_metadata_semantics", "cores",
-      "cell_cap", "input_feature_cap"
-    ),
-    value = c(
-      input_path, input_sha256, unname(sha256_files(input_validation)), as.character(packageVersion("Pando")),
-      trimws(readLines(source_commit_path, warn = FALSE)[[1]]),
-      "one independently fitted network per control timepoint", "none", "none",
-      "all 11447 released NT controls", "all 126157 non-NT cells",
-      "Pando phastConsElements20Mammals.UCSC.hg38", "true", "Pando motifs and motif2tf",
-      "Seurat vst executed within each full timepoint input", "2000 (Pando variable-feature workflow)",
-      "GREAT", "100000", "0", "1000000", "false", "0.1", "0", "glm", ":", "false",
-      "fdr", "all fitted coefficient p-values within one independently fitted timepoint network",
-      as.character(pando_p_thresh), as.character(pando_rsq_thresh),
-      as.character(pando_nvar_thresh), as.character(pando_min_genes_per_module),
-      "find_modules metadata after model R-squared, variable-count, and coefficient FDR gates; min_genes_per_module governs module feature lists, not metadata rows",
-      as.character(cores), "none", "none"
-    ),
-    stringsAsFactors = FALSE
-  ),
-  file.path(stage, "run_parameters.tsv"), na = ""
-)
-write_tsv(
-  data.frame(
-    field = c(
-      "dataset", "author_annotated_release_cells", "training_control_cells", "heldout_perturbation_cells",
-      "timepoint_networks", "complete_timepoints", "complete_replicates", "cell_cap",
-      "input_feature_cap", "method_native_filtering", "native_output", "score_scope",
-      "cross_timepoint_score_comparison", "causal_evaluation_scope"
-    ),
-    value = c(
-      "GSE274113", "137604", "11447", "126157", nrow(summary),
-      paste(timepoints, collapse = ";"), paste0("rep", c(1:10, 12:14, 16), collapse = ";"),
-      "none", "none", "Pando phastCons plus per-timepoint variable features",
-      "Pando coefficient, goodness-of-fit, independently reconstructed find_modules metadata, module features, and Network objects",
-      "within_timepoint_native_endpoint_only", "prohibited",
-      "replicate-paired pseudobulk effects from all heldout non-NT cells within TF-timepoint strata; author S2/S3 tables provide TF-level aggregate concordance only"
-    ),
-    stringsAsFactors = FALSE
-  ),
-  file.path(stage, "run_validation.tsv"), na = ""
-)
 if (!file.rename(stage, destination)) stop("Unable to promote formal Pando result.")
 cat("destination\t", destination, "\n", sep = "")
 cat("completed_utc\t", format(Sys.time(), tz = "UTC", usetz = TRUE), "\n", sep = "")

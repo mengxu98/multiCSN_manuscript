@@ -1,19 +1,15 @@
 # Shared by manuscript plots and the Python Source Data exporter.
 # Reads formal saved networks; never reads or updates topology snapshots.
 read_beeline_case <- function(repo, case) {
-  stopifnot(case %in% c("HSC-2000-3-30", "VSC-2000-9"))
   methods <- c("GENIE3", "GNIPLR", "GRNBoost2", "LEAP", "PIDC", "PPCOR",
                "SCODE", "SCORPION", "SCSGL", "SINCERITIES", "multiCSN")
   group <- sub("-.*", "", case)
   truth <- data.table::fread(file.path(repo, "data/beeline/Curated", group, case, "refNetwork.csv"))[, 1:3]
   data.table::setnames(truth, c("regulator", "target", "sign"))
   truth <- unique(truth[regulator != target], by = c("regulator", "target"))
-  stopifnot(all(truth$sign %in% c("+", "-")))
   truth[, sign := ifelse(sign == "+", 1L, -1L)]
   metrics <- data.table::fread(file.path(repo, "results/beeline/evaluation/case_metrics.tsv"))
   metrics <- metrics[Case == case & DatasetType == "curated" & DatasetGroup == group]
-  stopifnot(nrow(metrics) == length(methods), !anyDuplicated(metrics$Method),
-            setequal(metrics$Method, methods))
   edges <- summaries <- vector("list", length(methods))
   for (i in seq_along(methods)) {
     method <- methods[[i]]

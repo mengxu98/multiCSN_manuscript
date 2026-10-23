@@ -84,17 +84,14 @@ write_network_figure_tables <- function(fit, domain_targets, output) {
 fit_network <- function(arguments = list(
   dataset = "GSE162170",
   input = "data/gse162170/gse162170_candidates.rds",
-  validation = "data/gse162170/candidate_validation.tsv",
   output = "results/gse162170/network",
   expected_cells = 8981L,
   response_chunk = 1024L
 )) {
-multicsn_package_root <- normalizePath(system.file(package = "multiCSN"), mustWork = TRUE)
-csn_package_root <- normalizePath(system.file(package = "inferCSN"), mustWork = TRUE)
 if (!"fit_layered_network" %in% getNamespaceExports("multiCSN")) {
   stop(
     "The installed multiCSN does not export fit_layered_network(). ",
-    "Install the pinned commit from code/requirements/install_csn_packages.R."
+    "Install the required packages using code/requirements/install_environments.sh."
   )
 }
 
@@ -133,25 +130,7 @@ fit <- multiCSN::fit_layered_network(
   verbose = TRUE
 )
 
-tf_gene <- fit$tf_gene
-tf_region <- fit$tf_region
-region_gene <- fit$region_gene
-chains <- fit$triplets
-mediated <- fit$mediated_tf_gene
-# The publication contract names the TF-region response column `target`; the
-# package uses the semantic name `region`.
-tf_region_accounting <- fit$accounting$tf_region
-names(tf_region_accounting)[names(tf_region_accounting) == "region"] <- "target"
-
-write_tsv(tf_gene, file.path(stage_root, "tf_gene.tsv"))
-write_tsv(tf_region, file.path(stage_root, "tf_region.tsv"))
-write_tsv(region_gene, file.path(stage_root, "region_gene.tsv"))
-write_tsv(chains, file.path(stage_root, "triplets.tsv"))
-write_tsv(mediated, file.path(stage_root, "mediated_tf_gene.tsv"))
-write_tsv(fit$accounting$tf_gene, file.path(stage_root, "tf_gene_accounting.tsv"))
-write_tsv(tf_region_accounting, file.path(stage_root, "tf_region_accounting.tsv"))
-write_tsv(fit$accounting$region_gene, file.path(stage_root, "region_gene_accounting.tsv"))
-write_tsv(fit$summary, file.path(stage_root, "endpoint_summary.tsv"))
+write_layered_network(fit, stage_root)
 # Count domains before the accessibility gate using the same annotation and
 # gene-body extension as the fit. Accounting supplies all subsequent gates.
 params <- multiCSN::Params(object)
@@ -163,7 +142,7 @@ domains <- multiCSN::find_peaks_near_genes(
   downstream = fit$settings$downstream, only_tss = FALSE, verbose = FALSE
 )
 domain_targets <- colnames(domains)[Matrix::colSums(domains != 0) > 0]
-write_network_figure_tables(fit, domain_targets, file.path(stage_root, "figure_source"))
+write_network_figure_tables(fit, domain_targets, stage_root)
 
 # The component tables above are the complete result. Per-target chunk checkpoints
 # only serve resume during fitting and are not part of the promoted output.

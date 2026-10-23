@@ -2,6 +2,9 @@ suppressPackageStartupMessages({
   library(ggplot2)
 })
 
+options(Seurat.object.assay.version = "v3")
+if (!interactive()) options(device = function(...) grDevices::pdf(file = NULL, ...))
+
 # Register Arial in standard PostScript/PDF device databases to avoid
 # grid.Call(C_textBounds) warnings during plot construction
 if (!"Arial" %in% names(grDevices::pdfFonts())) {
@@ -82,10 +85,32 @@ save_grid_pdf <- function(draw_fun, path, width_in, height_in) {
   invisible(path)
 }
 
-assert_files <- function(paths) {
-  missing <- paths[!file.exists(paths)]
-  if (length(missing)) {
-    stop("Missing required files: ", paste(missing, collapse = ", "), call. = FALSE)
+italic_gene_labels <- function(labels) {
+  as.expression(lapply(as.character(labels), function(label) {
+    symbol <- sub("[[:space:]+:].*$", "", label)
+    suffix <- substring(label, nchar(symbol) + 1L)
+    bquote(italic(.(symbol)) * .(suffix))
+  }))
+}
+
+italicise_gene_grobs <- function(grob, symbols) {
+  if (!inherits(grob, "grob")) return(grob)
+  if (inherits(grob, "text") && is.character(grob$label)) {
+    matched <- grob$label %in% symbols
+    if (any(matched)) {
+      faces <- rep_len(if (is.null(grob$gp$font)) 1L else grob$gp$font, length(matched))
+      faces[matched] <- ifelse(faces[matched] %in% c(2L, 4L), 4L, 3L)
+      grob$gp$font <- faces
+    }
   }
-  invisible(paths)
+  if (inherits(grob, "textrepeltree") && "label" %in% names(grob$data)) {
+    matched <- grob$data$label %in% symbols
+    grob$data$fontface[matched] <- ifelse(grob$data$fontface[matched] %in% c("bold", "bold.italic"), "bold.italic", "italic")
+  }
+  if (!is.null(grob$children)) grob$children <- do.call(grid::gList,
+    lapply(grob$children, italicise_gene_grobs, symbols = symbols))
+  if (!is.null(grob$grobs)) grob$grobs <- lapply(grob$grobs, italicise_gene_grobs, symbols = symbols)
+  if (inherits(grob, "recordedGrob") && !is.null(grob$list)) grob$list <- lapply(grob$list,
+    function(x) if (inherits(x, "grob")) italicise_gene_grobs(x, symbols) else x)
+  grob
 }

@@ -21,4 +21,3 @@ for(tf in c("GATA1","NFE2")) {
 fwrite(rbindlist(tables),file.path(out,"primary_erythroid_ChIP_peaks_hg38.tsv.gz"),sep="\t")
 fwrite(rbindlist(summaries),file.path(root,"chip_liftover_summary.tsv"),sep="\t")
 print(rbindlist(summaries))
-writeLines(capture.output(sessionInfo()),file.path(root,"liftover_session.txt"))

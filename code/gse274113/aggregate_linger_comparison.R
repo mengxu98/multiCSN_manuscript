@@ -8,7 +8,7 @@ suppressPackageStartupMessages(library(data.table))
 data.table::setDTthreads(1L)
 
 repo_root <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
-result_root <- file.path(repo_root, "results", "gse274113", "method_comparison")
+result_root <- file.path(repo_root, "results", "gse274113", "comparison")
 dir.create(result_root, recursive = TRUE, showWarnings = FALSE)
 
 methods <- c("multiCSN", "SCENIC+", "Pando", "LINGER")
@@ -19,29 +19,26 @@ display_method <- function(x) {
 }
 
 tf_gene_formal_path <- file.path(
-  repo_root, "results", "gse274113", "method_comparison", "stratum_metrics.tsv"
+  repo_root, "results", "gse274113", "comparison", "stratum_metrics.tsv"
 )
 tf_gene_linger_path <- file.path(result_root, "linger_stratum_metrics.tsv")
 binding_formal_path <- file.path(
-  repo_root, "results", "gse274113", "multiomic_endpoint_evidence",
-  "TF_region_external_binding", "TF_region_external_binding_metrics.tsv.gz"
+  repo_root, "results", "gse274113", "evidence", "TF_region_external_binding_metrics.tsv.gz"
 )
 binding_linger_path <- file.path(
-  repo_root, "results", "gse274113", "multiomic_endpoint_evidence", "TF_region_external_binding", "LINGER", "TF_region_external_binding_metrics.tsv.gz"
+  repo_root, "results", "gse274113", "evidence", "linger_TF_region_external_binding_metrics.tsv.gz"
 )
 contact_formal_path <- file.path(
-  repo_root, "results", "gse274113", "multiomic_endpoint_evidence",
-  "region_gene_HSPC_contact", "HSPC_contact_summary.tsv"
+  repo_root, "results", "gse274113", "evidence", "HSPC_contact_summary.tsv"
 )
 contact_linger_path <- file.path(
-  repo_root, "results", "gse274113", "multiomic_endpoint_evidence", "region_gene_HSPC_contact", "LINGER", "HSPC_contact_summary.tsv"
+  repo_root, "results", "gse274113", "evidence", "linger_HSPC_contact_summary.tsv"
 )
 chain_formal_path <- file.path(
-  repo_root, "results", "gse274113", "multiomic_endpoint_evidence",
-  "factorized_chain_response", "chain_response_TF_cluster_metrics.tsv"
+  repo_root, "results", "gse274113", "evidence", "chain_response_TF_cluster_metrics.tsv"
 )
 chain_linger_path <- file.path(
-  repo_root, "results", "gse274113", "multiomic_endpoint_evidence", "factorized_chain_response", "LINGER", "chain_response_TF_cluster_metrics.tsv"
+  repo_root, "results", "gse274113", "evidence", "linger_chain_response_TF_cluster_metrics.tsv"
 )
 input_paths <- c(
   tf_gene_formal_path, tf_gene_linger_path,

@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 
+source("code/functions/table_io.R")
+
 suppressPackageStartupMessages({
   library(data.table)
   library(Matrix)
@@ -12,24 +14,19 @@ data.table::setDTthreads(1L)
 
 # ---- Parameters ----
 # input: complete Seurat object for NT controls.
-# full_timepoints and folds inferred from replicate_deletion_stability directory structure.
 arguments <- list(
   input = "data/gse274113/objects/GSE274113_control_full/GSE274113_all_NT_controls_full_seurat.rds",
-  full_timepoints = "results/gse274113/replicate_deletion_stability/timepoints",
-  folds = "results/gse274113/replicate_deletion_stability/timepoints",
-  output = "results/gse274113/replicate_deletion_stability/eligibility_conditioned_stability"
+  full_timepoints = "results/gse274113/stability",
+  folds = "results/gse274113/stability",
+  output = "results/gse274113/stability"
 )
 # ---------------------------------------------------------------
 input_path <- normalizePath(arguments$input, mustWork = TRUE)
 full_root <- normalizePath(arguments$full_timepoints, mustWork = TRUE)
 fold_root <- normalizePath(arguments$folds, mustWork = TRUE)
 final_root <- normalizePath(arguments$output, mustWork = FALSE)
-if (file.exists(final_root)) stop("Output already exists: ", final_root)
 dir.create(dirname(final_root), recursive = TRUE, showWarnings = FALSE)
-stage_root <- paste0(final_root, ".staging_", format(
-  Sys.time(), "%Y%m%dT%H%M%SZ",
-  tz = "UTC"
-))
+stage_root <- tempfile(".result-files-", tmpdir = dirname(final_root))
 dir.create(stage_root, recursive = FALSE)
 
 object <- readRDS(input_path)
@@ -50,7 +47,7 @@ decile_rows <- list()
 
 for (slug in names(timepoint_lookup)) {
   timepoint <- timepoint_lookup[[slug]]
-  full_path <- file.path(full_root, slug, "detected_20", "tf_gene.tsv")
+  full_path <- file.path(full_root, "full", slug, "tf_gene.tsv")
   full <- fread(full_path)[, .(
     regulator = as.character(regulator), target = as.character(target),
     weight = as.numeric(weight),
@@ -101,7 +98,7 @@ for (slug in names(timepoint_lookup)) {
       remaining_detection[full$regulator] >= 20L &
         remaining_detection[full$target] >= 20L
     fold_path <- file.path(
-      fold_root, slug, "folds", replicate, "tf_gene.tsv"
+      fold_root, "folds", paste0(slug, "_", replicate), "tf_gene.tsv"
     )
     fold <- fread(fold_path, select = c("regulator", "target"))
     selected_matrix[, fold_index] <- full_keys %chin%
@@ -192,5 +189,5 @@ fwrite(top, file.path(stage_root, "top_rank_conditioned_stability.tsv"), sep = "
 fwrite(deciles, file.path(stage_root, "rank_decile_conditioned_stability.tsv"),
   sep = "\t"
 )
-if (!file.rename(stage_root, final_root)) stop("Unable to promote conditioned output.")
+publish_result_files(stage_root, final_root)
 cat("gse274113_eligibility_conditioned_stability\tPASS\t", final_root, "\n", sep = "")

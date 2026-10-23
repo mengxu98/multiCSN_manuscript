@@ -29,14 +29,3 @@ def infer_grnboost2(expression, regulators, out_file, client, seed=1, verbose=Fa
         ["regulator", "target", "weight"]]
     table.to_csv(out_file, index=False)
     return table
-
-
-def run_grnboost2(expression_file, out_file):
-    import pandas as pd
-    from distributed import Client, LocalCluster
-
-    expression = pd.read_csv(expression_file, index_col=0).T
-    regulators = infer_tf_names(expression, Path(expression_file))
-    with LocalCluster(n_workers=1, threads_per_worker=1, processes=True,
-                      dashboard_address=None, memory_limit=0) as cluster, Client(cluster) as client:
-        return infer_grnboost2(expression, regulators, out_file, client, seed=1)

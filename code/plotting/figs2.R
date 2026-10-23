@@ -13,7 +13,6 @@ path <- file.path(
   repo, "results", "beeline", "metrics",
   "curated__primary_metrics.csv"
 )
-assert_files(path)
 figs2 <- plot_heatmaps_beeline(
   as.data.frame(fread(path)),
   dataset_type = "curated"

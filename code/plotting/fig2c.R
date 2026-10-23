@@ -5,7 +5,6 @@ repo <- normalizePath(getwd(), mustWork = TRUE)
 source(file.path(repo, "code/functions/common.R"), local = TRUE)
 runtime_root <- file.path(repo, "results/beeline/runtime")
 figure_root <- file.path(repo, "figures")
-assert_files(file.path(runtime_root, "runtime_provenance.tsv"))
 runtime <- fread(file.path(runtime_root, "runtime_all_methods.tsv"))
 runtime_summary <- fread(file.path(runtime_root, "runtime_summary.tsv"))
 method_order <- c(

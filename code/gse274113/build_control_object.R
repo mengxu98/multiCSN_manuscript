@@ -7,11 +7,10 @@ configure_task_runtime()
 
 replicates <- c(1:10, 12:14, 16)
 repo_root <- normalizePath(getwd(), mustWork = TRUE)
-script_path <- normalizePath("code/gse274113/build_control_object.R", mustWork = TRUE)
 data_root <- file.path(repo_root, "data", "gse274113", "GSE274113")
 extracted_root <- file.path(data_root, "extracted")
 inventory_root <- file.path(
-  repo_root, "results", "gse274113", "inventory", "GSE274113_full"
+  repo_root, "results", "gse274113", "inventory"
 )
 script_options <- list(output = NULL, cores = 1L)
 if (!identical(script_options$cores, 1L)) stop("This build requires cores = 1.")
@@ -21,14 +20,6 @@ destination <- if (is.null(script_options$output)) {
   normalizePath(script_options$output, mustWork = FALSE)
 }
 output_parent <- dirname(destination)
-if (is.null(script_options$output)) {
-  paths <- file.path(repo_root, "results/gse274113/networks",
-    c("multiCSN", "Pando", "SCENICplus", "endpoint_summary.tsv", "endpoint_availability.tsv"))
-  collisions <- paths[file.exists(paths)]
-  if (length(collisions)) {
-    stop("Archive existing formal results before a full rerun: ", paste(collisions, collapse = ", "))
-  }
-}
 if (dir.exists(destination)) {
   stop("Formal GSE274113 control object already exists: ", destination)
 }
@@ -45,14 +36,7 @@ suppressPackageStartupMessages({
   library(BSgenome.Hsapiens.UCSC.hg38)
 })
 
-required_inventory <- file.path(
-  inventory_root, c("validation.tsv", "replicate_cell_alignment.tsv", "release_file_manifest.tsv")
-)
-fragment_exception_validation <- file.path(
-  repo_root, "results", "gse274113", "inventory",
-  "GSE274113_fragment_release_exception", "validation.tsv"
-)
-required_inventory <- c(required_inventory, fragment_exception_validation)
+required_inventory <- file.path(inventory_root, "validation.tsv")
 rna_guide_h5 <- file.path(
   data_root, paste0("GSE274113_filtered_feature_bc_matrix_", replicates, ".h5")
 )
@@ -560,20 +544,7 @@ summary <- data.frame(
   stringsAsFactors = FALSE
 )
 write_tsv(summary, file.path(stage, "control_object_validation.tsv"), writer = "table")
-write_tsv(
-  data.frame(
-    file = c(
-      metadata_path, rna_guide_h5, multiome_h5, peak_annotation_paths,
-      required_inventory
-    ),
-    sha256 = unname(sha256_files(c(
-      metadata_path, rna_guide_h5, multiome_h5, peak_annotation_paths,
-      required_inventory
-    ))),
-    stringsAsFactors = FALSE
-  ),
-  file.path(stage, "input_SHA256SUMS.tsv"), writer = "table"
-)
+
 if (!file.rename(stage, destination)) stop("Unable to promote GSE274113 control object.")
 cat("destination\t", destination, "\n", sep = "")
 cat("completed_utc\t", format(Sys.time(), tz = "UTC", usetz = TRUE), "\n", sep = "")

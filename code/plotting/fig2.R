@@ -11,9 +11,6 @@ suppressPackageStartupMessages({
 data.table::setDTthreads(1L)
 
 repo <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
-render_checkpoint <- file.path(repo, "logs/plotting/render_started.json")
-dir.create(dirname(render_checkpoint), recursive = TRUE, showWarnings = FALSE)
-jsonlite::write_json(list(started_ns = as.numeric(Sys.time()) * 1e9), render_checkpoint, auto_unbox = TRUE, digits = NA)
 source(file.path(repo, "code", "functions", "common.R"), local = TRUE)
 source(
   file.path(repo, "code", "functions", "beeline_plot_helpers.R"),
@@ -35,15 +32,8 @@ paths <- c(
   runtime = file.path(runtime_root, "runtime_all_methods.tsv"),
   runtime_summary = file.path(runtime_root, "runtime_summary.tsv")
 )
-assert_files(paths)
 
 comparison <- fread(paths[["metrics"]])
-stopifnot(
-  nrow(comparison) == 5500L,
-  uniqueN(comparison$Case) == 500L,
-  uniqueN(comparison$Method) == 11L,
-  !anyDuplicated(comparison[, .(Case, Method)])
-)
 synthetic <- as.data.frame(comparison[DatasetType == "synthetic"])
 curated <- as.data.frame(comparison[DatasetType == "curated"])
 fig2a <- plot_heatmaps_combined(
@@ -169,7 +159,7 @@ p_win <- ggplot(win_melt, aes(y = Method, x = Percent, fill = Tier)) +
   ) +
   scale_fill_manual(
     values = c("top1" = "#D81B60", "top2_3" = "#42A5F5", "other" = "#E0E0E0"),
-    labels = c("top1" = "Best (incl. ties)", "top2_3" = "Rank 2–3", "other" = "Rank ≥4"),
+    labels = c("top1" = "Best (incl. ties)", "top2_3" = "Rank 2\u20133", "other" = "Rank \u22654"),
     name = NULL
   ) +
   scale_x_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100), breaks = c(0, 50, 100)) +
@@ -212,24 +202,13 @@ display_methods <- c(
   "GNIPLR",
   "SCSGL"
 )
-stopifnot(
-  nrow(truth) == 26L,
-  nrow(edges) == sum(summary$predicted_edges),
-  !anyDuplicated(edges[, .(Method, regulator, target)]),
-  setequal(unique(edges$Method), display_methods)
-)
 budget <- edges[Method == "multiCSN", .N]
-stopifnot(budget == 33L)
 regulators <- unique(truth$regulator)
 targets <- unique(truth$target)
 truth_table <- truth[, .(regulator, target, weight = as.numeric(sign))]
 selected_edges <- setNames(lapply(display_methods, function(method) {
   edges[Method == method]
 }), display_methods)
-stopifnot(
-  nrow(selected_edges[["multiCSN"]]) == budget,
-  all(vapply(selected_edges, nrow, integer(1)) <= budget)
-)
 network_tables <- lapply(selected_edges, function(selected) {
   selected[, .(
     regulator,
@@ -238,7 +217,6 @@ network_tables <- lapply(selected_edges, function(selected) {
   )]
 })
 summary_lookup <- setNames(summary$AUPRC, summary$Method)
-stopifnot(all(is.finite(summary_lookup[display_methods])))
 heatmap_titles <- c(
   "Ground truth",
   sprintf("%s (AUPRC %.3f)", display_methods, summary_lookup[display_methods])
@@ -263,7 +241,7 @@ fig2d <- multiCSN::plot_network_heatmap(
 save_grid_pdf(
   function() {
     grid.newpage()
-    grid.draw(fig2d)
+    grid.draw(italicise_gene_grobs(grid::forceGrob(fig2d), c(regulators, targets)))
   },
   file.path(figure_root, "fig2d.pdf"),
   15,

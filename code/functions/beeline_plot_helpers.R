@@ -421,7 +421,8 @@ plot_heatmaps_beeline <- function(
         method_meta = method_meta,
         cell_size_in = cell_size_in,
         show_box_axis = TRUE,
-        show_legend = TRUE
+        show_legend = TRUE,
+        show_significance = FALSE
       )
       if (is.null(ht)) {
         next
@@ -492,7 +493,8 @@ plot_heatmaps_beeline <- function(
         method_meta = method_meta,
         cell_size_in = cell_size_in,
         show_box_axis = TRUE,
-        show_legend = TRUE
+        show_legend = TRUE,
+        show_significance = FALSE
       )
       if (is.null(ht)) {
         next

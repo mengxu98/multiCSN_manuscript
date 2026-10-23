@@ -17,19 +17,6 @@ if (length(missing_packages) > 0) {
 suppressPackageStartupMessages(library(glmnet))
 suppressPackageStartupMessages(library(ppcor))
 
-has_kSamples <- requireNamespace("kSamples", quietly = TRUE)
-if (isTRUE(has_kSamples)) {
-  suppressPackageStartupMessages(library(kSamples))
-}
-
-sincerities_source_dir <- function() {
-  file.path(benchmark_root_dir(), "vendor", "SINCERITIES")
-}
-
-sincerities_source_file <- function(name) {
-  file.path(sincerities_source_dir(), name)
-}
-
 # Method parameters are passed as function arguments.
 
 sincerities_use_upstream <- function(use_upstream = FALSE) {
@@ -51,21 +38,11 @@ sincerities_max_time_points <- function(max_time_points = NA_integer_) {
   as.integer(parsed)
 }
 
-sincerities_cmtest2 <- local({
-  cached <- NULL
-  function() {
-    if (is.null(cached)) {
-      cached <<- dget(sincerities_source_file("cmtest2.R"))
-    }
-    cached
-  }
-})
-
 sincerities_ranked_predictions <- local({
   cached <- NULL
   function() {
     if (is.null(cached)) {
-      cached <<- dget(sincerities_source_file("final_ranked_predictions.R"))
+      cached <<- dget(file.path(benchmark_root_dir(), "vendor", "SINCERITIES", "final_ranked_predictions.R"))
     }
     cached
   }
@@ -158,16 +135,12 @@ sincerities_nonconstant_gene_mask <- function(matrix) {
 
 run_SINCERITIES_parallel <- function(
   DATA,
-  distance = 1,
   method = 1,
   noDIAG = 1,
   SIGN = 0,
   cores = 1L,
   verbose = FALSE
 ) {
-  if (!distance %in% c(1, 2, 3, 4)) {
-    stop("Choose distance metric with 1,2,3,4.")
-  }
   if (!method %in% c(1, 2, 3, 4)) {
     stop("Choose regularization regression strategy with 1,2,3,4.")
   }
@@ -176,9 +149,6 @@ run_SINCERITIES_parallel <- function(
   }
   if (!SIGN %in% c(0, 1)) {
     stop("SIGN should be either 0 or 1")
-  }
-  if (identical(distance, 2) && !isTRUE(has_kSamples)) {
-    stop("kSamples is required when distance = 2.")
   }
 
   single_cell_data <- DATA$singleCELLdata
@@ -190,33 +160,18 @@ run_SINCERITIES_parallel <- function(
     stop("** DATA with a number of time points < 5. Please run SINCERITIES_CROSS_VALIDATION function **")
   }
 
-  cmtest2_fun <- sincerities_cmtest2()
-
   distance_cols <- sincerities_parallel_map(
     x = seq_len(numGENES),
     cores = cores,
     verbose = verbose,
-    export_fun = c("sincerities_cmtest2"),
     fun = function(gi) {
-      if (distance %in% c(2, 3)) {
-        suppressPackageStartupMessages(library(kSamples))
-      }
       values <- numeric(num_time_points - 1)
-      local_cmtest2 <- sincerities_cmtest2()
       for (ti in seq_len(num_time_points - 1)) {
         data_ti <- t(single_cell_data[[ti]])
         data_ti_plus1 <- t(single_cell_data[[ti + 1]])
         p1 <- data_ti[gi, ]
         p2 <- data_ti_plus1[gi, ]
-        if (distance == 1) {
-          values[ti] <- ks.test(p1, p2)$statistic
-        } else if (distance == 2) {
-          values[ti] <- local_cmtest2(p1, p2)$CM_limiting_stat
-        } else if (distance == 3) {
-          values[ti] <- ad.test(p1, p2)$ad[2, 1]
-        } else {
-          values[ti] <- abs(mean(p1) - mean(p2))
-        }
+        values[ti] <- ks.test(p1, p2)$statistic
       }
       values
     }
@@ -372,7 +327,6 @@ run_SINCERITIES <- function(
     expression_data <- build_sincerities_input(matrix, pseudotime)
     result <- run_SINCERITIES_parallel(
       DATA = expression_data,
-      distance = 1,
       method = 1,
       noDIAG = 1,
       SIGN = 0,

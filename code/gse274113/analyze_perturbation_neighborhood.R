@@ -1,18 +1,19 @@
 #!/usr/bin/env Rscript
 
+source("code/functions/table_io.R")
+
 source("code/functions/ranking_metrics.R")
 
 suppressPackageStartupMessages({
   library(data.table)
-  library(digest)
   library(fgsea)
 })
 
 repo <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 truth_root <- file.path(repo, "data", "gse274113", "heldout_pseudobulk_full")
 network_root <- file.path(repo, "results", "gse274113", "networks")
-annotation_path <- file.path(repo, "results", "gse274113", "chain_response_annotations", "selected_chain_response_annotations.tsv.gz")
-output <- file.path(repo, "results", "gse274113", "perturbation_neighborhood")
+annotation_path <- file.path(repo, "results", "gse274113", "comparison", "selected_chain_response_annotations.tsv.gz")
+output <- file.path(repo, "results", "gse274113", "neighborhood")
 methods <- c("multiCSN", "Pando", "SCENICplus")
 day_slugs <- c("day_7", "day_9", "day_11", "day_14")
 day_labels <- c("day 7", "day 9", "day 11", "day 14")
@@ -346,6 +347,5 @@ fwrite(hero_candidates, file.path(stage, "hero_TF_selection.tsv"), sep = "\t", q
 fwrite(hero_paths, file.path(stage, "hero_direction_consistent_paths.tsv"), sep = "\t", quote = FALSE, na = "NA")
 fwrite(hero_curve, file.path(stage, "hero_full_background_enrichment_curves.tsv.gz"), sep = "\t", quote = FALSE, na = "NA")
 
-if (dir.exists(output)) unlink(output, recursive = TRUE, force = TRUE)
-if (!file.rename(stage, output)) stop("Unable to promote GSE274113 perturbation neighborhood analysis.")
+publish_result_files(stage, output)
 cat("gse274113_perturbation_neighborhood\tPASS\thero ", hero_tf, " at ", hero_day, "; ", nrow(enrichment), " enrichment rows\n", sep = "")

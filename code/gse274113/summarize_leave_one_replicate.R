@@ -1,6 +1,8 @@
 #!/usr/bin/env Rscript
-summarize_leave_one_replicate <- function(timepoints = "results/gse274113/replicate_deletion_stability/timepoints",
-  output = "results/gse274113/replicate_deletion_stability/stability_summary") {
+
+source("code/functions/table_io.R")
+summarize_leave_one_replicate <- function(timepoints = "results/gse274113/stability",
+  output = "results/gse274113/stability") {
 
 suppressPackageStartupMessages(library(data.table))
 data.table::setDTthreads(1L)
@@ -11,11 +13,10 @@ values <- list(timepoints = timepoints, output = output)
 # ---------------------------------------------------------------
 timepoint_root <- normalizePath(values$timepoints, mustWork = TRUE)
 output_root <- normalizePath(values$output, mustWork = FALSE)
-if (file.exists(output_root)) stop("Output already exists: ", output_root)
 slugs <- c("day_7", "day_9", "day_11", "day_14")
 expected_folds <- c(day_7 = 4L, day_9 = 4L, day_11 = 3L, day_14 = 3L)
 summaries <- rbindlist(lapply(slugs, function(slug) {
-  path <- file.path(timepoint_root, slug, "fold_summary.tsv")
+  path <- file.path(timepoint_root, paste0(slug, "_fold_summary.tsv"))
   x <- fread(path)
   if (nrow(x) != expected_folds[[slug]]) {
     stop("Unexpected fold count at ", slug)
@@ -57,7 +58,7 @@ by_timepoint <- summaries[, summarize_group(.SD, unique(timepoint)), by = timepo
 overall <- summarize_group(summaries, "all biological replicates")
 
 dir.create(output_root, recursive = TRUE, showWarnings = FALSE)
-fwrite(summaries, file.path(output_root, "all_fold_metrics.tsv"), sep = "\t")
+fwrite(summaries, file.path(output_root, "fold_metrics.tsv"), sep = "\t")
 fwrite(by_timepoint, file.path(output_root, "stability_by_timepoint.tsv"), sep = "\t")
 fwrite(overall, file.path(output_root, "stability_overall.tsv"), sep = "\t")
 cat("gse274113_leave_one_replicate_summary\tPASS\t", output_root, "\n", sep = "")

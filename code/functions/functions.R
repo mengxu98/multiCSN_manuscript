@@ -161,6 +161,7 @@ fast_standard_metric_summary <- function(network_table, ground_truth) {
     return(list(
       AUROC = NA_real_,
       AUPRC = NA_real_,
+      AP = NA_real_,
       ACC = NA_real_,
       Precision = NA_real_,
       Recall = NA_real_,
@@ -279,6 +280,7 @@ fast_standard_metric_summary <- function(network_table, ground_truth) {
 
   if (n_true == 0) {
     auprc_raw <- NA_real_
+    ap_raw <- NA_real_
   } else {
     precision_desc <- ifelse(
       (tp_cum + fp_cum) > 0,
@@ -286,6 +288,7 @@ fast_standard_metric_summary <- function(network_table, ground_truth) {
       0
     )
     recall_desc <- tp_cum / n_true
+    ap_raw <- sum(grouped$pos / n_true * precision_desc)
     rev_idx <- rev(seq_along(precision_desc))
     pr_precision <- c(precision_desc[rev_idx], 1)
     pr_recall <- c(recall_desc[rev_idx], 0)
@@ -324,6 +327,7 @@ fast_standard_metric_summary <- function(network_table, ground_truth) {
   list(
     AUROC = as.numeric(auroc_raw),
     AUPRC = as.numeric(auprc_raw),
+    AP = as.numeric(ap_raw),
     ACC = as.numeric(acc_best),
     Precision = as.numeric(precision_best),
     Recall = as.numeric(recall_best),

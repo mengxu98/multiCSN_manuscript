@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 
+source("code/functions/table_io.R")
+
 suppressPackageStartupMessages(library(data.table))
 data.table::setDTthreads(1L)
 
@@ -79,29 +81,14 @@ turnover_spearman <- function(reference, sampled) {
   cor(joined$turnover_reference, joined$turnover_sampled, method = "spearman")
 }
 
-# Self-check mode switch
-self_test <- FALSE
-if (isTRUE(self_test)) {
-  a <- data.table(regulator = c("A", "B"), target = c("X", "Y"), direction = c(1, -1))
-  b <- data.table(regulator = c("A", "B"), target = c("X", "Y"), direction = c(1, 1))
-  overlap <- overlap_summary(a, b, c("regulator", "target"))
-  stopifnot(overlap$unsigned_jaccard == 1, overlap$signed_jaccard == 1 / 3)
-  transition <- multiCSN::classify_edge_transitions(a, b, c("regulator", "target"))
-  stopifnot(transition[regulator == "A", topology_class] == "shared_sign_stable")
-  stopifnot(transition[regulator == "B", topology_class] == "shared_sign_flip")
-  stopifnot(composition_summary(transition, transition, c("regulator", "target"))$summary$composition_similarity == 1)
-  cat("GSE194122_SENSITIVITY_SUMMARY_SELF_TEST_PASS\n")
-  quit(save = "no", status = 0L)
-}
-
 # ---- Parameters ----
 settings <- list(
   "runs/gse194122/cell_budget_runs/results",
-  "results/gse194122/cell_budget_manifests/cell_budget_sampling_plan.tsv",
-  "results/gse194122/state_networks",
-  "results/gse194122/state_regulomes/hero_regulons.tsv",
-  "results/gse194122/donor_stable_rewiring/stable_consensus_edges.tsv.gz",
-  "results/gse194122/cell_budget_sensitivity"
+  "results/gse194122/sampling/cell_budget_sampling_plan.tsv",
+  "results/gse194122/networks",
+  "results/gse194122/programs/hero_regulons.tsv",
+  "results/gse194122/donor_stability/stable_consensus_edges.tsv.gz",
+  "results/gse194122/cell_budget"
 )
 # ---------------------------------------------------------------
 sample_root <- normalizePath(settings[[1]], mustWork = TRUE)
@@ -110,15 +97,13 @@ formal_root <- normalizePath(settings[[3]], mustWork = TRUE)
 hero_path <- normalizePath(settings[[4]], mustWork = TRUE)
 stable_path <- normalizePath(settings[[5]], mustWork = TRUE)
 output_dir <- settings[[6]]
-if (file.exists(output_dir)) stop("Output exists and will not be overwritten: ", output_dir)
 source("code/functions/network_contract.R")
-stage <- paste0(output_dir, ".staging")
+stage <- tempfile(".result-files-", tmpdir = dirname(output_dir))
 if (file.exists(stage)) stop("Staging output exists: ", stage)
 dir.create(stage, recursive = TRUE, showWarnings = FALSE)
 
 tasks <- fread(task_plan_path)
 invisible(lapply(file.path(sample_root, tasks$task_slug), validate_network_result))
-stopifnot(nrow(tasks) == 50L, uniqueN(tasks$seed) == 10L, uniqueN(tasks$state_order) == 5L)
 state_table <- unique(tasks[, .(state_order, state, state_slug)])
 setorder(state_table, state_order)
 endpoint_specs <- list(
@@ -254,5 +239,5 @@ for (name in names(outputs)) {
   fwrite(outputs[[name]], file.path(stage, paste0(name, ".tsv")), sep = "\t", quote = FALSE, na = "NA")
 }
 
-if (!file.rename(stage, output_dir)) stop("Failed to promote staging output: ", output_dir)
+publish_result_files(stage, output_dir)
 cat("GSE194122_SENSITIVITY_SUMMARY_PASS\n")

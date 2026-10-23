@@ -6,7 +6,7 @@ suppressPackageStartupMessages(library(data.table))
 # ---- Parameters ----
 triplet_path <- normalizePath("results/gse162170/network/triplets.tsv", mustWork = TRUE)
 membership_path <- normalizePath("results/gse162170/cell_programs/target_membership.tsv", mustWork = TRUE)
-output_dir <- "results/gse162170/loci/candidate_screen"
+output_dir <- "results/gse162170/loci"
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 triplets <- fread(triplet_path, showProgress = FALSE)

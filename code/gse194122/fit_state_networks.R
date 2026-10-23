@@ -5,15 +5,14 @@ fit_canonical_states <- function() {
 states <- c("HSC", "MK/E prog", "Proerythroblast", "Erythroblast", "Normoblast")
 slugs <- c("01_HSC", "02_MK_E_prog", "03_Proerythroblast", "04_Erythroblast", "05_Normoblast")
 expected_cells <- c(1072L, 884L, 2300L, 4916L, 1780L)
-cell_path <- "results/gse194122/state_transitions/erythroid_cell_ids.tsv"
+cell_path <- "results/gse194122/trajectory/erythroid_cell_ids.tsv"
 if (file.exists(cell_path)) stop("Output already exists: ", cell_path)
 cell_rows <- vector("list", length(states))
 for (i in seq_along(states)) {
   cell_rows[[i]] <- fit_state_networks(
     dataset = "GSE194122",
     input = "data/gse194122/gse194122_candidates.rds",
-    validation = "data/gse194122/candidate_validation.tsv",
-    output = file.path("results", "gse194122", "state_networks", slugs[[i]]),
+    output = file.path("results", "gse194122", "networks", slugs[[i]]),
     state = states[[i]],
     expected_cells = expected_cells[[i]],
     response_chunk = 1024L,

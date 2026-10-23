@@ -1,8 +1,6 @@
 #!/usr/bin/env python3
 
-import importlib
 import sys
-import types
 from pathlib import Path
 
 import numpy as np
@@ -11,35 +9,12 @@ from scipy.spatial.distance import squareform
 from itertools import permutations
 
 
-def run_inference(expression, out_file, assoc="correlation", pos_density=0.01, neg_density=0.01):
+def run_inference(expression, out_file, pos_density=0.01, neg_density=0.01):
     repo_dir = Path(__file__).resolve().parent
     sys.path.insert(0, str(repo_dir))
 
-    if "rpy2" not in sys.modules:
-        rpy2 = types.ModuleType("rpy2")
-        robjects = types.ModuleType("rpy2.robjects")
-        packages = types.ModuleType("rpy2.robjects.packages")
-
-        class DummyPackage:
-            def __getattr__(self, name):
-                raise RuntimeError(f"Optional rpy2-backed functionality is unavailable: {name}")
-
-        def importr(_name):
-            return DummyPackage()
-
-        packages.importr = importr
-        robjects.packages = packages
-        robjects.numpy2ri = types.SimpleNamespace(activate=lambda: None)
-        rpy2.robjects = robjects
-        sys.modules["rpy2"] = rpy2
-        sys.modules["rpy2.robjects"] = robjects
-        sys.modules["rpy2.robjects.packages"] = packages
-
-    correlation = importlib.import_module("pysrc.associations.correlation")
-    dotprod = importlib.import_module("pysrc.associations.dotprod")
-    proprho = importlib.import_module("pysrc.associations.proprho")
-    signed = importlib.import_module("pysrc.graphlearning.signed")
-    unsigned = importlib.import_module("pysrc.graphlearning.unsigned")
+    from pysrc.associations import correlation
+    from pysrc.graphlearning import signed, unsigned
 
     def find_bs_upper_bound(k, d, density):
       value = 5
@@ -99,19 +74,12 @@ def run_inference(expression, out_file, assoc="correlation", pos_density=0.01, n
       result = pd.DataFrame({"Gene1": gene1, "Gene2": gene2, "EdgeWeight": edge_weights})
       return result[result["EdgeWeight"] != 0]
 
-    assocs = {
-      "dotprod": dotprod.calc,
-      "correlation": correlation.calc,
-      "proprho": proprho.calc,
-    }
-
     expression_matrix = expression.to_numpy(dtype=float)
     gene_names = expression.index.to_numpy()
-    assoc_fun = assocs[assoc]
     nonzero_mask = np.count_nonzero(expression_matrix, axis=1) != 0
     matrix = expression_matrix[nonzero_mask, :]
     genes = gene_names[nonzero_mask]
-    kernel = assoc_fun(matrix)
+    kernel = correlation.calc(matrix)
     upper = kernel[np.triu_indices_from(kernel, k=1)]
     upper /= np.max(np.abs(upper))
     diag = np.diag(kernel) / np.max(np.abs(upper))

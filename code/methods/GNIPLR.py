@@ -56,7 +56,6 @@ def gniplr_granger(gene_1, gene_2, n):
     model = LinearRegression()
 
     # Lag phase 1
-    a1_t_1 = np.array(a1_cha[0:n - 1])
     a1_t1_1 = np.array(a1_cha[1:n])
     b1_t_1 = np.array(b1_cha[0:n - 1])
     b1_t1_1 = np.array(b1_cha[1:n])
@@ -70,13 +69,11 @@ def gniplr_granger(gene_1, gene_2, n):
     p1_1 = f.sf(f1_1, 1, n - 3)
 
     # Lag phase 2
-    a1_t = np.array(a1_cha[0:n - 2])
     a1_t1 = np.array(a1_cha[1:n - 1])
     a1_t2 = np.array(a1_cha[2:n])
     b1_t = np.array(b1_cha[0:n - 2])
     b1_t1 = np.array(b1_cha[1:n - 1])
     b1_t2 = np.array(b1_cha[2:n])
-    a1_t1_t2 = sm.add_constant(np.vstack((a1_t1, a1_t2)).T)
     b1_t1_t2 = sm.add_constant(np.vstack((b1_t1, b1_t2)).T)
     a1_t1_t2_b1 = sm.add_constant(np.vstack((a1_t1, a1_t2, b1_t1, b1_t2)).T)
     model.fit(a1_t1_t2_b1, b1_t)
@@ -87,7 +84,6 @@ def gniplr_granger(gene_1, gene_2, n):
     p1_2 = f.sf(f1_2, 2, n - 2 - 2 - 1)
 
     # Lag phase 3
-    a1_t_3 = np.array(a1_cha[0:n - 3])
     a1_t1_3 = np.array(a1_cha[1:n - 2])
     a1_t1_t3_3 = np.array(a1_cha[2:n - 1])
     a1_t2_3 = np.array(a1_cha[3:n])
@@ -95,7 +91,6 @@ def gniplr_granger(gene_1, gene_2, n):
     b1_t1_3 = np.array(b1_cha[1:n - 2])
     b1_t1_t3_3 = np.array(b1_cha[2:n - 1])
     b1_t2_3 = np.array(b1_cha[3:n])
-    a1_t1_t2_3 = sm.add_constant(np.vstack((a1_t1_3, a1_t2_3, a1_t1_t3_3)).T)
     b1_t1_t2_3 = sm.add_constant(np.vstack((b1_t1_3, b1_t2_3, b1_t1_t3_3)).T)
     a1_t1_t2_b1_3 = sm.add_constant(
         np.vstack((a1_t1_3, a1_t2_3, a1_t1_t3_3, b1_t1_3, b1_t2_3, b1_t1_t3_3)).T

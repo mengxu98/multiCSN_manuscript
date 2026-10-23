@@ -75,27 +75,19 @@ set_metrics <- function(labels, predicted) {
 }
 
 # ---- Parameters ----
-# External evidence was rebuilt on 2026-09-14; source URLs, hashes and conversion
-# records: data/gse274113/raw_external_downloads/README.md.
-# The four-method reproduction runner uses recovered server-131 LINGER inputs.
 evaluate_tf_region_binding <- function(arguments = list(
   endpoints = "results/gse274113/networks",
   evidence = "data/gse274113/external_resources",
   truth = "data/gse274113/heldout_pseudobulk_full",
-  output = "results/gse274113/multiomic_endpoint_evidence/TF_region_external_binding",
+  output = "results/gse274113/evidence",
   methods = NULL
 )) {
 endpoint_root <- normalizePath(arguments$endpoints, mustWork = TRUE)
 evidence_root <- normalizePath(arguments$evidence, mustWork = TRUE)
 truth_root <- normalizePath(arguments$truth, mustWork = TRUE)
 output_root <- normalizePath(arguments$output, mustWork = FALSE)
-if (file.exists(output_root)) {
-  stop("Output already exists and will not be overwritten: ", output_root)
-}
 dir.create(dirname(output_root), recursive = TRUE, showWarnings = FALSE)
-stage_root <- paste0(
-  output_root, ".staging_", format(Sys.time(), "%Y%m%dT%H%M%SZ", tz = "UTC")
-)
+stage_root <- tempfile(".result-files-", tmpdir = dirname(output_root))
 dir.create(stage_root, recursive = FALSE)
 
 chip_path <- file.path(evidence_root, "primary_erythroid_ChIP_peaks_hg38.tsv.gz")
@@ -275,9 +267,7 @@ write_tsv(
   file.path(stage_root, "TF_region_external_binding_common_nonempty_macro.tsv")
 )
 
-if (!file.rename(stage_root, output_root)) {
-  stop("Unable to atomically publish TF-region external evaluation.")
-}
+publish_result_files(stage_root, output_root, prefix = if (identical(arguments$methods, "LINGER")) "linger_" else "")
 cat("TF_region_external_binding_evaluation\tPASS\t", output_root, "\n", sep = "")
 
 }

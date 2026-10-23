@@ -1,20 +1,21 @@
 #!/usr/bin/env Rscript
 
+source("code/functions/table_io.R")
+
 suppressPackageStartupMessages(library(data.table))
 
 
 # ---- Parameters ----
 arguments <- list(
   "results/gse194122/trajectory/erythroid_coordinates_and_pseudotime.tsv.gz",
-  "results/gse194122/donor_deletion_manifests"
+  "results/gse194122/sampling"
 )
 # ---------------------------------------------------------------
 trajectory_path <- arguments[[1L]]
 output <- arguments[[2L]]
 trajectory_path <- normalizePath(trajectory_path, winslash = "/", mustWork = TRUE)
-if (file.exists(output)) stop("Output already exists: ", output, call. = FALSE)
 dir.create(dirname(output), recursive = TRUE, showWarnings = FALSE)
-stage <- paste0(output, ".staging")
+stage <- tempfile(".result-files-", tmpdir = dirname(output))
 if (file.exists(stage)) stop("Staging path already exists: ", stage, call. = FALSE)
 dir.create(stage, recursive = FALSE)
 dir.create(file.path(stage, "cells"), recursive = FALSE)
@@ -70,5 +71,5 @@ if (nrow(task_table) != 49L || uniqueN(task_table$heldout_donor) != 10L ||
   stop("Expected 49 informative leave-one-donor-out state fits.")
 }
 fwrite(task_table, file.path(stage, "donor_deletion_plan.tsv"), sep = "\t", quote = FALSE)
-if (!file.rename(stage, output)) stop("Unable to promote donor-deletion manifests.")
+publish_result_files(stage, output)
 cat("gse194122_donor_deletion_manifests\tPASS\t", output, "\n", sep = "")

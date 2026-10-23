@@ -19,4 +19,7 @@ run_task code/plotting/figs9.R
 run_task code/plotting/figs10.R
 run_task code/plotting/figs11.R
 run_task code/plotting/figs12.R
-python3 code/plotting/verify_figures.py
+run_task code/plotting/figs13.R
+run_task code/plotting/figs14.R
+run_task code/plotting/figs15.R
+run_task code/plotting/graphical_abstract.py

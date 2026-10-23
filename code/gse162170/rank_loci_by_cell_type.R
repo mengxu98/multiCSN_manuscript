@@ -1,16 +1,17 @@
 #!/usr/bin/env Rscript
 
+source("code/functions/table_io.R")
+
 suppressPackageStartupMessages(library(data.table))
 
 
 # ---- Parameters ----
-input <- "results/gse162170/loci/candidate_screen/all_target_locus_screen.tsv"
-output <- "results/gse162170/loci/by_class"
+input <- "results/gse162170/loci/all_target_locus_screen.tsv"
+output <- "results/gse162170/loci"
 # ---------------------------------------------------------------
 input <- normalizePath(input, mustWork = TRUE)
-if (file.exists(output)) stop("Output already exists: ", output, call. = FALSE)
 dir.create(dirname(output), recursive = TRUE, showWarnings = FALSE)
-stage <- paste0(output, ".staging")
+stage <- tempfile(".result-files-", tmpdir = dirname(output))
 if (file.exists(stage)) stop("Staging path already exists: ", stage, call. = FALSE)
 dir.create(stage, recursive = FALSE)
 
@@ -43,6 +44,6 @@ if (!setequal(summary$chromatin_anchor, classes) || nrow(top10) != 50L ||
 fwrite(eligible, file.path(stage, "eligible_loci_by_class.tsv"), sep = "\t")
 fwrite(top10, file.path(stage, "top10_loci_by_class.tsv"), sep = "\t")
 fwrite(summary, file.path(stage, "cell_type_summary.tsv"), sep = "\t")
-if (!file.rename(stage, output)) stop("Unable to promote cell-type locus screen.")
+publish_result_files(stage, output)
 cat("gse162170_locus_screen_by_class\tPASS\t", output, "\n", sep = "")
 

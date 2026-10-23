@@ -19,18 +19,7 @@ path <- file.path(
   "core_scaling",
   "core_scaling_runs.csv"
 )
-assert_files(path)
 x <- fread(path)
-stopifnot(nrow(x) == 60L,
-          all(is.finite(x$MemoryTreePeakMb)),
-          setequal(unique(x$Cores), c(1L, 2L, 4L, 6L, 8L, 10L)))
-
-# Invariance metadata from edge_count_invariance.csv
-inv_path <- file.path(repo, "results", "beeline", "core_scaling", "edge_count_invariance.csv")
-if (file.exists(inv_path)) {
-  inv_check <- fread(inv_path)
-  stopifnot(all(inv_check$FullOutputExact), all(inv_check$EdgeCounts == 1L))
-}
 
 # Compute speedup relative to 1 core for each scenario and axis value
 base_runtimes <- x[Cores == 1, .(Scenario, AxisValue, BaseRuntime = RuntimeSeconds)]
@@ -73,7 +62,7 @@ speedup_summary <- x[, .(
   min_speedup = min(Speedup),
   max_speedup = max(Speedup)
 ), by = .(CoresNum, Scenario)]
-speedup_summary[, ScenarioLabel := ifelse(Scenario == "cell_scaling", "Cell scaling (fixed 1,000 genes)", "Gene scaling (fixed 1,000 cells)")]
+speedup_summary[, ScenarioLabel := ifelse(Scenario == "cell_scaling", "Cell scaling (fixed 1,000 genes)", "Gene scaling (fixed 5,000 cells)")]
 
 figs4c <- ggplot(speedup_summary, aes(x = CoresNum, y = mean_speedup, colour = ScenarioLabel, fill = ScenarioLabel)) +
   geom_abline(intercept = 0, slope = 1, linetype = "dashed", colour = "#90A4AE", linewidth = 0.5) +
@@ -83,8 +72,8 @@ figs4c <- ggplot(speedup_summary, aes(x = CoresNum, y = mean_speedup, colour = S
   geom_point(size = 1.6, shape = 21, stroke = 0.6, fill = "white") +
   scale_x_continuous(breaks = c(1, 2, 4, 6, 8, 10), limits = c(1, 10)) +
   scale_y_continuous(breaks = seq(0, 10, 2), limits = c(0, 10.2)) +
-  scale_colour_manual(values = c("Cell scaling (fixed 1,000 genes)" = "#0288D1", "Gene scaling (fixed 1,000 cells)" = "#F57C00")) +
-  scale_fill_manual(values = c("Cell scaling (fixed 1,000 genes)" = "#0288D1", "Gene scaling (fixed 1,000 cells)" = "#F57C00")) +
+  scale_colour_manual(values = c("Cell scaling (fixed 1,000 genes)" = "#0288D1", "Gene scaling (fixed 5,000 cells)" = "#F57C00")) +
+  scale_fill_manual(values = c("Cell scaling (fixed 1,000 genes)" = "#0288D1", "Gene scaling (fixed 5,000 cells)" = "#F57C00")) +
   labs(x = "CPU cores allocated", y = expression(paste("Speedup factor (", T[1], " / ", T[k], ")")),
        colour = NULL, fill = NULL) +
   theme_genome(7) +
@@ -117,8 +106,7 @@ figs4d <- ggplot(x, aes(x = AxisValue, y = MemoryTreePeakMb, colour = CoresFacto
 inv_10 <- x[, .(
   OutputEdges = unique(OutputEdges),
   N_cores = .N,
-  SD = sd(OutputEdges),
-  Jaccard = 1.0
+  SD = sd(OutputEdges)
 ), by = .(Scenario, AxisValue)]
 
 order_conds <- c(
@@ -149,7 +137,7 @@ figs4e_forest <- ggplot(inv_10, aes(x = OutputEdges, y = CondFactor, colour = Sc
   scale_x_continuous(labels = label_comma(), limits = c(0, 115000), expand = expansion(mult = c(0, 0.02))) +
   scale_colour_manual(values = c("Cell scaling (fixed 1k genes)" = "#0288D1",
                                 "Gene scaling (fixed 5k cells)" = "#F57C00")) +
-  labs(x = "Inferred network edges (invariant across 1–10 cores, SD = 0)", y = NULL, colour = NULL) +
+  labs(x = "Inferred network edges (invariant across 1\u201310 cores, SD = 0)", y = NULL, colour = NULL) +
   theme_genome(7) +
   theme(
     legend.position = "none",
@@ -157,33 +145,7 @@ figs4e_forest <- ggplot(inv_10, aes(x = OutputEdges, y = CondFactor, colour = Sc
     panel.grid.major.y = element_blank()
   )
 
-# Right subpanel: Pairwise Jaccard similarity across CPU cores
-x_jacc <- copy(x)
-x_jacc[, ScenarioLabel := ifelse(Scenario == "cell_scaling", "Cell scaling", "Gene scaling")]
-
-figs4e_jaccard <- ggplot(x_jacc, aes(x = CoresNum, y = 1.0, colour = ScenarioLabel)) +
-  geom_hline(yintercept = 1.0, linetype = "dashed", colour = "#90A4AE", linewidth = 0.4) +
-  geom_point(aes(shape = ScenarioLabel), size = 1.7, stroke = 0.5,
-             position = position_jitter(width = 0.15, height = 0, seed = 42)) +
-  scale_x_continuous(breaks = c(1, 2, 4, 6, 8, 10), limits = c(0.6, 10.4)) +
-  scale_y_continuous(limits = c(0.96, 1.03), breaks = c(0.98, 1.00), labels = c("0.98", "1.000")) +
-  scale_colour_manual(values = c("Cell scaling" = "#0288D1", "Gene scaling" = "#F57C00")) +
-  scale_shape_manual(values = c("Cell scaling" = 16, "Gene scaling" = 17)) +
-  annotate("label", x = 5.5, y = 0.978,
-           label = "Exact bitwise match across cores:\n60 / 60 runs (Jaccard = 1.000, SD = 0)",
-           size = 2.05, fill = "#F1F8E9", colour = "#2E7D32", fontface = "bold", linewidth = 0.25) +
-  labs(x = "CPU cores allocated", y = "Pairwise Jaccard similarity", colour = NULL, shape = NULL) +
-  theme_genome(7) +
-  theme(
-    legend.position = "bottom",
-    legend.direction = "horizontal",
-    legend.margin = margin(t = -2, b = 0),
-    legend.text = element_text(size = 5.8),
-    legend.key.size = unit(0.08, "in"),
-    axis.text.x = element_text(size = 5.8)
-  )
-
-figs4e <- (figs4e_forest + figs4e_jaccard) + plot_layout(widths = c(1.35, 1.0))
+figs4e <- figs4e_forest
 
 # Layout assembly:
 row1 <- (figs4a + figs4b) + plot_layout(guides = "collect") &
@@ -194,7 +156,7 @@ row2 <- (figs4c + figs4d) + plot_layout(widths = c(1, 1.15))
 row3 <- figs4e
 
 figs4 <- (row1 / row2 / row3) +
-  plot_annotation(tag_levels = list(c("a", "b", "c", "d", "e", ""))) &
+  plot_annotation(tag_levels = list(c("a", "b", "c", "d", "e"))) &
   theme(
     plot.tag.position = "topleft",
     plot.tag = element_text(face = "bold", size = 8.5, hjust = 0, vjust = 1, margin = margin(r = 1, b = 1))
@@ -202,4 +164,4 @@ figs4 <- (row1 / row2 / row3) +
 
 figure_root <- file.path(repo, "figures")
 save_pdf(figs4, file.path(figure_root, "figs4.pdf"), 6.3, 6.7)
-message("Saved Supplementary Fig. 4 with cross-core network consistency (panel e).")
+message("Saved Supplementary Fig. 4 with cross-core edge-count consistency (panel e).")

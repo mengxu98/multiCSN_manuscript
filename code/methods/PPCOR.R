@@ -1,7 +1,3 @@
-if (!requireNamespace("ppcor", quietly = TRUE)) {
-  pak::pak("ppcor")
-}
-
 run_PPCOR <- function(
   matrix,
   regulators = NULL,

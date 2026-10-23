@@ -34,7 +34,7 @@ class Canvas:
             "Independent TF–gene, TF–region and region–gene fits. Exact genomic-region "
             "matching produces region-resolved networks for fetal-cortex examples, "
             "with direct TF–gene overlap assessed separately; "
-            "direct TF–gene networks describe erythroid target turnover."
+            "direct TF–gene associations and RNA profiles describe contrasting HMGA1 and SOX6 erythroid programs."
         )
         self.parent = self.root
         self.counter = 0
@@ -413,7 +413,7 @@ def erythroid_cell(c, name, x, y, radius, nucleus):
 
 
 def erythroid(c):
-    with c.group("erythroid-maturation", "Erythroid direct-network target turnover", layer=True):
+    with c.group("erythroid-maturation", "Stage-associated erythroid RNA programs", layer=True):
         c.rect(1283, 365, 681, 393, "url(#application-panel)", 18)
         c.text(1303, 404, "Erythroid maturation", 31, "bold", "start")
         c.path("M1597,447 V689", "#b5b7c2", 1.2)
@@ -430,33 +430,28 @@ def erythroid(c):
             c.arrow(1532, 511, 1550, 557, width=2.4, head=13, dash="9 7")
             c.gene(1498, 575, 17.5)
             c.gene(1550, 575, 17.5)
-            c.text(1443, 648, "Lost inferred links", 24, "bold")
-            c.text(1440, 678, "Translation / mitochondrial genes", 20)
-        with c.group("bnc2-example", "BNC2 targets gained and lost across successive transitions"):
-            erythroid_cell(c, "bnc2-proerythroblast", 1642, 537, 26, 12)
-            erythroid_cell(c, "bnc2-erythroblast", 1726, 537, 25, 12)
-            erythroid_cell(c, "bnc2-normoblast", 1811, 537, 26, 11.5)
-            c.arrow(1673, 537, 1697, 537, width=2.5, head=11)
-            c.arrow(1757, 537, 1783, 537, width=2.5, head=11)
-            c.text(1684, 496, "Gained", 21, color="#008b16")
-            c.path("M1664,502 L1657,513", "#4aa850", 1.4)
-            c.path("M1706,502 L1714,513", "#4aa850", 1.4)
-            c.text(1795, 496, "Lost", 21)
-            for x, label in [(1642, "ProE"), (1726, "Ery"), (1811, "Norm")]:
+            c.text(1443, 648, "Translation-gene RNA declines", 20, "bold")
+            c.text(1440, 678, "Recurrent TF–gene link losses", 19)
+        with c.group("sox6-example", "SOX6-associated erythroid-development RNA increases from Proerythroblast to Erythroblast"):
+            erythroid_cell(c, "sox6-proerythroblast", 1642, 537, 26, 12)
+            erythroid_cell(c, "sox6-erythroblast", 1779, 537, 25, 12)
+            c.arrow(1675, 537, 1748, 537, width=2.5, head=11)
+            c.text(1711, 496, "RNA rises", 21)
+            for x, label in [(1642, "ProE"), (1779, "Ery")]:
                 c.text(x, 590, label, 22)
-            c.text(1907, 470, "BNC2", 26, italic=True)
+            c.text(1907, 470, "SOX6", 26, italic=True)
             c.tf(1907, 494, 28, 27)
             c.arrow(1900, 515, 1883, 557, GREEN, 2.4, 13)
-            c.arrow(1918, 515, 1936, 557, width=2.4, head=13, dash="9 7")
+            c.arrow(1918, 515, 1936, 557, GREEN, 2.4, 13)
             c.gene(1883, 575, 17.5)
             c.gene(1936, 575, 17.5)
-            c.text(1779, 648, "Gained / lost inferred links", 22, "bold")
-            c.text(1785, 678, "Immune-response genes", 24)
-        with c.group("edge-style-key", "Gained and lost relation styles"):
+            c.text(1779, 648, "Erythroid-development RNA rises", 21, "bold")
+            c.text(1785, 678, "14 annotated positive direct targets", 19)
+        with c.group("edge-style-key", "Schematic inferred direct associations and link losses"):
             c.arrow(1473, 725, 1535, 725, GREEN, 2.5, 16)
-            c.text(1552, 732, "Gained", 21, anchor="start")
+            c.text(1552, 732, "Positive", 21, anchor="start")
             c.arrow(1660, 725, 1722, 725, EDGE, 2.5, 16, "10 7")
-            c.text(1739, 732, "Lost", 21, anchor="start")
+            c.text(1739, 732, "Link loss", 21, anchor="start")
 
 
 def draw():

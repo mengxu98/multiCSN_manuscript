@@ -11,3 +11,19 @@ write_tsv <- function(x, path, writer = c("fwrite", "table"), na = "NA") {
   }
   data.table::fwrite(x, path, sep = "\t", quote = FALSE, na = na)
 }
+
+
+publish_result_files <- function(stage, output, prefix = "") {
+  paths <- list.files(stage, recursive = TRUE, all.files = TRUE, no.. = TRUE)
+  paths <- paths[!file.info(file.path(stage, paths))$isdir]
+  dir.create(output, recursive = TRUE, showWarnings = FALSE)
+  for (relative in paths) {
+    destination <- file.path(output, paste0(prefix, relative))
+    dir.create(dirname(destination), recursive = TRUE, showWarnings = FALSE)
+    if (!file.rename(file.path(stage, relative), destination)) {
+      stop("Unable to publish result file: ", destination)
+    }
+  }
+  unlink(stage, recursive = TRUE)
+  invisible(output)
+}

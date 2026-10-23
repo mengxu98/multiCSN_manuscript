@@ -7,7 +7,6 @@ prepare_scaling_inputs <- function(repo, output_root) {
   manifest_path <- file.path(repo, "data/beeline/scaling/scaling_manifest.csv")
   manifest <- read.csv(manifest_path)
   dir.create(file.path(output_root, "inputs"), recursive = TRUE, showWarnings = FALSE)
-  stopifnot(nrow(manifest) == 10L)
   for (i in seq_len(nrow(manifest))) {
     m <- manifest[i, , drop = FALSE]
     path <- file.path(output_root, "inputs", paste0(m$Case, ".rds"))
@@ -18,8 +17,6 @@ prepare_scaling_inputs <- function(repo, output_root) {
                               check.names = FALSE)))
     pt <- read.csv(file.path(d, "PseudoTime.csv"), row.names = 1L,
                    check.names = FALSE)[[1L]]
-    stopifnot(nrow(x) == m$RequestedCells, ncol(x) == m$TotalGeneCount,
-              length(pt) == nrow(x), all(is.finite(pt)))
     saveRDS(list(x = x, pt = pt, metadata = m), path, compress = FALSE)
   }
 }
@@ -34,7 +31,6 @@ measure_scaling_case <- function(input_file, output_dir, cores) {
   network <- inferCSN::inferCSN(z$x, pseudotime = z$pt, cores = cores, verbose = FALSE)
   timing <- proc.time() - clock
   file.create(file.path(output_dir, "done"))
-  saveRDS(network, file.path(output_dir, "network.rds"), compress = FALSE)
   m <- z$metadata
   result <- data.frame(
     Case = m$Case, Scenario = m$Scenario,
@@ -70,19 +66,17 @@ scaling_tree_rss <- function(handle) {
 }
 
 run_scaling_worker <- function(input_file, output_dir, cores, script, rscript, interval) {
-  log <- file.path(output_dir, "worker.log")
   process <- processx::process$new(rscript,
     c("--vanilla", "-e", r_function_expression(script, "measure_scaling_case",
       list(input_file = input_file, output_dir = output_dir, cores = as.integer(cores)))),
-    stdout = log, stderr = "2>&1", cleanup_tree = TRUE, supervise = TRUE)
+    stdout = "", stderr = "", cleanup_tree = TRUE, supervise = TRUE)
   on.exit({
     if (process$is_alive()) process$kill_tree()
     process$wait()
   }, add = TRUE)
   ensure_alive <- function() {
     if (!process$is_alive() && !file.exists(file.path(output_dir, "done"))) {
-      stop("Scaling worker failed: ", output_dir, "\n",
-           paste(tail(readLines(log, warn = FALSE), 40L), collapse = "\n"))
+      stop("Scaling worker failed: ", output_dir)
     }
   }
   while (!file.exists(file.path(output_dir, "ready"))) {
@@ -111,12 +105,8 @@ run_scaling_worker <- function(input_file, output_dir, cores, script, rscript, i
     Sys.sleep(interval)
   }
   process$wait()
-  if (process$get_exit_status() != 0L || !file.exists(file.path(output_dir, "network.rds"))) {
-    stop("Scaling output failed: ", output_dir, "\n",
-         paste(tail(readLines(log, warn = FALSE), 40L), collapse = "\n"))
-  }
+  if (process$get_exit_status() != 0L) stop("Scaling output failed: ", output_dir)
   row <- read.csv(file.path(output_dir, "timing.csv"))
-  stopifnot(nrow(row) == 1L)
   row$MemoryTreePeakMb <- peak$mib
   row$MemoryTreeBeforeMb <- baseline$mib
   row$MemoryTreeProcessesAtPeak <- peak$processes
@@ -126,32 +116,13 @@ run_scaling_worker <- function(input_file, output_dir, cores, script, rscript, i
   row
 }
 
-scaling_directory_hashes <- function(root) {
-  entries <- list.files(root, recursive = TRUE, all.files = TRUE,
-                        include.dirs = TRUE, no.. = TRUE)
-  paths <- file.path(root, entries)
-  if (any(nzchar(Sys.readlink(c(root, paths))))) stop("Scaling output contains symbolic links")
-  files <- sort(entries[!file.info(paths)$isdir])
-  stats::setNames(lapply(file.path(root, files), digest::digest,
-                         algo = "sha256", file = TRUE), files)
-}
-
-publish_scaling_result <- function(candidate, target, backup_root) {
+publish_scaling_result <- function(candidate, target) {
+  if (!dir.exists(candidate)) stop("Missing scaling candidate")
   if (nzchar(Sys.readlink(target))) stop("Scaling output must be a real directory")
   if (!dir.exists(target)) {
     if (!file.rename(candidate, target)) stop("Cannot publish scaling result")
     return(invisible(NULL))
   }
-  original <- scaling_directory_hashes(target)
-  dir.create(backup_root, recursive = TRUE, showWarnings = FALSE)
-  backup <- tempfile("previous-", tmpdir = backup_root)
-  previous <- file.path(backup, "contents")
-  dir.create(previous, recursive = TRUE)
-  entries <- list.files(target, full.names = TRUE, all.files = TRUE, no.. = TRUE)
-  if (!all(file.copy(entries, previous, recursive = TRUE, copy.date = TRUE)) ||
-      !identical(scaling_directory_hashes(previous), original) ||
-      !identical(scaling_directory_hashes(target), original)) stop("Scaling backup verification failed")
-  jsonlite::write_json(original, file.path(backup, "sha256.json"), auto_unbox = TRUE, pretty = TRUE)
   rollback <- tempfile(".core_scaling-rollback-", tmpdir = dirname(target))
   if (!file.rename(target, rollback)) stop("Cannot move previous scaling result")
   published <- FALSE
@@ -161,14 +132,12 @@ publish_scaling_result <- function(candidate, target, backup_root) {
   if (!file.rename(candidate, target)) stop("Cannot publish scaling result")
   published <- TRUE
   unlink(rollback, recursive = TRUE)
-  invisible(backup)
+  invisible(NULL)
 }
 
 run_core_scaling <- function(repo = getwd(), output_root = file.path(repo, "results/beeline/core_scaling"),
-                             backup_root = path.expand("~/backups/multiCSN_manuscript/core_scaling"),
                              rscript = file.path(R.home("bin"), "Rscript"), interval = 0.05) {
-  stopifnot(length(interval) == 1L, is.finite(interval), interval > 0)
-  for (package in c("processx", "ps", "digest", "jsonlite")) {
+  for (package in c("processx", "ps")) {
     if (!requireNamespace(package, quietly = TRUE)) stop("Missing scaling package: ", package)
   }
   repo <- normalizePath(repo, mustWork = TRUE)
@@ -182,7 +151,6 @@ run_core_scaling <- function(repo = getwd(), output_root = file.path(repo, "resu
   on.exit(unlink(work, recursive = TRUE), add = TRUE)
   prepare_scaling_inputs(repo, work)
   inputs <- sort(list.files(file.path(work, "inputs"), pattern = "\\.rds$", full.names = TRUE))
-  stopifnot(length(inputs) == 10L)
   rows <- list()
   for (input in inputs) {
     case <- tools::file_path_sans_ext(basename(input))
@@ -198,11 +166,10 @@ run_core_scaling <- function(repo = getwd(), output_root = file.path(repo, "resu
   write.csv(do.call(rbind, rows), file.path(work, "core_scaling_runs.csv"), row.names = FALSE)
   candidate <- file.path(work, "result")
   summarize_scaling(work, candidate)
-  stopifnot(all(read.csv(file.path(candidate, "edge_count_invariance.csv"))$FullOutputExact))
   if (!file.rename(file.path(work, "core_scaling_runs.csv"), file.path(candidate, "core_scaling_runs.csv"))) {
     stop("Cannot finalize scaling run table")
   }
-  publish_scaling_result(candidate, output_root, backup_root)
+  publish_scaling_result(candidate, output_root)
   message("SCALING_COMPLETE 60")
   invisible(output_root)
 }

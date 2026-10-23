@@ -24,10 +24,9 @@ cores <- script_options$cores
 # ---------------------------------------------------------------
 if (!identical(cores, 1L)) stop("This benchmark requires cores = 1.")
 repo_root <- normalizePath(getwd(), mustWork = TRUE)
-script_path <- normalizePath("code/gse274113/build_heldout_truth.R", mustWork = TRUE)
 data_root <- file.path(repo_root, "data", "gse274113", "GSE274113")
 inventory_root <- file.path(
-  repo_root, "results", "gse274113", "inventory", "GSE274113_full"
+  repo_root, "results", "gse274113", "inventory"
 )
 destination <- if (is.null(script_options$output)) {
   file.path(repo_root, "data", "gse274113", "heldout_pseudobulk_full")
@@ -60,15 +59,10 @@ supplement_root <- file.path(data_root, "supplementary")
 table_s2_path <- file.path(supplement_root, "NIHMS2076308-supplement-Table_S2.xlsx")
 table_s3_path <- file.path(supplement_root, "NIHMS2076308-supplement-Table_S3.xlsx")
 inventory_validation <- file.path(inventory_root, "validation.tsv")
-inventory_manifest <- file.path(inventory_root, "release_file_manifest.tsv")
-fragment_exception_validation <- file.path(
-  repo_root, "results", "gse274113", "inventory",
-  "GSE274113_fragment_release_exception", "validation.tsv"
-)
 required <- c(
   metadata_path, rna_guide_paths, multiome_paths,
   object_counts_path, object_validation_path, table_s2_path, table_s3_path,
-  inventory_validation, inventory_manifest, fragment_exception_validation
+  inventory_validation
 )
 if (any(!file.exists(required))) stop("Complete inventoried GSE274113 release is required.")
 if (dir.exists(destination)) stop("Formal causal truth already exists: ", destination)
@@ -341,77 +335,6 @@ author_summary <- data.frame(
 )
 write_tsv(author_summary, file.path(stage, "author_truth_scope.tsv"), na = "")
 
-write_tsv(
-  data.frame(
-    field = c(
-      "dataset", "author_annotated_release_cells", "network_training_control_cells",
-      "heldout_perturbation_cells", "replicates", "timepoints", "perturbed_TFs",
-      "rna_atac_h5_barcodes_total", "rna_atac_h5_barcodes_outside_annotation",
-      "rna_guide_h5_barcodes_total", "rna_guide_h5_barcodes_outside_annotation",
-      "rna_release_features", "atac_consensus_features", "atac_quantification_source",
-      "fragment_quantitative_input", "official_fragment_limitation",
-      "atac_feature_universe", "nonstandard_native_peak_rows_excluded",
-      "nonstandard_native_counts_excluded", "pseudobulk_unit",
-      "model", "effect_definition", "cell_cap", "feature_cap", "score_scope",
-      "author_S2_S3_scope", "perturbation_type",
-      "expected_function_direction", "direction_validated",
-      "direction_validation_basis"
-    ),
-    value = c(
-      "GSE274113", "137604", "11447", "126157", length(replicates), length(timepoints),
-      length(targets),
-      inventory_value("rna_atac_h5_barcodes_total"),
-      inventory_value("multiome_barcodes_outside_annotated_metadata"),
-      inventory_value("rna_guide_h5_barcodes_total"),
-      inventory_value("guide_barcodes_outside_annotated_metadata"),
-      nrow(rna_counts), nrow(atac_counts),
-      "all 14 released RNA+ATAC H5 peak-count matrices from all 137604 cells",
-      "none",
-      "official GEO rep2 fragment is truncated; no fragment file enters quantitative analysis",
-      paste(
-        "the same", expected_consensus_features,
-        "overlap-merged release-peak coordinates used by control networks"
-      ),
-      sum(nonstandard_peak_rows), sum(nonstandard_count_totals),
-      "replicate x perturbation label",
-      "edgeR paired design: replicate block plus perturbed-vs-control condition",
-      "heldout perturbed minus NT control", "none", "none",
-      "within TF x timepoint only; no global ranking",
-      "TF-level aggregate concordance only; no timepoint or replicate fields",
-      perturbation_type, expected_function_direction, "true",
-      direction_validation_basis
-    ),
-    stringsAsFactors = FALSE
-  ),
-  file.path(stage, "run_validation.tsv"), na = ""
-)
-write_tsv(
-  data.frame(
-    file = c(
-      metadata_path, rna_guide_paths, multiome_paths,
-      object_counts_path, object_validation_path, table_s2_path, table_s3_path,
-      inventory_validation, inventory_manifest, fragment_exception_validation
-    ),
-    sha256 = unname(sha256_files(c(
-      metadata_path, rna_guide_paths, multiome_paths,
-      object_counts_path, object_validation_path, table_s2_path, table_s3_path,
-      inventory_validation, inventory_manifest, fragment_exception_validation
-    ))),
-    stringsAsFactors = FALSE
-  ),
-  file.path(stage, "input_SHA256SUMS.tsv"), na = ""
-)
-artifact_paths <- sort(list.files(stage, full.names = TRUE, recursive = TRUE))
-artifact_paths <- artifact_paths[!file.info(artifact_paths)$isdir]
-write_tsv(
-  data.frame(
-    file = substring(artifact_paths, nchar(stage) + 2L),
-    bytes = file.info(artifact_paths)$size,
-    sha256 = unname(sha256_files(artifact_paths)),
-    stringsAsFactors = FALSE
-  ),
-  file.path(stage, "artifact_manifest.tsv"), na = ""
-)
 if (!file.rename(stage, destination)) stop("Unable to promote formal causal truth.")
 cat("destination\t", destination, "\n", sep = "")
 cat("completed_utc\t", format(Sys.time(), tz = "UTC", usetz = TRUE), "\n", sep = "")

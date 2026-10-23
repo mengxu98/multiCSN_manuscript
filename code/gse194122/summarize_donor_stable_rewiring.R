@@ -13,11 +13,11 @@ setDTthreads(summary_threads)
 
 # ---- Parameters ----
 arguments <- list(
-  "results/gse194122/state_networks",
+  "results/gse194122/networks",
   "runs/gse194122/donor_deletion_runs/results",
-  "runs/gse194122/donor_deletion_runs/manifests/donor_deletion_plan.tsv",
-  "results/gse194122/donor_state_expression",
-  "results/gse194122/donor_stable_rewiring"
+  "results/gse194122/sampling/donor_deletion_plan.tsv",
+  "results/gse194122/trajectory",
+  "results/gse194122/donor_stability"
 )
 # ---------------------------------------------------------------
 full_root <- arguments[[1L]]

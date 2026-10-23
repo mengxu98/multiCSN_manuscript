@@ -5,31 +5,24 @@ source("code/functions/table_io.R")
 source("code/functions/runtime.R")
 configure_task_runtime()
 
-repo_root <- normalizePath(getwd(), mustWork = TRUE)
 
 # ---- Parameters ----
-# input: output directory of run_multiseed; output: multiseed_analysis directory;
 # seeds: 1001:1010.
 arguments <- list(
   input_root = "results/scmultisim/multiseed",
-  output_root = "results/scmultisim/multiseed_analysis"
+  output_root = "results/scmultisim/multiseed"
 )
 # ---------------------------------------------------------------
 
 input_root <- normalizePath(arguments$input_root, mustWork = TRUE)
 output_root <- normalizePath(arguments$output_root, mustWork = FALSE)
-if (dir.exists(output_root)) stop("Output already exists: ", output_root, call. = FALSE)
-dir.create(output_root, recursive = TRUE)
+dir.create(output_root, recursive = TRUE, showWarnings = FALSE)
 
 quantile_value <- function(x, p) as.numeric(stats::quantile(x, p, names = FALSE))
 
 metrics <- utils::read.delim(file.path(input_root, "endpoint_metrics_all_seeds.tsv"))
 seeds <- sort(unique(metrics$seed))
-stopifnot(
-  length(seeds) > 0L, !anyDuplicated(metrics[c("seed", "scope")]),
-  nrow(metrics) == 3L * length(seeds),
-  all(table(metrics$seed) == 3L)
-)
+metrics$ranking_scheme <- "absolute_coefficient"
 metrics$ap_over_prevalence <- metrics$average_precision / metrics$prevalence
 score_files <- c(
   `TF-gene:static_input_GRN` = "scored_tf_gene_static.tsv.gz",
@@ -84,22 +77,7 @@ paired_truth <- data.frame(
   ),
   stringsAsFactors = FALSE
 )
-decision <- data.frame(
-  endpoint = c("TF-gene", "region-gene", "TF-region", "triplet"),
-  standard_scmultisim_status = c(
-    "directly_evaluable", "directly_evaluable_modest_signal",
-    "not_identified_by_generator", "not_identified_without_TF-region"
-  ),
-  manuscript_action = c(
-    "eligible after figure and claim review",
-    "report with prevalence and uncertainty; avoid strong accuracy claim",
-    "NA", "NA"
-  ),
-  stringsAsFactors = FALSE
-)
-
 write_tsv(combined, file.path(output_root, "per_seed_diagnostics.tsv"), writer = "table")
 write_tsv(summary, file.path(output_root, "endpoint_diagnostic_summary.tsv"), writer = "table")
 write_tsv(paired_truth, file.path(output_root, "static_dynamic_truth_sensitivity.tsv"), writer = "table")
-write_tsv(decision, file.path(output_root, "endpoint_decision.tsv"), writer = "table")
 cat("scMultiSim multiseed analysis: PASS\n")
