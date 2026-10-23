@@ -1,6 +1,7 @@
 /*
 !/.gitignore
 !/README.md
+!/LICENSE
 !/[0-9][0-9]_*.sh
 !/code/
 !/figures/
