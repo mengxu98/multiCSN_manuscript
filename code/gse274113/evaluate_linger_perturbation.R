@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 
+source("code/functions/table_io.R")
+
 source("code/functions/ranking_metrics.R")
 
 suppressPackageStartupMessages({
@@ -14,7 +16,7 @@ arguments <- list(
   network_root = "runs/gse274113/LINGER",
   endpoint_root = "results/gse274113/networks",
   truth_root = "data/gse274113/heldout_pseudobulk_full",
-  output_root = "results/gse274113/perturbation_neighborhood/LINGER"
+  output_root = "results/gse274113/neighborhood"
 )
 # ---------------------------------------------------------------
 
@@ -22,13 +24,11 @@ network_root <- normalizePath(arguments$network_root, mustWork = TRUE)
 endpoint_root <- normalizePath(arguments$endpoint_root, mustWork = TRUE)
 truth_root <- normalizePath(arguments$truth_root, mustWork = TRUE)
 output_root <- normalizePath(arguments$output_root, mustWork = FALSE)
-if (dir.exists(output_root)) stop("Output already exists: ", output_root, call. = FALSE)
 
 timepoints <- c("day 7", "day 9", "day 11", "day 14")
 day_slugs <- gsub(" ", "_", timepoints, fixed = TRUE)
 names(day_slugs) <- timepoints
 targets <- sort(unique(fread(file.path(truth_root, "effect_model_summary.tsv"))$target))
-stopifnot(length(targets) == 19L)
 
 enrichment_row <- function(stats, members, modality, regulator, timepoint, reason) {
   members <- intersect(unique(members), names(stats))
@@ -199,19 +199,9 @@ response[is.finite(response_p_value),
   response_p_adjust := p.adjust(response_p_value, method = "BH"),
   by = .(modality, neighborhood_order)
 ]
-stopifnot(
-  nrow(enrichment) == 152L,
-  nrow(response) == 152L,
-  !anyDuplicated(enrichment[, .(perturbation_regulator, timepoint, modality)]),
-  !anyDuplicated(response[, .(perturbation_regulator, timepoint, neighborhood_order)]),
-  all(enrichment[evaluable == TRUE, is.finite(NES)]),
-  all(response[neighborhood_order == 2L & evaluable == FALSE,
-    unavailable_reason == "no_distinct_second_order_targets" |
-      unavailable_reason == "perturbed_TF_not_exported_by_LINGER"])
-)
 
 dir.create(dirname(output_root), recursive = TRUE, showWarnings = FALSE)
-stage <- paste0(output_root, ".staging_", Sys.getpid())
+stage <- tempfile(".result-files-", tmpdir = dirname(output_root))
 dir.create(stage)
 on.exit(if (dir.exists(stage)) unlink(stage, recursive = TRUE, force = TRUE), add = TRUE)
 fwrite(
@@ -222,5 +212,5 @@ fwrite(
   response, file.path(stage, "fig3g_linger_neighborhood_response.tsv.gz"),
   sep = "\t", quote = FALSE, na = "NA"
 )
-if (!file.rename(stage, output_root)) stop("Unable to publish LINGER perturbation output.")
+publish_result_files(stage, output_root)
 cat("linger_perturbation_evaluation\tPASS\t", output_root, "\n", sep = "")

@@ -1,7 +1,3 @@
-if (!requireNamespace("GENIE3", quietly = TRUE)) {
-  pak::pak("GENIE3")
-}
-
 run_GENIE3 <- function(
   matrix,
   cores = 1,

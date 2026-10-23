@@ -1,26 +1,23 @@
 #!/usr/bin/env Rscript
 
+source("code/functions/table_io.R")
+
 suppressPackageStartupMessages(library(data.table))
 data.table::setDTthreads(1L)
 
 
 # ---- Parameters ----
-# full_timepoints and fold_support inferred from replicate_deletion_stability and summarize_pairwise_fold_stability.
 arguments <- list(
-  full_timepoints = "results/gse274113/replicate_deletion_stability/timepoints",
-  fold_support = "results/gse274113/replicate_deletion_stability/pairwise_stability",
-  output = "results/gse274113/replicate_deletion_stability/weight_stability_calibration"
+  full_timepoints = "results/gse274113/stability",
+  fold_support = "results/gse274113/stability",
+  output = "results/gse274113/stability"
 )
 # ---------------------------------------------------------------
 full_root <- normalizePath(arguments$full_timepoints, mustWork = TRUE)
 support_root <- normalizePath(arguments$fold_support, mustWork = TRUE)
 final_root <- normalizePath(arguments$output, mustWork = FALSE)
-if (file.exists(final_root)) stop("Output already exists: ", final_root)
 dir.create(dirname(final_root), recursive = TRUE, showWarnings = FALSE)
-stage_root <- paste0(final_root, ".staging_", format(
-  Sys.time(), "%Y%m%dT%H%M%SZ",
-  tz = "UTC"
-))
+stage_root <- tempfile(".result-files-", tmpdir = dirname(final_root))
 dir.create(stage_root, recursive = FALSE)
 
 timepoint_lookup <- c(
@@ -32,9 +29,9 @@ top_rows <- list()
 decile_rows <- list()
 edge_rows <- list()
 for (slug in names(timepoint_lookup)) {
-  full_path <- file.path(full_root, slug, "detected_20", "tf_gene.tsv")
+  full_path <- file.path(full_root, "full", slug, "tf_gene.tsv")
   support_path <- file.path(
-    support_root, "consensus", paste0(slug, "_edge_fold_support.tsv.gz")
+    support_root, paste0(slug, "_edge_fold_support.tsv.gz")
   )
   full <- fread(full_path)[, .(
     regulator = as.character(regulator), target = as.character(target),
@@ -127,5 +124,5 @@ if (any(!is.finite(top$mean_selection_fraction)) ||
 fwrite(top, file.path(stage_root, "top_rank_stability.tsv"), sep = "\t")
 fwrite(deciles, file.path(stage_root, "rank_decile_stability.tsv"), sep = "\t")
 fwrite(edges, file.path(stage_root, "full_edge_fold_support.tsv.gz"), sep = "\t")
-if (!file.rename(stage_root, final_root)) stop("Unable to promote calibration output.")
+publish_result_files(stage_root, final_root)
 cat("gse274113_weight_stability_calibration\tPASS\t", final_root, "\n", sep = "")

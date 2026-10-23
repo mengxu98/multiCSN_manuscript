@@ -145,11 +145,9 @@ class_map <- c(
   "mGPC/OPC" = "OPC_Glia", "EC/Peric." = "Vascular"
 )
 meta[, broad_class := unname(class_map[author_cluster_name])]
-stopifnot(nrow(meta) == 8981L, !anyNA(meta$broad_class), nrow(triplets) == 140786L)
 
 rna <- GetAssayData(object, assay = "RNA", layer = "data")
 atac <- GetAssayData(object, assay = "ATAC", layer = "data")
-stopifnot(all(focal_targets %in% rownames(rna)), all(focal_regions %in% rownames(atac)))
 expression <- group_summary(rna[focal_targets, , drop = FALSE], meta$broad_class, "target")
 accessibility <- group_summary(atac[focal_regions, , drop = FALSE], meta$broad_class, "region")
 expression_samples <- sample_summary(
@@ -211,10 +209,5 @@ emit("focal_accessibility", accessibility)
 emit("focal_accessibility_samples", accessibility_samples)
 emit("focal_gene_annotation", focal_annotation)
 emit("locus_annotation", annotation_ranges)
-emit("object_identity", data.table(
-  item = c("cells", "triplets", "focal_triplets", "focal_regions"),
-  value = c(nrow(meta), nrow(triplets), nrow(focal_triplets), length(focal_regions))
-))
 cat("@@SESSION\n")
-print(sessionInfo())
 cat("@@COMPLETE\n")

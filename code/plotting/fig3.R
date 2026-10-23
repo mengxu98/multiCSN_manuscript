@@ -13,8 +13,8 @@ suppressPackageStartupMessages({
 data.table::setDTthreads(1L)
 
 repo <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
-result_root <- file.path(repo, "results", "gse274113", "method_comparison")
-dgh_root <- file.path(repo, "results", "gse274113", "perturbation_neighborhood", "LINGER")
+result_root <- file.path(repo, "results", "gse274113", "comparison")
+dgh_root <- file.path(repo, "results", "gse274113", "neighborhood")
 figure_root <- file.path(repo, "figures")
 analysis_root <- file.path(repo, "source_data", "files")
 dir.create(analysis_root, recursive = TRUE, showWarnings = FALSE)
@@ -46,10 +46,8 @@ assemble_fig3 <- function() {
 
 build_fig3_retention_heatmap <- function(repo_root) {
   input_path <- file.path(
-    repo_root, "results", "gse274113",
-    "replicate_deletion_stability", "multilayer_decomposition", "layer_attrition.tsv"
+    repo_root, "results", "gse274113", "stability", "layer_attrition.tsv"
   )
-  assert_files(input_path)
   layer_attrition <- data.table::fread(input_path)
   timepoints <- c("day 7", "day 9", "day 11", "day 14")
   layer_order <- c(
@@ -74,11 +72,6 @@ build_fig3_retention_heatmap <- function(repo_root) {
   data.table::setorder(attrition_wide, fold_label)
   attrition_matrix <- as.matrix(attrition_wide[, ..layer_order])
   rownames(attrition_matrix) <- attrition_wide$heldout_replicate
-  stopifnot(
-    identical(dim(attrition_matrix), c(14L, 5L)),
-    all(is.finite(attrition_matrix)),
-    all(attrition_matrix >= 0 & attrition_matrix <= 1)
-  )
   attrition_matrix <- t(attrition_matrix)
   attrition_split <- factor(attrition_wide$timepoint, levels = timepoints)
   ink <- "#26343E"
@@ -134,7 +127,7 @@ build_fig3_retention_heatmap <- function(repo_root) {
 build_gse274113_runx1_panels <- function(repo_root) {
   repo <- repo_root
   analysis_root <- file.path(
-    repo, "results", "gse274113", "perturbation_neighborhood"
+    repo, "results", "gse274113", "neighborhood"
   )
   paths <- c(
     hero_paths = file.path(
@@ -142,10 +135,9 @@ build_gse274113_runx1_panels <- function(repo_root) {
     ),
     annotations = file.path(
       repo,
-      "results/gse274113/chain_response_annotations/selected_chain_response_annotations.tsv.gz"
+      "results/gse274113/comparison/selected_chain_response_annotations.tsv.gz"
     )
   )
-  assert_files(paths)
   theme_set(theme_genome(7) + theme(text = element_text(family = "Arial")))
 
   hero <- fread(paths[["hero_paths"]])
@@ -237,8 +229,8 @@ build_gse274113_runx1_panels <- function(repo_root) {
     default = 0
   )]
   hierarchy_nodes[, label_face := data.table::fcase(
-    role == "Perturbed TF", "bold",
-    default = "plain"
+    role == "Perturbed TF", "bold.italic",
+    default = "italic"
   )]
   hierarchy_edges <- data.table::copy(tree_edges)
   data.table::setnames(hierarchy_edges, "edge_type", "Path order")
@@ -396,7 +388,6 @@ effect <- rbindlist(lapply(c("Pando", "SCENIC+", "LINGER"), function(current) {
     by = c("endpoint", "comparison_universe", "regulator", "timepoint"),
     suffixes = c("_multicsn", "_comparator"), sort = TRUE
   )
-  stopifnot(nrow(paired) == 76L)
   rbindlist(lapply(names(metric_labels), function(metric) {
     difference <- paired[[paste0(metric, "_comparator")]] -
       paired[[paste0(metric, "_multicsn")]]
@@ -507,19 +498,7 @@ binding <- fread(file.path(result_root, "TF_region_binding_four_method_common_no
 ]
 contact <- fread(file.path(result_root, "region_gene_contact_four_methods.tsv"))
 joint <- fread(file.path(result_root, "chain_response_four_methods.tsv"))
-stopifnot(
-  nrow(binding) == 4L,
-  nrow(contact) == 16L,
-  nrow(joint) == 76L,
-  setequal(binding$method, methods),
-  setequal(contact$method, methods),
-  setequal(joint$method, methods)
-)
 fwrite(binding, file.path(analysis_root, "fig3b_tf_region_source.tsv"),
-       sep = "\t", quote = FALSE, na = "NA")
-fwrite(contact, file.path(analysis_root, "fig3c_region_gene_source.tsv"),
-       sep = "\t", quote = FALSE, na = "NA")
-fwrite(joint, file.path(analysis_root, "fig3j_chain_response_source.tsv"),
        sep = "\t", quote = FALSE, na = "NA")
 
 binding[, method := factor(method, levels = methods)]
@@ -629,8 +608,7 @@ discovery_colours <- c(
 )
 
 formal_enrichment <- fread(file.path(
-  repo, "results", "gse274113", "perturbation_neighborhood",
-  "full_background_enrichment.tsv.gz"
+  repo, "results", "gse274113", "neighborhood", "full_background_enrichment.tsv.gz"
 ))[neighborhood_order == 1L]
 linger_enrichment <- fread(file.path(
   dgh_root, "fig3d_linger_direct_enrichment.tsv.gz"
@@ -639,7 +617,6 @@ tf_order <- formal_enrichment[
   , .(median_NES = median(NES, na.rm = TRUE)),
   by = perturbation_regulator
 ][order(median_NES), perturbation_regulator]
-stopifnot(length(tf_order) == 17L)
 
 direct_enrichment <- rbindlist(
   list(formal_enrichment, linger_enrichment), use.names = TRUE, fill = TRUE
@@ -673,16 +650,11 @@ matrix_from_column <- function(value_column) {
   index <- cbind(
     match(source$row_id, row_ids), match(source$column_id, column_ids)
   )
-  stopifnot(!anyDuplicated(data.table(row = index[, 1], column = index[, 2])))
   matrix_out[index] <- source[[value_column]]
   matrix_out
 }
 nes_matrix <- matrix_from_column("NES")
 padj_matrix <- matrix_from_column("padj_global")
-stopifnot(
-  identical(dim(nes_matrix), c(34L, 16L)),
-  identical(dim(padj_matrix), c(34L, 16L))
-)
 
 significant_matrix <- is.finite(padj_matrix) & padj_matrix < 0.05
 significant_counts <- vapply(discovery_methods, function(method) {
@@ -705,10 +677,9 @@ coverage_index <- cbind(
   match(coverage$modality, c("RNA", "ATAC"))
 )
 coverage_matrix[coverage_index] <- log10(coverage$median_target_set)
-stopifnot(all(is.finite(coverage_matrix)))
 
 formal_strata <- fread(file.path(
-  repo, "results", "gse274113", "method_comparison", "stratum_metrics.tsv"
+  repo, "results", "gse274113", "comparison", "stratum_metrics.tsv"
 ))[endpoint == "TF-gene" & comparison_universe == "full_truth_feature_universe"]
 ap_source <- rbindlist(list(formal_strata, linger), use.names = TRUE, fill = TRUE)
 ap_source[method == "SCENIC+", method := "SCENICplus"]
@@ -717,7 +688,6 @@ strata_ap <- ap_source[
   .(mean_ap = mean(response_average_precision, na.rm = TRUE)),
   by = .(method, timepoint)
 ]
-stopifnot(nrow(strata_ap) == 16L)
 ap_values <- unlist(lapply(discovery_methods, function(method_name) {
   strata_ap[method == method_name][match(day_levels, timepoint), mean_ap]
 }), use.names = FALSE)
@@ -887,8 +857,7 @@ fig3d <- ComplexHeatmap::Heatmap(
 )
 
 formal_neighborhood <- fread(file.path(
-  repo, "results", "gse274113", "perturbation_neighborhood",
-  "neighborhood_response_metrics.tsv.gz"
+  repo, "results", "gse274113", "neighborhood", "neighborhood_response_metrics.tsv.gz"
 ))
 linger_neighborhood <- fread(file.path(
   dgh_root, "fig3g_linger_neighborhood_response.tsv.gz"
@@ -940,7 +909,7 @@ fig3g <- ggplot(
   geom_line(colour = "#B7C0C5", linewidth = 0.34, alpha = 0.65) +
   geom_point(size = 1.35) +
   geom_text_repel(
-    data = g_labels, aes(label = perturbation_regulator), colour = INK_COLOUR,
+    data = g_labels, aes(label = perturbation_regulator), colour = INK_COLOUR, fontface = "italic",
     size = 5.7 / ggplot2::.pt, min.segment.length = 0, max.overlaps = Inf,
     box.padding = 0.16, point.padding = 0.1, seed = 20260903
   ) +

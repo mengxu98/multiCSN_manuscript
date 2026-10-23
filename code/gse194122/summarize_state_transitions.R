@@ -1,16 +1,17 @@
 #!/usr/bin/env Rscript
 
+source("code/functions/table_io.R")
+
 suppressPackageStartupMessages(library(data.table))
 
 # ---- Parameters ----
 settings <- list(
-  "results/gse194122/state_networks",
-  "results/gse194122/state_transitions/transition_summary"
+  "results/gse194122/networks",
+  "results/gse194122/trajectory"
 )
 # ---------------------------------------------------------------
 result_root <- normalizePath(settings[[1]], mustWork = TRUE)
 output_dir <- settings[[2]]
-if (file.exists(output_dir)) stop("Output exists and will not be overwritten: ", output_dir)
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 
 state_table <- data.table(

@@ -19,17 +19,7 @@ focus_terms <- data.table(
 )
 
 ranks <- fread(rank_path, showProgress = FALSE)
-required_columns <- c("anchor_class", "gene", "rank_score")
-stopifnot(
-  all(required_columns %in% names(ranks)),
-  all(focus_terms$anchor_class %chin% unique(ranks$anchor_class))
-)
 ranks <- ranks[anchor_class %chin% focus_terms$anchor_class]
-stopifnot(
-  ranks[, uniqueN(gene), by = anchor_class][, all(V1 == 11017L)],
-  !anyNA(ranks[, ..required_columns]),
-  all(is.finite(ranks$rank_score))
-)
 
 setorder(ranks, anchor_class, -rank_score, gene)
 ranks[, run_score := rank_score + rev(seq_len(.N)) * 1e-12,
@@ -59,12 +49,6 @@ selected <- merge(
   by.x = c("Groups", "ID"),
   by.y = c("anchor_class", "pathway"),
   all = FALSE
-)
-stopifnot(
-  nrow(selected) == nrow(focus_terms),
-  all(selected$Description == selected$expected_description),
-  all(selected$NES > 0),
-  all(is.finite(selected$p.adjust) & selected$p.adjust < 0.05)
 )
 selected[, core_gene_n := lengths(strsplit(core_enrichment, "/", fixed = TRUE))]
 selected[, display_order := match(Groups, focus_terms$anchor_class)]

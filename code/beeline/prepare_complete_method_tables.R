@@ -58,7 +58,6 @@ primary_combined <- rbindlist(primary_groups, use.names = TRUE)
 other_combined <- rbindlist(other_groups, use.names = TRUE)
 setorder(primary_combined, DatasetType, Case, Method)
 setorder(other_combined, DatasetType, Case, Method)
-fwrite(primary_combined, file.path(stage, "combined__primary_metrics.csv"))
 fwrite(other_combined, file.path(stage, "combined__other_metrics.csv"))
 
 panel_a <- copy(primary_combined)

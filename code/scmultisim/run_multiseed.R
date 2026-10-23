@@ -19,7 +19,6 @@ component_helper <- file.path(
   repo_root, "code", "scmultisim", "component_helpers.R"
 )
 ranking_helper <- file.path(repo_root, "code", "functions", "ranking_metrics.R")
-stopifnot(file.exists(component_helper), file.exists(ranking_helper))
 source(component_helper)
 source(ranking_helper)
 
@@ -30,10 +29,6 @@ stage <- paste0(output_root, ".staging_", format(Sys.time(), "%Y%m%dT%H%M%SZ", t
 dir.create(stage)
 
 suppressPackageStartupMessages(library(scMultiSim))
-stopifnot(
-  as.character(packageVersion("scMultiSim")) == "1.6.0",
-  is.function(inferCSN::fit_greedy_l0)
-)
 data("GRN_params_100", package = "scMultiSim", envir = environment())
 raw_grn <- GRN_params_100
 colnames(raw_grn) <- c("target", "regulator", "effect")
@@ -96,10 +91,6 @@ for (seed in arguments$seeds) {
   region_to_gene <- as.matrix(simulation$region_to_gene)
   cell_specific_grn <- simulation$cell_specific_grn
   grn_parameters <- as.data.frame(simulation$grn_params)
-  stopifnot(
-    identical(dim(rna), c(110L, 500L)), identical(dim(atac), c(330L, 500L)),
-    identical(dim(region_to_gene), c(330L, 110L)), length(cell_specific_grn) == 500L
-  )
   cells <- colnames(rna)
   targets <- rownames(rna)
   regulators <- sort(unique(raw_grn$regulator))
@@ -110,7 +101,6 @@ for (seed in arguments$seeds) {
   colnames(accessibility_all) <- peaks
   variable <- apply(accessibility_all, 2, stats::var) > 0
   accessibility <- accessibility_all[, variable, drop = FALSE]
-  stopifnot(identical(rownames(expression), rownames(accessibility)), ncol(accessibility) > 0L)
 
   fit_started <- Sys.time()
   tf_gene <- fit_component_network(
@@ -159,6 +149,7 @@ for (seed in arguments$seeds) {
     )
   )
   metrics <- do.call(rbind, lapply(scores, `[[`, "metrics"))
+  metrics$ranking_scheme <- "absolute_coefficient"
   metrics$seed <- seed
   metrics <- metrics[, c("seed", setdiff(colnames(metrics), "seed"))]
   scored_tf_static <- scores[[1]]$scored

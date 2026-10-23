@@ -5,7 +5,6 @@ from __future__ import annotations
 
 import csv
 import gzip
-import hashlib
 from pathlib import Path
 import re
 import types
@@ -18,14 +17,6 @@ ANNOTATION_COLUMNS = [
     "Transcription_Start_Site", "Transcript_type",
 ]
 CHROMSIZE_COLUMNS = ["Chromosome", "Start", "End"]
-
-
-def sha256(path: Path) -> str:
-    digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for block in iter(lambda: handle.read(8 * 1024 * 1024), b""):
-            digest.update(block)
-    return digest.hexdigest()
 
 
 def parse_attributes(value: str) -> dict[str, str]:
@@ -140,7 +131,6 @@ def write_table(rows: list[dict[str, str | int]], columns: list[str], path: Path
 
 
 # ---- Parameters ----
-# URLs and output directories as defined in source_manifest.tsv.
 ARGUMENTS = {
     "gtf": Path("data/gse274113/external_resources/Homo_sapiens.GRCh38.116.gtf.gz"),
     "chrom_sizes": Path(
@@ -149,14 +139,7 @@ ARGUMENTS = {
     "output": Path(
         "data/gse274113/external_resources/SCENICplus_GRCh38p14_Ensembl116"
     ),
-    "gtf_url": (
-        "https://ftp.ensembl.org/pub/release-116/gtf/homo_sapiens/"
-        "Homo_sapiens.GRCh38.116.gtf.gz"
-    ),
-    "chrom_sizes_url": (
-        "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/p14/"
-        "hg38.p14.chrom.sizes"
-    ),
+
 }
 
 
@@ -172,19 +155,6 @@ def main() -> None:
     write_table(annotation, ANNOTATION_COLUMNS, annotation_path)
     write_table(chromsizes, CHROMSIZE_COLUMNS, chromsizes_path)
 
-    source_rows = [
-        {
-            "resource": "Ensembl_116_GRCh38p14_GTF",
-            "url": args.gtf_url,
-            "source_file_sha256": sha256(args.gtf),
-        },
-        {
-            "resource": "UCSC_hg38p14_chrom_sizes",
-            "url": args.chrom_sizes_url,
-            "source_file_sha256": sha256(args.chrom_sizes),
-        },
-    ]
-    write_table(source_rows, ["resource", "url", "source_file_sha256"], args.output / "source_manifest.tsv")
     validation_rows = [
         {"field": "assembly", "value": "GRCh38.p14"},
         {"field": "annotation_release", "value": "Ensembl 116"},
@@ -192,20 +162,8 @@ def main() -> None:
         {"field": "primary_chromosomes", "value": str(len(chromsizes))},
         {"field": "annotation_rows", "value": str(len(annotation))},
         {"field": "unique_gene_symbols", "value": str(len({str(row['Gene']) for row in annotation}))},
-        {"field": "producer_script_sha256", "value": sha256(Path(__file__).resolve())},
     ]
     write_table(validation_rows, ["field", "value"], args.output / "resource_validation.tsv")
-    outputs = [
-        annotation_path,
-        chromsizes_path,
-        args.output / "source_manifest.tsv",
-        args.output / "resource_validation.tsv",
-    ]
-    artifact_rows = [
-        {"file": path.name, "bytes": path.stat().st_size, "sha256": sha256(path)}
-        for path in outputs
-    ]
-    write_table(artifact_rows, ["file", "bytes", "sha256"], args.output / "artifact_manifest.tsv")
     print(f"annotation_rows\t{len(annotation)}")
     print(f"unique_genes\t{len({str(row['Gene']) for row in annotation})}")
     print(f"chromosomes\t{len(chromsizes)}")

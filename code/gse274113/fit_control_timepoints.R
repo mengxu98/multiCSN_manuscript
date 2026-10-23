@@ -31,7 +31,7 @@ for (slug in names(cells)) {
   destination <- file.path(stage, slug)
   if (file.exists(destination)) stop("Completed timepoint already exists; inspect it before resuming: ", destination)
   fit_state_networks(
-    dataset = "GSE274113", input = input, validation = validation,
+    dataset = "GSE274113", input = input,
     output = destination, state = timepoint, expected_cells = cells[[slug]],
     profile = "gse274113"
   )
@@ -43,10 +43,5 @@ for (slug in names(cells)) {
     triplets = endpoints[endpoint == "factorized-chain", selected])
 }
 fwrite(rbindlist(summary), file.path(stage, "timepoint_network_summary.tsv"), sep = "\t")
-fwrite(data.table(field = c("dataset", "training_control_cells", "model", "tf_gene_eligibility", "weight_rule", "cell_sampling", "result_status"),
-  value = c("GSE274113", sum(cells), "three independent standardized greedy_l0 endpoints; exact-region join",
-            "detected_20; self and affine response aliases excluded", "anchored evidence groups; tolerance 1e-12*(1+abs(maximum))",
-            "none", "new recomputation; compare with archived Source Data before manuscript promotion")),
-  file.path(stage, "run_validation.tsv"), sep = "\t")
 if (!file.rename(stage, out)) stop("Atomic output promotion failed.")
 cat("factorized_control_timepoints\tPASS\t", out, "\n", sep = "")

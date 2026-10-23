@@ -111,9 +111,32 @@ safe_fraction <- function(numerator, denominator) {
   if (denominator > 0L) numerator / denominator else NA_real_
 }
 
+summarize_chain_responses <- function(strata) {
+  strata <- data.table::as.data.table(strata)
+  metrics <- c(
+    "atac_positive_fraction", "rna_positive_fraction", "joint_positive_fraction",
+    "joint_gene_direction_accuracy", "joint_atac_direction_accuracy",
+    "mediated_direction_consistency"
+  )
+  strata[, {
+    means <- setNames(lapply(.SD, function(x) {
+      x <- x[is.finite(x)]
+      if (length(x)) mean(x) else NA_real_
+    }), metrics)
+    counts <- setNames(lapply(.SD, function(x) sum(is.finite(x))),
+                       paste0(metrics, "_finite_timepoints"))
+    c(list(
+      cluster_unit = "perturbed_TF_mean_across_timepoints",
+      native_triplets = sum(native_triplets),
+      evaluable_triplets = sum(evaluable_triplets),
+      nonempty_timepoints = sum(native_triplets > 0L)
+    ), means, counts)
+  }, by = .(method, regulator), .SDcols = metrics]
+}
+
 evaluate_selected_chain_response <- function(
   chains, atac_truth, rna_truth, method, regulator, timepoint,
-  significance_threshold = 0.05
+  significance_threshold = 0.05, region_map = NULL
 ) {
   chains <- data.table::as.data.table(chains)
   required <- c(
@@ -157,7 +180,17 @@ evaluate_selected_chain_response <- function(
     return(list(metrics = metrics, annotations = data.table::data.table()))
   }
 
-  region_map <- map_regions_to_effect_truth(chains$region, atac_truth)
+  if (is.null(region_map)) {
+    region_map <- map_regions_to_effect_truth(chains$region, atac_truth)
+  } else {
+    region_map <- data.table::as.data.table(region_map)
+    required_mapping <- c("region", "atac_truth_feature", "atac_logFC", "atac_FDR",
+                          "overlap_width", "overlap_multiplicity", "exact_coordinate_match")
+    regions <- unique(as.character(chains$region))
+    if (!all(required_mapping %in% names(region_map)) || anyDuplicated(region_map$region) ||
+        !all(regions %in% region_map$region)) stop("Invalid shared region-to-truth mapping.")
+    region_map <- region_map[match(regions, region_map$region), required_mapping, with = FALSE]
+  }
   annotated <- merge(chains, region_map, by = "region", all.x = TRUE, sort = FALSE)
   annotated <- merge(annotated, rna_truth, by = "target", all.x = TRUE, sort = FALSE)
   annotated[, `:=`(

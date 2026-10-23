@@ -1,6 +1,8 @@
 #!/usr/bin/env Rscript
-summarize_pairwise_fold_stability <- function(timepoints = "results/gse274113/replicate_deletion_stability/timepoints",
-  output = "results/gse274113/replicate_deletion_stability/pairwise_stability") {
+
+source("code/functions/table_io.R")
+summarize_pairwise_fold_stability <- function(timepoints = "results/gse274113/stability",
+  output = "results/gse274113/stability") {
 
 suppressPackageStartupMessages(library(data.table))
 data.table::setDTthreads(1L)
@@ -36,13 +38,9 @@ arguments <- list(timepoints = timepoints, output = output)
 # ---------------------------------------------------------------
 timepoint_root <- normalizePath(arguments$timepoints, mustWork = TRUE)
 final_root <- normalizePath(arguments$output, mustWork = FALSE)
-if (file.exists(final_root)) stop("Output already exists: ", final_root)
 dir.create(dirname(final_root), recursive = TRUE, showWarnings = FALSE)
-output_root <- paste0(
-  final_root, ".staging_", format(Sys.time(), "%Y%m%dT%H%M%SZ", tz = "UTC")
-)
+output_root <- tempfile(".result-files-", tmpdir = dirname(final_root))
 dir.create(output_root, recursive = FALSE)
-dir.create(file.path(output_root, "consensus"))
 
 timepoint_lookup <- c(
   day_7 = "day 7", day_9 = "day 9", day_11 = "day 11", day_14 = "day 14"
@@ -52,12 +50,13 @@ pair_rows <- list()
 consensus_rows <- list()
 row_index <- 0L
 for (slug in names(timepoint_lookup)) {
-  folds_root <- file.path(timepoint_root, slug, "folds")
+  folds_root <- file.path(timepoint_root, "folds")
   fold_dirs <- sort(list.dirs(folds_root, full.names = TRUE, recursive = FALSE))
+  fold_dirs <- fold_dirs[startsWith(basename(fold_dirs), paste0(slug, "_"))]
   if (length(fold_dirs) != expected_folds[[slug]]) {
     stop("Unexpected fold directory count at ", slug)
   }
-  fold_names <- basename(fold_dirs)
+  fold_names <- substring(basename(fold_dirs), nchar(slug) + 2L)
   networks <- setNames(lapply(fold_dirs, function(root) {
     x <- fread(file.path(root, "tf_gene.tsv"))[, .(
       regulator = as.character(regulator), target = as.character(target),
@@ -119,7 +118,7 @@ for (slug in names(timepoint_lookup)) {
   )]
   setorder(consensus, -selected_folds, regulator, target)
   fwrite(consensus, file.path(
-    output_root, "consensus", paste0(slug, "_edge_fold_support.tsv.gz")
+    output_root, paste0(slug, "_edge_fold_support.tsv.gz")
   ), sep = "\t")
   consensus_rows[[slug]] <- data.frame(
     dataset = "GSE274113", timepoint = timepoint_lookup[[slug]],
@@ -173,7 +172,7 @@ fwrite(pair_summary, file.path(output_root, "pairwise_fold_summary.tsv"), sep = 
 fwrite(consensus_summary, file.path(output_root, "edge_fold_support_summary.tsv"),
   sep = "\t"
 )
-if (!file.rename(output_root, final_root)) stop("Unable to promote pairwise output.")
+publish_result_files(output_root, final_root)
 cat("gse274113_pairwise_fold_stability\tPASS\t", final_root, "\n", sep = "")
 }
 

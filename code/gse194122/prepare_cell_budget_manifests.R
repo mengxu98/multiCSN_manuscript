@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 
+source("code/functions/table_io.R")
+
 suppressPackageStartupMessages(library(data.table))
 
 
@@ -20,15 +22,14 @@ allocate_proportionally <- function(counts, budget) {
 # ---- Parameters ----
 arguments <- list(
   "results/gse194122/trajectory/erythroid_coordinates_and_pseudotime.tsv.gz",
-  "results/gse194122/cell_budget_manifests"
+  "results/gse194122/sampling"
 )
 # ---------------------------------------------------------------
 trajectory_path <- arguments[[1L]]
 output <- arguments[[2L]]
 trajectory_path <- normalizePath(trajectory_path, winslash = "/", mustWork = TRUE)
-if (file.exists(output)) stop("Output already exists: ", output, call. = FALSE)
 dir.create(dirname(output), recursive = TRUE, showWarnings = FALSE)
-stage <- paste0(output, ".staging")
+stage <- tempfile(".result-files-", tmpdir = dirname(output))
 if (file.exists(stage)) stop("Staging path already exists: ", stage, call. = FALSE)
 dir.create(stage, recursive = FALSE)
 dir.create(file.path(stage, "cells"), recursive = FALSE)
@@ -106,5 +107,5 @@ if (nrow(task_table) != 50L || any(task_table$expected_cells != budget) ||
 }
 fwrite(task_table, file.path(stage, "cell_budget_sampling_plan.tsv"), sep = "\t")
 fwrite(allocation_table, file.path(stage, "donor_allocation.tsv"), sep = "\t")
-if (!file.rename(stage, output)) stop("Unable to promote cell-budget manifests.")
+publish_result_files(stage, output)
 cat("gse194122_cell_budget_manifests\tPASS\t", output, "\n", sep = "")

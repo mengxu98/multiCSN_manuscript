@@ -9,17 +9,14 @@ data.table::setDTthreads(1L)
 # ---- Parameters ----
 # input: stratum_metrics.tsv directory; output: method evidence summary directory.
 arguments <- list(
-  input = "results/gse274113/method_comparison",
-  output = "results/gse274113/method_cluster_inference"
+  input = "results/gse274113/comparison",
+  output = "results/gse274113/comparison"
 )
 # ---------------------------------------------------------------
 input_root <- normalizePath(arguments$input, mustWork = TRUE)
 output_root <- normalizePath(arguments$output, mustWork = FALSE)
-if (file.exists(output_root)) stop("Output already exists: ", output_root)
 dir.create(dirname(output_root), recursive = TRUE, showWarnings = FALSE)
-stage_root <- paste0(
-  output_root, ".staging_", format(Sys.time(), "%Y%m%dT%H%M%SZ", tz = "UTC")
-)
+stage_root <- tempfile(".result-files-", tmpdir = dirname(output_root))
 dir.create(stage_root, recursive = FALSE)
 
 metric_path <- file.path(input_root, "stratum_metrics.tsv")
@@ -143,5 +140,5 @@ if (nrow(cluster_differences) != 2L * 8L * 19L ||
 write_tsv(cluster_differences, file.path(stage_root, "tf_cluster_metric_differences.tsv"))
 write_tsv(tests, file.path(stage_root, "paired_method_cluster_tests.tsv"))
 
-if (!file.rename(stage_root, output_root)) stop("Unable to promote summary output.")
+publish_result_files(stage_root, output_root)
 cat("gse274113_current_method_evidence\tPASS\t", output_root, "\n", sep = "")

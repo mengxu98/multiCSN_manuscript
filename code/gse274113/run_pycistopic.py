@@ -9,8 +9,7 @@ import time
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).absolute().parents[1] / "functions"))
-from runtime import use_python, sha256
-from file_io import write_artifact_manifest
+from runtime import use_python
 OBJECT_ROOT = Path(__file__).absolute().parents[2] / "data/gse274113/objects/GSE274113_SCENICplus_full"
 MALLET_MEMORY = "120G"
 if __name__ == "__main__":
@@ -71,7 +70,6 @@ def main() -> None:
     repo_root = script.parents[2]
     object_root = OBJECT_ROOT
     input_root = object_root / "input"
-    input_validation = input_root / "input_validation.tsv"
     auxiliary = repo_root / "data/gse274113/external_resources/SCENICplus_auxiliary"
     mallet_path = auxiliary / "Mallet-202108/bin/mallet"
     parent = object_root
@@ -82,7 +80,7 @@ def main() -> None:
         / f"GSE274113_NT_{timepoint.replace(' ', '_')}_cistopic.pkl"
         for timepoint in TIMEPOINTS
     }
-    required = [input_validation, mallet_path, *input_paths.values()]
+    required = [mallet_path, *input_paths.values()]
     missing = [str(path) for path in required if not path.exists()]
     if missing:
         raise SystemExit("Missing formal pycisTopic inputs:\n" + "\n".join(missing))
@@ -133,9 +131,6 @@ def main() -> None:
             if model.n_topic != n_topics:
                 raise RuntimeError(f"Topic model mismatch for {timepoint}, {n_topics} topics.")
             models.append(model)
-            model_metrics(models).to_csv(
-                time_work / "model_metrics_in_progress.tsv", sep="\t", index=False
-            )
 
         metrics = model_metrics(models)
         metrics.to_csv(time_work / "model_metrics.tsv", sep="\t", index=False)
@@ -177,32 +172,6 @@ def main() -> None:
             set().union(*(set(table.index) for table in topics_top3k.values()))
         )
 
-        validation = pd.DataFrame(
-            {
-                "field": [
-                    "dataset", "timepoint", "training_cells",
-                    "input_regions_after_native_filtering", "candidate_topic_models",
-                    "topic_grid", "iterations_per_model", "model_selection_metrics",
-                    "selected_topics", "topic_otsu_sets", "topic_top3000_sets",
-                    "topic_otsu_unique_regions", "topic_top3000_unique_regions",
-                    "method_native_region_set_selection", "network_pooling", "cell_cap",
-                    "region_cap", "input_sha256",
-                    "mallet_sha256",
-                ],
-                "value": [
-                    "GSE274113", timepoint, len(cistopic.cell_names),
-                    len(cistopic.region_names), len(TOPICS),
-                    ",".join(str(x) for x in TOPICS), 500,
-                    "Mimno_2011 and loglikelihood; rescaled-sum automatic selection",
-                    selected.n_topic, len(topics_otsu), len(topics_top3k),
-                    otsu_unique_regions, top3000_unique_regions,
-                    "Otsu and top-3000 regions per selected topic; both region-set collections retained",
-                    "none",
-                    "none", "none", sha256(input_path), sha256(mallet_path),
-                ],
-            }
-        )
-        validation.to_csv(time_work / "run_validation.tsv", sep="\t", index=False)
         summary_rows.append(
             {
                 "timepoint": timepoint,
@@ -229,31 +198,7 @@ def main() -> None:
     if list(summary["timepoint"]) != list(TIMEPOINTS) or int(summary["training_cells"].sum()) != 11447:
         raise RuntimeError("Independent pycisTopic suite failed full-cell accounting.")
     summary.to_csv(work / "timepoint_model_summary.tsv", sep="\t", index=False)
-    pd.DataFrame(
-        {
-            "field": [
-                "dataset", "timepoint_models", "training_cells", "network_pooling",
-                "topic_grid", "iterations_per_model", "cell_cap", "region_cap",
-                "method_native_region_set_selection",
-            ],
-            "value": [
-                "GSE274113", 4, 11447, "none",
-                ",".join(str(x) for x in TOPICS), 500, "none", "none",
-                "Otsu and top-3000 regions per selected topic; both collections retained",
-            ],
-        }
-    ).to_csv(work / "run_validation.tsv", sep="\t", index=False)
-    pd.DataFrame(
-        {
-            "component": ["python", "pycisTopic", "MALLET_MEMORY"],
-            "version_or_value": [
-                sys.version.replace("\n", " "),
-                __import__("pycisTopic").__version__,
-                MALLET_MEMORY,
-            ],
-        }
-    ).to_csv(work / "session_versions.tsv", sep="\t", index=False)
-    write_artifact_manifest(work)
+
     os.replace(work, destination)
     print(f"destination\t{destination}")
     print(summary.to_string(index=False))

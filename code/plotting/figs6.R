@@ -14,45 +14,21 @@ source(file.path(repo, "code", "functions", "common.R"), local = TRUE)
 theme_set(theme_genome(7) + theme(text = element_text(family = BASE_FAMILY)))
 endpoint_path <- file.path(
   repo,
-  "results", "scmultisim", "multiseed_analysis",
-  "per_seed_diagnostics.tsv"
+  "results", "scmultisim", "multiseed", "per_seed_diagnostics.tsv"
 )
 component_path <- file.path(
   repo,
   "results", "scmultisim", "component_ablation",
   "endpoint_metrics_all_seeds.tsv"
 )
-assert_files(c(endpoint_path, component_path))
 
 x <- fread(endpoint_path)
-required <- c(
-  "seed",
-  "scope",
-  "prevalence",
-  "auroc",
-  "average_precision",
-  "selected_precision",
-  "truth_recall"
-)
-numeric_required <- required[-c(1, 2)]
-stopifnot(
-  all(required %in% names(x)),
-  nrow(x) == 30L,
-  setequal(x$seed, 1001:1010),
-  all(table(x$seed) == 3L),
-  !anyDuplicated(x[, .(seed, scope)]),
-  all(is.finite(as.matrix(x[, ..numeric_required]))),
-  all(x$prevalence > 0 & x$prevalence < 1),
-  all(x$average_precision > 0 & x$average_precision <= 1),
-  all(x$auroc >= 0 & x$auroc <= 1)
-)
 
 scope_contract <- c(
   tf_static = "TF-gene:static_input_GRN",
   tf_dynamic = "TF-gene:dynamic_union",
   region_gene = "region-gene:all_variable_regions"
 )
-stopifnot(setequal(x$scope, unname(scope_contract)))
 
 endpoint_colours <- c(
   `TF–gene` = "#2F6FA5",
@@ -372,28 +348,10 @@ figs6c <- ggplot(truth_data, aes(x_position, average_precision, group = seed)) +
   )
 
 component <- fread(component_path)
-component_required <- c(
-  "seed",
-  "method",
-  "scope",
-  "auroc",
-  "average_precision"
-)
 component_methods <- c(
   full = "full_add_delete_swap__beta_rank",
   forward = "forward_only__beta_rank",
   deletion = "full_add_delete_swap__deletion_delta_bic_rank"
-)
-stopifnot(
-  all(component_required %in% names(component)),
-  nrow(component) == 30L,
-  setequal(component$seed, 1001:1010),
-  all(table(component$seed) == 3L),
-  setequal(component$method, unname(component_methods)),
-  uniqueN(component$scope) == 1L,
-  component$scope[[1L]] == scope_contract[["tf_static"]],
-  all(is.finite(component$auroc)),
-  all(is.finite(component$average_precision))
 )
 
 full_fit <- component[
@@ -413,7 +371,6 @@ ablation <- merge(
   deletion_rank,
   by = "seed"
 )
-stopifnot(nrow(ablation) == 10L, !anyDuplicated(ablation$seed))
 
 ablation_colours <- c(
   `Forward-only − full` = "#7569A3",

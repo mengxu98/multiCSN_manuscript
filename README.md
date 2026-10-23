@@ -9,17 +9,6 @@ bash code/requirements/install_environments.sh
 bash code/requirements/download_data.sh
 ```
 
-The default package installer follows the development branches. To reproduce the
-multiomics performance snapshot, extract `source_data/performance_reproducibility.zip`
-and install its hash-verified source archives into a separate library:
-
-```bash
-Rscript code/requirements/install_csn_packages.R /path/to/extracted_snapshot /path/to/isolated_library
-```
-
-The snapshot manifest identifies the exact source files even when package versions
-are unchanged. Add that library to the R library search path for the benchmark.
-
 Run the required tasks:
 
 | Command | Task |
@@ -31,5 +20,7 @@ Run the required tasks:
 | `bash 05_gse194122.sh` | Erythroid differentiation analysis |
 | `bash 06_plotting.sh` | Figures |
 | `bash 07_source_data.sh` | Source Data |
+| `python3 code/gse274113/run_timing_benchmark.py` | Optional matched-host timing |
 
-Full analyses require Linux. Task parameters are defined in the analysis scripts.
+Full analyses require Linux and the raw inputs declared by the analysis scripts.
+Task parameters are defined in those scripts; preparation tasks build the required candidates and resources.

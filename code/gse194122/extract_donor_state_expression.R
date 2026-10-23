@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 
+source("code/functions/table_io.R")
+
 suppressPackageStartupMessages({
   library(data.table)
   library(Matrix)
@@ -15,7 +17,7 @@ data.table::setDTthreads(threads)
 arguments <- list(
   "data/gse194122/gse194122_candidates.rds",
   "results/gse194122/trajectory/erythroid_coordinates_and_pseudotime.tsv.gz",
-  "results/gse194122/donor_state_expression"
+  "results/gse194122/trajectory"
 )
 # ---------------------------------------------------------------
 input <- arguments[[1L]]
@@ -23,8 +25,7 @@ trajectory_path <- arguments[[2L]]
 output <- arguments[[3L]]
 input <- normalizePath(input, mustWork = TRUE)
 trajectory_path <- normalizePath(trajectory_path, mustWork = TRUE)
-if (file.exists(output)) stop("Output already exists: ", output, call. = FALSE)
-stage <- paste0(output, ".staging")
+stage <- tempfile(".result-files-", tmpdir = dirname(output))
 if (file.exists(stage)) stop("Staging path already exists: ", stage, call. = FALSE)
 dir.create(stage, recursive = TRUE)
 
@@ -103,5 +104,5 @@ fwrite(groups[, .(
   state, donor_id, group_id,
   cells = group_cells[group_id]
 )], file.path(stage, "donor_state_group_counts.tsv"), sep = "\t", quote = FALSE)
-if (!file.rename(stage, output)) stop("Unable to promote donor-state expression outputs.")
+publish_result_files(stage, output)
 cat("gse194122_donor_state_expression\tPASS\t", output, "\n", sep = "")

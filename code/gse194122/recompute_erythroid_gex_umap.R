@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 
+source("code/functions/table_io.R")
+
 source("code/functions/hdf5_io.R")
 
 suppressPackageStartupMessages({
@@ -15,8 +17,8 @@ suppressPackageStartupMessages({
 # ---- Parameters ----
 arguments <- list(
   "data/gse194122/processed_multiome.h5ad",
-  "results/gse194122/state_transitions/erythroid_cell_ids.tsv",
-  "results/gse194122/erythroid_gex_umap"
+  "results/gse194122/trajectory/erythroid_cell_ids.tsv",
+  "results/gse194122/trajectory"
 )
 # ---------------------------------------------------------------
 input <- arguments[[1L]]
@@ -24,9 +26,8 @@ cell_path <- arguments[[2L]]
 output <- arguments[[3L]]
 input <- normalizePath(input, winslash = "/", mustWork = TRUE)
 cell_path <- normalizePath(cell_path, winslash = "/", mustWork = TRUE)
-if (dir.exists(output)) stop("Output already exists: ", output, call. = FALSE)
 dir.create(dirname(output), recursive = TRUE, showWarnings = FALSE)
-stage <- paste0(output, ".staging")
+stage <- tempfile(".result-files-", tmpdir = dirname(output))
 if (file.exists(stage)) stop("Staging path already exists: ", stage, call. = FALSE)
 dir.create(stage, recursive = FALSE)
 
@@ -164,5 +165,5 @@ fwrite(
   file.path(stage, "pca_standard_deviation.tsv"),
   sep = "\t", quote = FALSE
 )
-if (!file.rename(stage, output)) stop("Unable to promote erythroid GEX UMAP outputs.")
+publish_result_files(stage, output)
 cat("gse194122_erythroid_gex_umap\tPASS\t", output, "\n", sep = "")

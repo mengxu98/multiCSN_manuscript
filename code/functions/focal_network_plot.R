@@ -30,7 +30,7 @@ plot_focal_network <- function(network_table, tf_nodes, node_state, state_colors
     ggplot2::scale_shape_manual(values = c("Focal TF" = 23, Target = 21)) +
     ggplot2::scale_size_identity() +
     ggrepel::geom_text_repel(data = nodes[nodes$name %in% label_nodes, ],
-      ggplot2::aes(x, y, label = name), size = label.size,
+      ggplot2::aes(x, y, label = name), size = label.size, fontface = "italic",
       segment.colour = NA, max.overlaps = Inf, seed = seed, bg.color = "white") +
     ggplot2::theme_void() + ggplot2::theme(legend.position = legend_position)
 }

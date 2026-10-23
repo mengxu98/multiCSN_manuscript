@@ -3,13 +3,13 @@ from __future__ import annotations
 
 import os
 import pickle
+import shutil
 import sys
 import tempfile
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).absolute().parents[1] / "functions"))
-from runtime import use_python, sha256
-from file_io import write_artifact_manifest
+from runtime import use_python
 from hdf5_io import read_sparse_group
 OBJECT_ROOT = Path(__file__).absolute().parents[2] / "data/gse274113/objects/GSE274113_SCENICplus_full"
 MALLET_MEMORY = "120G"
@@ -21,7 +21,6 @@ import h5py
 import numpy as np
 import pandas as pd
 import scanpy as sc
-import scipy.sparse as sp
 from pycisTopic.cistopic_class import create_cistopic_object
 
 
@@ -104,11 +103,7 @@ def main() -> None:
             raise RuntimeError("SCENIC+ input feature identifiers are not unique.")
         if np.any(rna.data < 0) or np.any(atac.data < 0):
             raise RuntimeError("Count matrices contain negative entries.")
-        source_regions = regions
-        regions = canonicalize_region_names(source_regions)
-        canonicalized_region_names = sum(
-            source != canonical for source, canonical in zip(source_regions, regions)
-        )
+        regions = canonicalize_region_names(regions)
 
         metadata = pd.read_csv(metadata_path, sep="\t", low_memory=False)
         if "cell_id" not in metadata or metadata["cell_id"].duplicated().any():
@@ -144,17 +139,6 @@ def main() -> None:
             gex.raw = gex.copy()
             sc.pp.normalize_total(gex, target_sum=1e4)
             sc.pp.log1p(gex)
-            gex.uns["full_multiome_20260803"] = {
-                "dataset": "GSE274113",
-                "timepoint": timepoint,
-                "training_cells": f"all {expected_cells} NT controls at {timepoint}",
-                "heldout_cells": "all non-NT perturbation cells",
-                "network_pooling": "none",
-                "cell_cap": "none",
-                "gene_cap": "none",
-                "pre_model_gene_selection": "none; full release RNA feature matrix retained",
-                "normalization": "scanpy total-count 1e4 followed by log1p",
-            }
             gex_path = time_dir / f"GSE274113_NT_{slug}_GEX.h5ad"
             gex.write_h5ad(gex_path, compression="gzip")
 
@@ -204,59 +188,12 @@ def main() -> None:
         if list(summary["timepoint"]) != list(TIMEPOINTS) or int(summary["control_cells"].sum()) != 11447:
             raise RuntimeError("Independent SCENIC+ input suite failed full-cell accounting.")
         summary.to_csv(stage / "timepoint_input_summary.tsv", sep="\t", index=False)
-        validation = pd.DataFrame(
-            {
-                "field": [
-                    "dataset", "network_training_policy", "heldout_policy",
-                    "training_cells", "replicates", "timepoint_networks",
-                    "network_pooling", "input_rna_features",
-                    "input_atac_consensus_features", "cell_cap", "gene_cap",
-                    "region_cap", "pre_model_gene_selection",
-                    "pre_model_region_selection", "pycistopic_input_filter",
-                    "source_region_identifier_format",
-                    "pycistopic_region_identifier_format",
-                    "canonicalized_region_identifiers",
-                    "region_coordinate_changes", "region_order_changes",
-                    "blacklist_sha256", "counts_h5_sha256",
-                    "metadata_sha256",
-                ],
-                "value": [
-                    "GSE274113", "four independent NT-control timepoint inputs",
-                    "all non-NT perturbations", 11447, 14, 4, "none",
-                    len(genes), len(regions), "none", "none", "none",
-                    "none; full release RNA feature matrix retained",
-                    "none; full consensus ATAC feature matrix supplied to pycisTopic",
-                    "hg38 blacklist exclusion plus pycisTopic min_frag=1 and min_cell=1",
-                    "chrom-start-end as stored by the formal Seurat count export",
-                    "chrom:start-end required by pycisTopic",
-                    canonicalized_region_names, 0, 0,
-                    sha256(blacklist_path), sha256(counts_path),
-                    sha256(metadata_path),
-                ],
-            }
-        )
-        validation.to_csv(stage / "input_validation.tsv", sep="\t", index=False)
-        versions = pd.DataFrame(
-            {
-                "component": ["python", "anndata", "scanpy", "pycisTopic"],
-                "version": [
-                    sys.version.replace("\n", " "),
-                    ad.__version__,
-                    sc.__version__,
-                    __import__("pycisTopic").__version__,
-                ],
-            }
-        )
-        versions.to_csv(stage / "session_versions.tsv", sep="\t", index=False)
-        write_artifact_manifest(stage)
+
         os.replace(stage, destination)
         print(f"destination\t{destination}")
-        print(validation.to_string(index=False))
     except Exception:
-        failed = parent / f".input.failed_{pd.Timestamp.utcnow().strftime('%Y%m%dT%H%M%SZ')}"
         if stage.exists():
-            os.replace(stage, failed)
-            print(f"failed_stage\t{failed}", file=sys.stderr)
+            shutil.rmtree(stage)
         raise
 
 

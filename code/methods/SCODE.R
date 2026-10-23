@@ -29,20 +29,7 @@ normalize_pseudotime <- function(pseudotime) {
 }
 
 find_scode_script <- function() {
-  candidates <- c(
-    file.path(benchmark_root_dir(), "vendor", "SCODE", "SCODE.R"),
-    file.path(benchmark_root_dir(), "vendor", "SCODE", "scode.R")
-  )
-  candidates <- candidates[file.exists(candidates)]
-
-  if (length(candidates) == 0) {
-    stop(
-      "SCODE script not found. Please place the official 'SCODE.R' script ",
-      "under code/vendor/SCODE/."
-    )
-  }
-
-  candidates[[1]]
+  file.path(benchmark_root_dir(), "vendor", "SCODE", "SCODE.R")
 }
 
 run_SCODE <- function(

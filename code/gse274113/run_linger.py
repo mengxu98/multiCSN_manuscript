@@ -6,10 +6,10 @@ from __future__ import annotations
 import csv
 import gzip
 import importlib.metadata
-import json
 import os
 import random
 import sys
+import tempfile
 import time
 import types
 from pathlib import Path
@@ -33,7 +33,7 @@ ARGUMENTS = {
 
 
 sys.path.insert(0, str(Path(__file__).absolute().parents[1] / "functions"))
-from runtime import use_python, sha256
+from runtime import use_python
 from hdf5_io import read_sparse_group
 if __name__ == "__main__":
     use_python("linger", hash_seed=ARGUMENTS["seed"])
@@ -43,7 +43,6 @@ import h5py
 import numpy as np
 import pandas as pd
 import scanpy as sc
-import scipy.sparse as sp
 
 
 EXPECTED_CELLS = {"day_7": 3304, "day_9": 4167, "day_11": 1903, "day_14": 2073}
@@ -62,34 +61,13 @@ def canonical_region(region: str) -> str:
     return f"{chromosome}:{start_value}-{end_value}"
 
 
-def marker(root: Path, phase: str) -> Path:
-    return root / f".{phase}.done.json"
 
 
-def mark(root: Path, phase: str, started: float, details: dict[str, object]) -> None:
-    marker(root, phase).write_text(
-        json.dumps(
-            {
-                "phase": phase,
-                "started_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime(started)),
-                "finished_utc": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-                "elapsed_seconds": round(time.time() - started, 3),
-                **details,
-            },
-            indent=2,
-            sort_keys=True,
-        )
-        + "\n"
-    )
 
 
 def prepare(
     root: Path, counts_path: Path, metadata_path: Path, timepoint: str, seed: int
 ) -> None:
-    if marker(root, "prepare").is_file():
-        print(f"prepare already complete: {root}", flush=True)
-        return
-    started = time.time()
     data_dir = root / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     with h5py.File(counts_path, "r") as handle:
@@ -202,26 +180,9 @@ def prepare(
             ],
         }
     ).to_csv(root / "input_summary.tsv", sep="\t", index=False)
-    mark(
-        root,
-        "prepare",
-        started,
-        {
-            "counts_sha256": sha256(counts_path),
-            "metadata_sha256": sha256(metadata_path),
-            "retained_cells": rna_data.n_obs,
-            "pseudobulks": tg_pseudobulk.shape[1],
-        },
-    )
 
 
 def preprocess(root: Path, grn_dir: Path) -> None:
-    if marker(root, "preprocess").is_file():
-        print(f"preprocess already complete: {root}", flush=True)
-        return
-    if not marker(root, "prepare").is_file():
-        raise RuntimeError("prepare phase is incomplete")
-    started = time.time()
     data_dir, output_dir = root / "data", root / "output"
     output_dir.mkdir(exist_ok=True)
     tg = pd.read_csv(data_dir / "TG_pseudobulk.tsv", sep="\t", index_col=0)
@@ -238,7 +199,6 @@ def preprocess(root: Path, grn_dir: Path) -> None:
     missing = [name for name in required if not (output_dir / name).is_file()]
     if missing:
         raise RuntimeError(f"LINGER preprocessing outputs are missing: {missing}")
-    mark(root, "preprocess", started, {"required_outputs": required})
 
 
 def validate_training_outputs(root: Path) -> pd.DataFrame:
@@ -277,13 +237,6 @@ def validate_training_outputs(root: Path) -> pd.DataFrame:
 
 
 def train(root: Path, grn_dir: Path) -> None:
-    if marker(root, "train").is_file():
-        validate_training_outputs(root)
-        print(f"train already complete: {root}", flush=True)
-        return
-    if not marker(root, "preprocess").is_file():
-        raise RuntimeError("preprocess phase is incomplete")
-    started = time.time()
     from LingerGRN import LINGER_tr
 
     output_dir = root / "output"
@@ -295,25 +248,9 @@ def train(root: Path, grn_dir: Path) -> None:
     if missing:
         raise RuntimeError(f"LINGER training outputs are missing: {missing}")
     coverage = validate_training_outputs(root)
-    mark(
-        root,
-        "train",
-        started,
-        {
-            "chromosomes": len(chromosomes),
-            "trained_genes": int(coverage["trained_genes"].sum()),
-            "method_skipped_genes": int(coverage["method_skipped_genes"].sum()),
-        },
-    )
 
 
 def networks(root: Path, grn_dir: Path) -> None:
-    if marker(root, "networks").is_file():
-        print(f"networks already complete: {root}", flush=True)
-        return
-    if not marker(root, "train").is_file():
-        raise RuntimeError("train phase is incomplete")
-    started = time.time()
     data_dir, output_dir = root / "data", root / "output"
     rna_data = ad.read_h5ad(data_dir / "adata_RNA.h5ad")
     atac_data = ad.read_h5ad(data_dir / "adata_ATAC.h5ad")
@@ -330,7 +267,6 @@ def networks(root: Path, grn_dir: Path) -> None:
     missing = [name for name in required if not (output_dir / name).is_file()]
     if missing:
         raise RuntimeError(f"LINGER network outputs are missing: {missing}")
-    mark(root, "networks", started, {"required_outputs": required})
 
 
 def write_dense_edges(
@@ -351,12 +287,6 @@ def write_dense_edges(
 
 
 def export(root: Path) -> None:
-    if marker(root, "export").is_file():
-        print(f"export already complete: {root}", flush=True)
-        return
-    if not marker(root, "networks").is_file():
-        raise RuntimeError("networks phase is incomplete")
-    started = time.time()
     output_dir, network_dir = root / "output", root / "networks"
     network_dir.mkdir(exist_ok=True)
     tf_region_rows = write_dense_edges(
@@ -389,16 +319,6 @@ def export(root: Path) -> None:
         }
     )
     summary.to_csv(network_dir / "network_summary.tsv", sep="\t", index=False)
-    mark(
-        root,
-        "export",
-        started,
-        {
-            "tf_gene_relations": tf_gene_rows,
-            "tf_region_relations": tf_region_rows,
-            "region_gene_relations": region_gene_rows,
-        },
-    )
 
 
 # ---- Parameters ----
@@ -434,9 +354,24 @@ def main(settings=None) -> None:
         "export": lambda: export(root),
     }
     selected = PHASES if args.phase == "all" else (args.phase,)
+    timing_path = root / "phase_timings.tsv"
+    timings = {}
+    if args.phase != "all" and timing_path.is_file():
+        with timing_path.open() as handle:
+            timings = {row["phase"]: row for row in csv.DictReader(handle, delimiter="\t")}
     for phase in selected:
         print(f"phase_started\t{phase}\t{time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}", flush=True)
+        started = time.perf_counter()
         functions[phase]()
+        timings[phase] = dict(timepoint=args.timepoint, phase=phase,
+                              seconds=f"{time.perf_counter() - started:.6f}")
+        with tempfile.TemporaryDirectory(prefix=".phase-timing-", dir=root) as temporary:
+            candidate = Path(temporary) / "phase_timings.tsv"
+            with candidate.open("w", newline="") as handle:
+                writer = csv.DictWriter(handle, ("timepoint", "phase", "seconds"), delimiter="\t")
+                writer.writeheader()
+                writer.writerows(timings[name] for name in PHASES if name in timings)
+            candidate.replace(timing_path)
         print(f"phase_finished\t{phase}\t{time.strftime('%Y-%m-%dT%H:%M:%SZ', time.gmtime())}", flush=True)
 
 
@@ -444,5 +379,18 @@ def run_timepoint(timepoint, output_root):
     main(dict(ARGUMENTS, timepoint=timepoint, output_root=Path(output_root)))
 
 
+def run_all_timepoints():
+    previous = Path.cwd()
+    settings = dict(ARGUMENTS)
+    for name in ("counts", "metadata", "grn_dir", "output_root"):
+        settings[name] = (previous / settings[name]).resolve()
+    try:
+        for timepoint in EXPECTED_CELLS:
+            os.chdir(previous)
+            main(dict(settings, timepoint=timepoint))
+    finally:
+        os.chdir(previous)
+
+
 if __name__ == "__main__":
-    main()
+    run_all_timepoints()

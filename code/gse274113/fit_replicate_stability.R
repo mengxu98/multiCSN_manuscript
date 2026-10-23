@@ -315,12 +315,11 @@ fit_replicate_fold <- function(
 fit_replicate_stability <- function(
   input = "data/gse274113/objects/GSE274113_control_full/candidates/GSE274113_NT_timepoint_candidates.rds",
   validation = "data/gse274113/objects/GSE274113_control_full/candidates/candidate_validation.tsv",
-  output = "results/gse274113/replicate_deletion_stability/timepoints"
+  output = "results/gse274113/stability"
 ) {
   # All scientific settings are fixed here and in fit_replicate_fold(): RNA
   # detection >=20 cells, peak detection >=3 cells, 100 kb upstream domains,
   # self/affine-alias exclusion, uncapped Greedy-L0+BIC and one solver thread.
-  if (file.exists(output)) stop("Output already exists: ", output)
   input <- normalizePath(input, mustWork = TRUE)
   validation <- normalizePath(validation, mustWork = TRUE)
   timepoints <- c(day_7 = "day 7", day_9 = "day 9", day_11 = "day 11", day_14 = "day 14")
@@ -397,10 +396,8 @@ fit_replicate_stability <- function(
     args <- list(gene_layer = gene_layer, gene_counts = gene_counts, peak_counts = peak_counts,
                  regulators_declared = regulators_declared, features = features,
                  peaks2gene = peaks2gene, peak_tf_gate_declared = gate, timepoint = timepoint)
-    timepoint_root <- file.path(stage, slug)
-    dir.create(timepoint_root)
-    full_root <- file.path(timepoint_root, "detected_20")
-    dir.create(full_root)
+    full_root <- file.path(stage, "full", slug)
+    dir.create(full_root, recursive = TRUE)
     # Fit the complete-timepoint reference with the same detection and weight
     # rules as the folds; layered endpoint tables have a different contract.
     full <- do.call(fit_replicate_fold, c(args, list(
@@ -418,7 +415,7 @@ fit_replicate_stability <- function(
         fold_cells = fold_cells, full_network = full_network, heldout = heldout,
         heldout_cells = length(cells) - length(fold_cells), training_replicates = length(replicates) - 1L
       )))
-      fold_root <- file.path(timepoint_root, "folds", heldout)
+      fold_root <- file.path(stage, "folds", paste0(slug, "_", heldout))
       dir.create(fold_root, recursive = TRUE)
       write_tsv(fit$edges, file.path(fold_root, "tf_gene.tsv"))
       write_tsv(fit$accounting, file.path(fold_root, "target_fit_accounting.tsv.gz"))
@@ -430,34 +427,11 @@ fit_replicate_stability <- function(
       rm(fit)
       gc(verbose = FALSE)
     }
-    write_tsv(rbindlist(summaries), file.path(timepoint_root, "fold_summary.tsv"))
+    write_tsv(rbindlist(summaries), file.path(stage, paste0(slug, "_fold_summary.tsv")))
     rm(timepoint_object, gene_layer, gene_counts, peak_counts, gate, peaks2gene, peaks2motif, args, full_network)
     gc(verbose = FALSE)
   }
-  sources <- c(input, validation, "code/gse274113/fit_replicate_stability.R",
-               "code/functions/runtime.R", "code/functions/network_io.R", "code/functions/table_io.R")
-  for (pkg in c("multiCSN", "inferCSN")) {
-    root <- system.file(package = pkg)
-    sources <- c(sources, file.path(root, c("DESCRIPTION", "NAMESPACE")),
-                 list.files(file.path(root, "R"), "[.]rdb$", full.names = TRUE),
-                 list.files(file.path(root, "libs"), full.names = TRUE))
-  }
-  sources <- normalizePath(sources, mustWork = TRUE)
-  write_tsv(data.table(file = sources, bytes = file.info(sources)$size,
-                      sha256 = unname(sha256_files(sources))), file.path(stage, "input_manifest.tsv"))
-  write_tsv(data.table(
-    field = c("dataset", "folds", "parallel_workers", "solver_threads", "rna_detection",
-              "peak_detection", "upstream", "downstream", "candidate_domain", "RNA_normalization",
-              "cell_sampling", "feature_sampling", "max_support_size", "min_improvement", "weight"),
-    value = c("GSE274113", "14", "1", "1", "20 remaining control cells", "3 remaining control cells",
-              "100000", "0", "recomputed within each replicate deletion", "complete timepoint LogNormalize; fold standardization",
-              "none", "none", "uncapped", "1e-10", "signed ordinal deletion evidence; exact ties within each fit")
-  ), file.path(stage, "run_contract.tsv"))
-  files <- sort(list.files(stage, recursive = TRUE, full.names = TRUE))
-  files <- files[!file.info(files)$isdir]
-  write_tsv(data.table(file = substring(files, nchar(stage) + 2L), bytes = file.info(files)$size,
-                      sha256 = unname(sha256_files(files))), file.path(stage, "output_manifest.tsv"))
-  if (file.exists(output) || !file.rename(stage, output)) stop("Unable to publish complete replicate stability results.")
+  publish_result_files(stage, output)
   cat("replicate_stability\tPASS\t", output, "\n", sep = "")
   invisible(output)
 }
@@ -466,7 +440,7 @@ if (sys.nframe() == 0L) {
   options <- list(
     input = "data/gse274113/objects/GSE274113_control_full/candidates/GSE274113_NT_timepoint_candidates.rds",
     validation = "data/gse274113/objects/GSE274113_control_full/candidates/candidate_validation.tsv",
-    output = "results/gse274113/replicate_deletion_stability/timepoints"
+    output = "results/gse274113/stability"
   )
   do.call(fit_replicate_stability, options)
 }

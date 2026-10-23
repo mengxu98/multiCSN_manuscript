@@ -31,7 +31,6 @@ stage <- paste0(output_root, ".staging_", format(Sys.time(), "%Y%m%dT%H%M%SZ", t
 if (file.exists(stage)) stop("Staging output already exists: ", stage, call. = FALSE)
 dir.create(stage)
 
-stopifnot(is.function(inferCSN::fit_greedy_l0))
 
 bic_from_rss <- function(rss, n_obs, n_terms) {
   n_obs * log(rss / n_obs) + n_terms * log(n_obs)
@@ -146,7 +145,6 @@ score_edges <- function(scope, universe, edges, truth, score) {
 }
 
 all_metrics <- list()
-all_reproduction <- list()
 all_runtime <- list()
 for (seed in arguments$seeds) {
   seed_started <- proc.time()[["elapsed"]]
@@ -196,7 +194,7 @@ for (seed in arguments$seeds) {
 
   frozen_edges <- read_tsv(frozen_edge_path)
   frozen_metrics <- read_tsv(frozen_metric_path)
-  reproduction <- verify_frozen_full(full_edges, frozen_edges, frozen_metrics)
+  verify_frozen_full(full_edges, frozen_edges, frozen_metrics)
   baseline <- frozen_metrics[
     frozen_metrics$scope == "TF-gene:static_input_GRN", , drop = FALSE
   ]
@@ -244,11 +242,6 @@ for (seed in arguments$seeds) {
       stringsAsFactors = FALSE
     )
   }))
-  reproduction_row <- data.frame(
-    seed = seed, n_edges = nrow(full_edges),
-    max_coefficient_abs_diff = reproduction$max_coefficient_abs_diff,
-    max_metric_abs_diff = metric_diff, stringsAsFactors = FALSE
-  )
   runtime <- data.frame(
     seed = seed, targets = length(targets),
     full_add_delete_swap_seconds = full_seconds,
@@ -263,16 +256,13 @@ for (seed in arguments$seeds) {
   write_tsv(forward_edges, file.path(seed_output, "forward_only_tf_gene.tsv.gz"), writer = "table")
   write_tsv(support, file.path(seed_output, "support_comparison.tsv"), writer = "table")
   write_tsv(metrics, file.path(seed_output, "metrics.tsv"), writer = "table")
-  write_tsv(reproduction_row, file.path(seed_output, "baseline_reproduction.tsv"), writer = "table")
   write_tsv(runtime, file.path(seed_output, "runtime.tsv"), writer = "table")
   all_metrics[[as.character(seed)]] <- metrics
-  all_reproduction[[as.character(seed)]] <- reproduction_row
   all_runtime[[as.character(seed)]] <- runtime
   cat("seed_completed\t", seed, "\n", sep = "")
 }
 
 metrics <- do.call(rbind, all_metrics)
-reproduction <- do.call(rbind, all_reproduction)
 runtime <- do.call(rbind, all_runtime)
 summary <- do.call(rbind, lapply(split(metrics, metrics$method), function(x) {
   data.frame(
@@ -289,7 +279,6 @@ summary <- do.call(rbind, lapply(split(metrics, metrics$method), function(x) {
 }))
 write_tsv(metrics, file.path(stage, "endpoint_metrics_all_seeds.tsv"), writer = "table")
 write_tsv(summary, file.path(stage, "endpoint_summary.tsv"), writer = "table")
-write_tsv(reproduction, file.path(stage, "baseline_reproduction_all_seeds.tsv"), writer = "table")
 write_tsv(runtime, file.path(stage, "runtime_all_seeds.tsv"), writer = "table")
 if (!file.rename(stage, output_root)) {
   stop("Could not atomically promote staging output.", call. = FALSE)

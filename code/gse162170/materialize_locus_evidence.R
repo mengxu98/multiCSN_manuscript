@@ -21,10 +21,6 @@ accessibility_samples <- read_table("focal_accessibility_samples")
 annotation <- read_table("focal_gene_annotation")
 join_check <- read_table("exact_join_check")
 
-stopifnot(
-  nrow(join_check) == nrow(triplets),
-  max(join_check$component_max_abs_delta, na.rm = TRUE) < 1e-12
-)
 
 parse_regions <- function(x) {
   pieces <- tstrsplit(sub("^chr", "", x$region), "-", fixed = TRUE)

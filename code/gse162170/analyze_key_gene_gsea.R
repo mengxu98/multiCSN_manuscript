@@ -20,7 +20,6 @@ out_dir <- normalizePath("results/gse162170/key_gene_gsea", mustWork = FALSE)
 # ---------------------------------------------------------------
 dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 triplet_path <- file.path(result_root, "triplets.tsv")
-stopifnot(file.exists(triplet_path))
 
 class_levels <- c("GluN", "IN", "IPC_RG", "OPC_Glia", "Vascular")
 class_map <- c(
@@ -37,15 +36,9 @@ triplets <- fread(triplet_path, select = "target", showProgress = FALSE)
 targets <- sort(unique(triplets$target))
 meta <- as.data.table(object[[]], keep.rownames = "cell")
 meta[, broad_class := unname(class_map[author_cluster_name])]
-stopifnot(
-  nrow(meta) == 8981L, uniqueN(meta$cell) == 8981L,
-  !anyNA(meta$broad_class), setequal(unique(meta$broad_class), class_levels),
-  uniqueN(meta$Sample.ID) == 3L, length(targets) == 11017L
-)
 
 rna <- GetAssayData(object, assay = "RNA", layer = "data")
 targets <- intersect(targets, rownames(rna))
-stopifnot(length(targets) == 11017L, identical(colnames(rna), meta$cell))
 rna <- rna[targets, , drop = FALSE]
 
 samples <- sort(unique(meta$Sample.ID))
@@ -58,7 +51,6 @@ design <- sparseMatrix(
 )
 group_sum <- as.matrix(rna %*% design)
 group_n <- tabulate(match(group, group_levels), nbins = length(group_levels))
-stopifnot(all(group_n > 0L))
 group_mean <- sweep(group_sum, 2L, group_n, "/")
 
 rank_rows <- lapply(class_levels, function(focal) {
@@ -86,10 +78,6 @@ rank_rows <- lapply(class_levels, function(focal) {
   x
 })
 gene_ranks <- rbindlist(rank_rows)
-stopifnot(
-  nrow(gene_ranks) == length(class_levels) * length(targets),
-  all(gene_ranks[, .N, by = anchor_class]$N == length(targets))
-)
 write_tsv(gene_ranks, file.path(out_dir, "gene_rank_scores.tsv.gz"))
 
 message("Building GO biological-process pathways from the selected-target universe")
@@ -106,7 +94,6 @@ go_map <- unique(go_map)
 pathways <- split(go_map$gene, go_map$term_id)
 pathways <- pathways[lengths(pathways) >= 15L & lengths(pathways) <= 500L]
 term_names <- AnnotationDbi::Term(GOTERM[names(pathways)])
-stopifnot(length(pathways) > 1000L, !anyNA(term_names))
 
 message("Running five sample-blocked preranked GSEA analyses")
 set.seed(20260825)

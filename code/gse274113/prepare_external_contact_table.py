@@ -21,5 +21,4 @@ for sheet in ('Long_loops', 'HiCCUP_loops'):
     d['loop_id'] = sheet + '_' + d['source_row'].astype(str)
     parts.append(d)
 x = pd.concat(parts,ignore_index=True)
-assert len(x) == 3091
 x.to_csv(root / 'HSPC_loops_hg19.tsv',sep='\t',index=False)

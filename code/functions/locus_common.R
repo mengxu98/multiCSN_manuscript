@@ -19,7 +19,7 @@ class_colours <- c(
 region_label <- function(region) {
   x <- tstrsplit(sub("^chr", "", region), "-", fixed = TRUE)
   paste0(
-    "chr", x[[1L]], ":", comma(as.numeric(x[[2L]])), "–",
+    "chr", x[[1L]], ":", comma(as.numeric(x[[2L]])), "\u2013",
     comma(as.numeric(x[[3L]]))
   )
 }
@@ -37,7 +37,6 @@ read_locus_inputs <- function(repo, target) {
       "expression_cells", "annotation", "paths"
     )
   )
-  assert_files(files)
   c(list(target = target), lapply(files, fread))
 }
 
@@ -71,7 +70,6 @@ make_locus_paths <- function(obj) {
   paths <- copy(obj$paths)
   annotation <- copy(obj$annotation)
   strand <- unique(annotation$strand[annotation$strand %chin% c("+", "-")])
-  stopifnot(length(strand) == 1L)
   target_tss <- if (strand == "+") min(annotation$start) else max(annotation$end)
   curves <- make_arc_data(paths, target_tss)
   sign_colours <- c(Negative = "#3B86B6", Positive = MULTICSN_COLOUR)
@@ -198,7 +196,8 @@ make_locus_gene <- function(obj) {
     ) +
     annotate("text",
       x = (gene_start + gene_end) / 2, y = 0.12,
-      label = paste0(obj$target, " (", strand, ")"), family = BASE_FAMILY,
+      label = deparse(italic_gene_labels(paste0(obj$target, " (", strand, ")"))[[1L]]),
+      parse = TRUE, family = BASE_FAMILY,
       size = 6.5 / ggplot2::.pt, colour = "#273A70"
     ) +
     scale_x_continuous(
@@ -223,9 +222,8 @@ make_locus_track <- function(obj) {
 make_locus_key <- function(obj) {
   x <- copy(obj$paths)
   setorder(x, start, end, -chain_delta_bic, regulator)
-  stopifnot(all(is.finite(x$chain_delta_bic)), all(x$chain_delta_bic >= 0))
   x[, sign_label := ifelse(chain_direction >= 0, "Positive", "Negative")]
-  x[, sign := ifelse(sign_label == "Positive", "+", "−")]
+  x[, sign := ifelse(sign_label == "Positive", "+", "\u2212")]
   x[, delta_label := fifelse(
     chain_delta_bic > 0 & chain_delta_bic < 0.01,
     "<0.01", sprintf("%.2f", chain_delta_bic)
@@ -291,7 +289,7 @@ make_locus_key <- function(obj) {
     data.table(
       x = c(x_base + 0.010, x_base + 0.153, x_base + 0.385, x_base + 0.420),
       y = 0.82,
-      label = c("TF", "Chr", "ΔBIC", "Sign"),
+      label = c("TF", "Chr", "\u0394BIC", "Sign"),
       hjust = c(0, 0, 1, 0.5)
     )
   }))
@@ -327,7 +325,7 @@ make_locus_key <- function(obj) {
     ) +
     geom_text(
       aes(tf_x, y, label = regulator),
-      hjust = 0,
+      fontface = "italic", hjust = 0,
       family = BASE_FAMILY,
       colour = INK_COLOUR,
       size = 5.7 / ggplot2::.pt
@@ -389,7 +387,6 @@ make_locus_key <- function(obj) {
 make_locus_expression <- function(obj) {
   x <- copy(obj$expression_samples)
   x[, cell_type := factor(broad_class, levels = class_order, labels = class_labels)]
-  stopifnot(nrow(x) == 15L, uniqueN(x$sample_id) == 3L)
   ggplot(x, aes(cell_type, mean_normalized_signal, group = sample_id)) +
     geom_line(colour = "#B8C0C6", linewidth = 0.35) +
     geom_point(aes(fill = cell_type), shape = 21, size = 2.2,

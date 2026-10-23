@@ -13,7 +13,6 @@ suppressPackageStartupMessages({
 data.table::setDTthreads(1L)
 
 repo_root <- normalizePath(getwd(), mustWork = TRUE)
-script_path <- normalizePath("code/gse274113/evaluate_tf_gene_comparators.R", mustWork = TRUE)
 default_truth_root <- file.path(
   repo_root, "data", "gse274113", "heldout_pseudobulk_full"
 )
@@ -29,7 +28,7 @@ comparator_root <- default_comparator_root
 pando_root <- file.path(comparator_root, "Pando")
 scenicplus_root <- file.path(comparator_root, "SCENICplus")
 default_destination <- file.path(
-  repo_root, "results", "gse274113", "method_comparison"
+  repo_root, "results", "gse274113", "comparison"
 )
 destination <- default_destination
 output_parent <- dirname(destination)
@@ -47,7 +46,6 @@ if (any(!file.exists(required))) {
     paste(required[!file.exists(required)], collapse = ", ")
   )
 }
-if (dir.exists(destination)) stop("Formal method comparison already exists: ", destination)
 
 canonical_peak <- function(x) {
   x <- as.character(x)
@@ -798,7 +796,7 @@ if (nrow(paired_comparisons) != 16L ||
 }
 write_tsv(paired_comparisons, file.path(stage, "paired_method_differences.tsv"))
 
-if (!file.rename(stage, destination)) stop("Unable to promote formal method comparison.")
+publish_result_files(stage, destination)
 cat("destination\t", destination, "\n", sep = "")
 cat("completed_utc\t", format(Sys.time(), tz = "UTC", usetz = TRUE), "\n", sep = "")
 print(macro_metrics)

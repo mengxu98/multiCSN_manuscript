@@ -1,271 +1,332 @@
 #!/usr/bin/env Rscript
 
+
 suppressPackageStartupMessages({
   library(data.table)
-  library(ggplot2)
-  library(scales)
-  library(ggrepel)
+  library(ComplexHeatmap)
+  library(circlize)
+  library(grid)
 })
 
 repo <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 source(file.path(repo, "code", "functions", "common.R"), local = TRUE)
+figure_root <- file.path(repo, "figures")
+dir.create(figure_root, recursive = TRUE, showWarnings = FALSE)
 
-screen_path <- file.path(
+membership_path <- file.path(
   repo,
   "results",
   "gse162170",
-  "loci",
-  "by_class",
-  "eligible_loci_by_class.tsv"
+  "cell_programs",
+  "module_membership.tsv.gz"
 )
-assert_files(screen_path)
-screen <- fread(screen_path)
-
-stopifnot(
-  nrow(screen) == 220L,
-  all(screen$eligible),
-  !anyNA(screen$class_rank),
-  !anyNA(screen$median_chain_delta_bic)
+summary_path <- file.path(
+  repo,
+  "results",
+  "gse162170",
+  "cell_programs",
+  "module_summary.tsv"
 )
 
-class_levels <- c("GluN", "IN", "IPC/RG", "OPC/Glia", "Vascular")
+class_order <- c("GluN", "IN", "IPC_RG", "OPC_Glia", "Vascular")
+class_labels <- c(
+  GluN = "GluN",
+  IN = "IN",
+  IPC_RG = "IPC/RG",
+  OPC_Glia = "OPC/Glia",
+  Vascular = "Vascular"
+)
 class_colours <- c(
   GluN = "#3B6FB6",
   IN = "#8A5BA7",
-  `IPC/RG` = "#D98A2B",
-  `OPC/Glia` = "#4AA684",
+  IPC_RG = "#D98A2B",
+  OPC_Glia = "#4AA684",
   Vascular = "#C4474D"
 )
-
-screen[, `:=`(
-  class_label = factor(class_label, levels = class_levels),
-  chains = as.numeric(chains),
-  regions = as.numeric(regions),
-  delta_bic = as.numeric(median_chain_delta_bic)
-)]
-
-# Clamped reproducible jitter for panel b to eliminate discrete integer overplotting
-set.seed(42)
-screen[, `:=`(
-  regions_jit = pmin(pmax(regions + runif(.N, -0.22, 0.22), 5.0), 15.0),
-  chains_jit  = pmin(pmax(chains + runif(.N, -0.38, 0.38), 20.0), 60.0)
-)]
-
-focal <- screen[target %in% c("ZNF804A", "KCNC2")]
-stopifnot(nrow(focal) == 2L)
-
-# a: within-class numerical rank against the retained deletion-BIC evidence
-figs9a <- ggplot(screen, aes(class_rank, delta_bic)) +
-  geom_hline(
-    yintercept = 3,
-    linewidth = 0.35,
-    linetype = "dashed",
-    colour = MUTED_COLOUR
-  ) +
-  annotate(
-    "text",
-    x = 78,
-    y = 2.65,
-    label = "Criterion (ΔBIC ≥ 3)",
-    hjust = 1,
-    vjust = 0,
-    size = 1.9,
-    colour = MUTED_COLOUR,
-    family = BASE_FAMILY
-  ) +
-  geom_point(
-    aes(colour = class_label, size = chains),
-    alpha = 0.80,
-    shape = 16
-  ) +
-  # Focal points highlighted with halo and outline
-  geom_point(
-    data = focal,
-    aes(class_rank, delta_bic),
-    shape = 21,
-    size = 3.0,
-    stroke = 0.6,
-    colour = "white",
-    fill = NA,
-    show.legend = FALSE
-  ) +
-  geom_point(
-    data = focal,
-    aes(class_rank, delta_bic, fill = class_label),
-    shape = 21,
-    size = 2.4,
-    stroke = 0.85,
-    colour = INK_COLOUR,
-    show.legend = FALSE
-  ) +
-  geom_label_repel(
-    data = focal,
-    aes(class_rank, delta_bic, label = target, colour = class_label),
-    fontface = "italic",
-    size = 2.1,
-    family = BASE_FAMILY,
-    fill = alpha("white", 0.95),
-    label.padding = unit(0.14, "lines"),
-    label.r = unit(0.12, "lines"),
-    label.size = 0.25,
-    box.padding = 0.35,
-    point.padding = 0.3,
-    min.segment.length = 0,
-    segment.size = 0.3,
-    segment.colour = MUTED_COLOUR,
-    nudge_x = c(7, 6),
-    nudge_y = c(0.1, 1.2),
-    seed = 42,
-    show.legend = FALSE
-  ) +
-  scale_colour_manual(values = class_colours, guide = "none") +
-  scale_fill_manual(values = class_colours) +
-  scale_size_continuous(
-    name = "Chains",
-    range = c(0.7, 2.3),
-    breaks = c(20, 40, 60)
-  ) +
-  scale_x_continuous(
-    breaks = seq(0, 80, by = 20),
-    expand = expansion(mult = c(0.02, 0.05))
-  ) +
-  scale_y_continuous(
-    breaks = seq(3, 13, by = 2),
-    limits = c(2.4, 13.5),
-    expand = expansion(mult = c(0.02, 0.04))
-  ) +
-  labs(x = "Within-class rank", y = "Median chain deletion-ΔBIC") +
-  guides(
-    size = guide_legend(
-      order = 1,
-      title.position = "top",
-      keyheight = unit(0.11, "in"),
-      keywidth = unit(0.11, "in")
-    )
-  ) +
-  theme_genome(6.8) +
-  theme(
-    legend.position = "right",
-    legend.title = element_text(size = 6.0, face = "bold"),
-    legend.text = element_text(size = 5.6),
-    legend.margin = margin(l = -2, r = 0, t = 0, b = 0),
-    plot.margin = margin(3, 4, 3, 4)
-  )
-
-# b: the selected-region and chain windows applied to every eligible locus
-figs9b <- ggplot(screen, aes(regions_jit, chains_jit)) +
-  annotate(
-    "rect",
-    xmin = 5, xmax = 15, ymin = 20, ymax = 60,
-    fill = "#F2F5F8",
-    colour = "#93A2B0",
-    linewidth = 0.4,
-    linetype = "dashed"
-  ) +
-  annotate(
-    "text",
-    x = 14.8,
-    y = 21.5,
-    label = "Eligibility window\n(5–15 reg., 20–60 ch.)",
-    hjust = 1,
-    vjust = 0,
-    size = 1.8,
-    colour = MUTED_COLOUR,
-    family = BASE_FAMILY
-  ) +
-  geom_point(
-    aes(colour = class_label),
-    size = 1.1,
-    alpha = 0.82,
-    shape = 16
-  ) +
-  # Focal points highlighted with halo and outline at exact coordinates
-  geom_point(
-    data = focal,
-    aes(regions, chains),
-    shape = 21,
-    size = 3.0,
-    stroke = 0.6,
-    colour = "white",
-    fill = NA,
-    show.legend = FALSE
-  ) +
-  geom_point(
-    data = focal,
-    aes(regions, chains, fill = class_label),
-    shape = 21,
-    size = 2.4,
-    stroke = 0.85,
-    colour = INK_COLOUR,
-    show.legend = FALSE
-  ) +
-  geom_label_repel(
-    data = focal,
-    aes(regions, chains, label = target, colour = class_label),
-    fontface = "italic",
-    size = 2.1,
-    family = BASE_FAMILY,
-    fill = alpha("white", 0.95),
-    label.padding = unit(0.14, "lines"),
-    label.r = unit(0.12, "lines"),
-    label.size = 0.25,
-    box.padding = 0.35,
-    point.padding = 0.3,
-    min.segment.length = 0,
-    segment.size = 0.3,
-    segment.colour = MUTED_COLOUR,
-    nudge_x = c(-2.0, 2.0),
-    nudge_y = c(-4.5, 5.0),
-    seed = 42,
-    show.legend = FALSE
-  ) +
-  scale_colour_manual(
-    values = class_colours,
-    name = "Cell class"
-  ) +
-  scale_fill_manual(values = class_colours) +
-  scale_x_continuous(
-    breaks = seq(5, 15, by = 2),
-    limits = c(4.3, 15.7),
-    expand = expansion(mult = c(0.01, 0.02))
-  ) +
-  scale_y_continuous(
-    breaks = seq(20, 60, by = 10),
-    limits = c(17, 63),
-    expand = expansion(mult = c(0.02, 0.02))
-  ) +
-  labs(x = "Selected regions", y = "Chains") +
-  guides(
-    colour = guide_legend(
-      order = 1,
-      title.position = "top",
-      override.aes = list(size = 1.3),
-      keyheight = unit(0.11, "in"),
-      keywidth = unit(0.11, "in")
-    )
-  ) +
-  theme_genome(6.8) +
-  theme(
-    legend.position = "right",
-    legend.title = element_text(size = 6.0, face = "bold"),
-    legend.text = element_text(size = 5.6),
-    legend.margin = margin(l = -2, r = 0, t = 0, b = 0),
-    plot.margin = margin(3, 4, 3, 4)
-  )
-
-figure_root <- file.path(repo, "figures")
-save_pdf(figs9a, file.path(figure_root, "figs9a.pdf"), 3.2, 2.3)
-save_pdf(figs9b, file.path(figure_root, "figs9b.pdf"), 3.3, 2.3)
-
-source(file.path(repo, "code", "functions", "pdf_assembly.R"), local = TRUE)
-assemble_pdf_figure(
-  stem = "figs9",
-  page = c(183, 74),
-  panels = list(
-    pdf_panel("a", 8, 66, 81),
-    pdf_panel("b", 95, 66, 83)
-  ),
-  repo = repo,
-  figure_root = figure_root
+class_annotation_colours <- setNames(
+  unname(class_colours[class_order]),
+  unname(class_labels[class_order])
 )
-message("Saved Supplementary Fig. S9 complete locus-screen panels.")
+
+membership <- unique(fread(membership_path)[, .(
+  module_id,
+  module_rank,
+  regulator,
+  anchor_class,
+  sign,
+  target
+)])
+module_summary <- fread(summary_path)
+
+module_meta <- unique(membership[, .(
+  module_id,
+  module_rank,
+  regulator,
+  anchor_class,
+  sign
+)])
+module_meta <- merge(
+  module_meta,
+  module_summary[, .(module_id, source_rank = rank)],
+  by = "module_id",
+  all.x = TRUE,
+  sort = FALSE
+)
+module_meta[is.na(source_rank), source_rank := module_rank]
+module_meta[, anchor_class := factor(anchor_class, levels = class_order)]
+setorder(module_meta, anchor_class, source_rank, regulator)
+
+target_sets <- split(membership$target, membership$module_id)
+module_ids <- module_meta$module_id
+n_modules <- length(module_ids)
+target_universe <- 11017L
+
+jaccard <- matrix(
+  0,
+  nrow = n_modules,
+  ncol = n_modules,
+  dimnames = list(module_ids, module_ids)
+)
+pair_rows <- vector("list", choose(n_modules, 2L))
+pair_index <- 0L
+diag(jaccard) <- 1
+
+for (i in seq_len(n_modules - 1L)) {
+  set_i <- target_sets[[module_ids[[i]]]]
+  for (j in seq.int(i + 1L, n_modules)) {
+    set_j <- target_sets[[module_ids[[j]]]]
+    overlap <- length(intersect(set_i, set_j))
+    union_size <- length(union(set_i, set_j))
+    score <- overlap / union_size
+    p_value <- phyper(
+      overlap - 1L,
+      length(set_i),
+      target_universe - length(set_i),
+      length(set_j),
+      lower.tail = FALSE
+    )
+    jaccard[i, j] <- jaccard[j, i] <- score
+    pair_index <- pair_index + 1L
+    pair_rows[[pair_index]] <- data.table(
+      module_1 = module_ids[[i]],
+      module_2 = module_ids[[j]],
+      jaccard = score,
+      p_value = p_value
+    )
+  }
+}
+
+pair_stats <- rbindlist(pair_rows)
+pair_stats[, q_value := p.adjust(p_value, method = "BH")]
+q_value <- matrix(
+  NA_real_,
+  nrow = n_modules,
+  ncol = n_modules,
+  dimnames = list(module_ids, module_ids)
+)
+for (i in seq_len(nrow(pair_stats))) {
+  row_index <- match(pair_stats$module_1[[i]], module_ids)
+  column_index <- match(pair_stats$module_2[[i]], module_ids)
+  q_value[row_index, column_index] <- q_value[column_index, row_index] <-
+    pair_stats$q_value[[i]]
+}
+
+anchor_lookup <- setNames(as.character(module_meta$anchor_class), module_ids)
+pair_stats[, same_anchor := anchor_lookup[module_1] == anchor_lookup[module_2]]
+
+within_class_order <- lapply(class_order, function(anchor) {
+  ids <- module_meta[anchor_class == anchor][order(source_rank)]$module_id
+  distance_matrix <- 1 - jaccard[ids, ids]
+  distance_matrix[distance_matrix < 0] <- 0
+  diag(distance_matrix) <- 0
+  ids[hclust(as.dist(distance_matrix), method = "average")$order]
+})
+ordered_ids <- unlist(within_class_order, use.names = FALSE)
+ordered_meta <- module_meta[match(ordered_ids, module_id)]
+display_labels <- paste0(
+  ordered_meta$regulator,
+  " (",
+  ifelse(ordered_meta$sign == "positive", "+", "-"),
+  ")"
+)
+anchor_factor <- factor(
+  class_labels[as.character(ordered_meta$anchor_class)],
+  levels = unname(class_labels[class_order])
+)
+label_colours <- unname(
+  class_colours[as.character(ordered_meta$anchor_class)]
+)
+
+jaccard_display <- jaccard[ordered_ids, ordered_ids]
+q_for_display <- pmax(
+  q_value[ordered_ids, ordered_ids],
+  .Machine$double.xmin,
+  na.rm = FALSE
+)
+significance_display <- pmin(-log10(q_for_display), 20)
+diag(jaccard_display) <- NA_real_
+diag(significance_display) <- NA_real_
+rownames(jaccard_display) <- colnames(jaccard_display) <- display_labels
+rownames(significance_display) <- colnames(
+  significance_display
+) <- display_labels
+
+font_family <- "Arial"
+label_gp <- gpar(
+  fontfamily = font_family,
+  fontsize = 5.4,
+  fontface = "plain",
+  col = label_colours
+)
+small_gp <- gpar(fontfamily = font_family, fontsize = 5.5, fontface = "plain")
+title_gp <- gpar(fontfamily = font_family, fontsize = 7.2, fontface = "bold")
+
+overlap_colours <- c(
+  low = "#160B39",
+  low_mid = "#5B1A82",
+  high_mid = "#B5367A",
+  high = "#F6D746"
+)
+
+make_top_annotation <- function(show_legend) {
+  HeatmapAnnotation(
+    `Cell class` = anchor_factor,
+    col = list(`Cell class` = class_annotation_colours),
+    show_annotation_name = FALSE,
+    show_legend = show_legend,
+    simple_anno_size = unit(0.083, "in"),
+    annotation_legend_param = list(
+      title_gp = gpar(
+        fontfamily = font_family,
+        fontsize = 6.2,
+        fontface = "plain"
+      ),
+      labels_gp = small_gp,
+      nrow = 1,
+      grid_height = unit(0.083, "in"),
+      grid_width = unit(0.134, "in")
+    )
+  )
+}
+
+left_annotation <- rowAnnotation(
+  `Cell class` = anchor_factor,
+  col = list(`Cell class` = class_annotation_colours),
+  show_annotation_name = FALSE,
+  show_legend = FALSE,
+  simple_anno_size = unit(0.083, "in")
+)
+
+common_args <- list(
+  cluster_rows = FALSE,
+  cluster_columns = FALSE,
+  row_split = anchor_factor,
+  column_split = anchor_factor,
+  row_gap = unit(0.0315, "in"),
+  column_gap = unit(0.0315, "in"),
+  width = unit(2.15, "in"),
+  height = unit(2.15, "in"),
+  border = "#969DA3",
+  rect_gp = gpar(col = NA),
+  row_labels = italic_gene_labels(display_labels),
+  column_labels = italic_gene_labels(display_labels),
+  row_names_gp = label_gp,
+  column_names_gp = label_gp,
+  column_names_rot = 58,
+  show_row_dend = FALSE,
+  show_column_dend = FALSE,
+  show_row_names = FALSE,
+  show_column_names = TRUE,
+  row_title = NULL,
+  column_title = NULL,
+  na_col = "#E6E9EC"
+)
+
+figs9a <- do.call(
+  Heatmap,
+  c(
+    list(
+      matrix = jaccard_display,
+      name = "Jaccard",
+      col = colorRamp2(
+        c(0, 0.05, 0.15, 0.30),
+        unname(overlap_colours)
+      ),
+      left_annotation = left_annotation,
+      top_annotation = make_top_annotation(TRUE),
+      heatmap_legend_param = list(
+        title = "Jaccard",
+        title_gp = small_gp,
+        labels_gp = small_gp,
+        direction = "horizontal",
+        legend_width = unit(1.063, "in"),
+        title_position = "topcenter"
+      )
+    ),
+    common_args
+  )
+)
+
+figs9b <- do.call(
+  Heatmap,
+  c(
+    list(
+      matrix = significance_display,
+      name = "-log10(q)",
+      col = colorRamp2(
+        c(0, 2, 5, 20),
+        c("#F7F8FA", "#E3DDEB", "#A07BB6", "#542788")
+      ),
+      top_annotation = make_top_annotation(FALSE),
+      show_row_names = TRUE,
+      row_names_side = "right",
+      heatmap_legend_param = list(
+        title = "-log10(BH q)",
+        title_gp = small_gp,
+        labels_gp = small_gp,
+        direction = "horizontal",
+        legend_width = unit(1.063, "in"),
+        title_position = "topcenter",
+        at = c(0, 5, 10, 15, 20),
+        labels = c("0", "5", "10", "15", ">=20")
+      )
+    ),
+    common_args[names(common_args) != "show_row_names"]
+  )
+)
+
+draw_figs9 <- function() {
+  draw(
+    figs9a + figs9b,
+    heatmap_legend_side = "bottom",
+    annotation_legend_side = "bottom",
+    merge_legends = TRUE,
+    gap = unit(0.126, "in"),
+    padding = unit(c(0.071, 0.079, 0.220, 0.079), "in")
+  )
+  upViewport(0)
+  grid.text(
+    "a  Shared target genes",
+    x = unit(0.060, "npc"),
+    y = unit(0.975, "npc"),
+    just = c("left", "top"),
+    gp = title_gp
+  )
+  grid.text(
+    "b  Overlap significance",
+    x = unit(0.480, "npc"),
+    y = unit(0.975, "npc"),
+    just = c("left", "top"),
+    gp = title_gp
+  )
+}
+
+save_grid_pdf(draw_figs9, file.path(figure_root, "figs9.pdf"), 5.5, 3.5)
+
+message(
+  "Saved Supplementary Fig. S9 module overlap: same-anchor median Jaccard ",
+  format(pair_stats[same_anchor == TRUE, median(jaccard)], digits = 3),
+  "; cross-anchor median ",
+  format(pair_stats[same_anchor == FALSE, median(jaccard)], digits = 3),
+  "."
+)

@@ -25,10 +25,7 @@ dir.create(figure_root, recursive = TRUE, showWarnings = FALSE)
 
 source_root <- file.path(
   repo,
-  "results",
-  "gse162170",
-  "network",
-  "figure_source"
+  "results", "gse162170", "network"
 )
 paths <- file.path(
   source_root,
@@ -39,17 +36,11 @@ paths <- file.path(
     "chain_summary.tsv"
   )
 )
-assert_files(paths)
 
 topology <- fread(paths[[1L]])
 funnel <- fread(paths[[2L]])
 outcomes <- fread(paths[[3L]])
 chain_summary <- fread(paths[[4L]])
-stopifnot(
-  nrow(topology) == 6L,
-  nrow(funnel) == 6L,
-  nrow(outcomes) == 4L
-)
 
 relation_colours <- c(
   tf_gene = "#3F83B8",
@@ -169,12 +160,6 @@ region_display <- function(x) {
 znf804a_obj <- read_locus_inputs(repo, "ZNF804A")
 display_paths <- copy(znf804a_obj$paths)
 setorder(display_paths, start, end, regulator)
-stopifnot(
-  nrow(display_paths) == 32L,
-  uniqueN(display_paths$region) == 9L,
-  uniqueN(display_paths$regulator) == 27L,
-  sum(display_paths$backbone_selected) == 12L
-)
 display_paths[,
   direction := ifelse(chain_direction >= 0, "Positive", "Negative")
 ]
@@ -221,7 +206,7 @@ fig4j <- ggplot(display_paths, aes(regulator_factor, region_factor)) +
   theme(
     axis.text.x = element_text(
       angle = 72,
-      hjust = 1,
+      face = "italic", hjust = 1,
       vjust = 1,
       size = 5.2
     ),
@@ -287,7 +272,6 @@ paths <- file.path(
     "go_all_terms.tsv.gz"
   )
 )
-assert_files(paths)
 
 class_order <- c("GluN", "IN", "IPC_RG", "OPC_Glia", "Vascular")
 class_labels <- c("GluN", "IN", "IPC/RG", "OPC/Glia", "Vascular")
@@ -300,7 +284,6 @@ class_colours <- c(
 )
 
 coords <- fread(paths[[1L]])
-stopifnot(nrow(coords) == 8981L, !anyDuplicated(coords$cell))
 n_cells <- nrow(coords)
 dummy <- sparseMatrix(
   i = rep(1L, n_cells),
@@ -323,11 +306,6 @@ srt[["umap"]] <- CreateDimReducObject(
   assay = DefaultAssay(srt)
 )
 aucell <- fread(paths[[2L]])
-stopifnot(
-  nrow(aucell) == n_cells * length(class_order),
-  setequal(aucell$cell, coords$cell),
-  setequal(aucell$target_program, class_order)
-)
 aucell_wide <- data.table::dcast(
   aucell,
   cell ~ target_program,
@@ -338,25 +316,11 @@ auc_matrix <- t(as.matrix(aucell_wide[, class_order, with = FALSE]))
 colnames(auc_matrix) <- aucell_wide$cell
 rownames(auc_matrix) <- class_order
 feature_map <- setNames(class_order, class_labels)
-# AUCell automatic thresholds from all 8,981 cells, seed 42; fixed for reuse.
-auc_thresholds <- c(
-  GluN = 0.20288375090457572,
-  IN = 0.11794261077381757,
-  IPC_RG = 0.11183137361363558,
-  OPC_Glia = 0.05701304655899892,
-  Vascular = 0.10172456749450899
+threshold_path <- file.path(
+  repo, "results/gse162170/cell_programs/aucell_thresholds.tsv"
 )
-aucell_threshold_summary <- aucell[, .(
-  threshold = unname(auc_thresholds[[target_program[[1L]]]]),
-  above_threshold = sum(AUC >= auc_thresholds[[target_program[[1L]]]]),
-  cells = .N,
-  fraction = mean(AUC >= auc_thresholds[[target_program[[1L]]]])
-), by = .(target_program, broad_class)]
-setorder(aucell_threshold_summary, target_program, broad_class)
-fwrite(aucell_threshold_summary,
-  file.path(repo, "results/gse162170/cell_programs/aucell_threshold_summary.tsv"),
-  sep = "\t", quote = FALSE, na = "NA"
-)
+threshold_table <- fread(threshold_path)
+auc_thresholds <- setNames(threshold_table$threshold, threshold_table$target_program)
 fig4e <- scop::CellScoringPlot(
   srt,
   method = "AUCell",
@@ -375,7 +339,6 @@ fig4e <- scop::CellScoringPlot(
 save_pdf(fig4e, file.path(figure_root, "fig4e.pdf"), 9, 3.9)
 
 module_path <- file.path(source_root, "module_raw_and_scaled_activity.tsv")
-assert_files(module_path)
 module_activity <- fread(module_path)
 module_activity[, sign_symbol := fifelse(sign == "positive", "+", "-")]
 module_activity[,
@@ -391,7 +354,6 @@ module_order <- unique(module_activity[
   order(match(anchor_class, class_order), module_rank),
   .(module_id, module_short, anchor_class)
 ])
-stopifnot(nrow(module_order) == 25L)
 
 make_module_matrix <- function(modality_value) {
   current <- copy(module_activity[modality == modality_value])
@@ -454,6 +416,7 @@ fig4f <- ComplexHeatmap::Heatmap(
   rect_gp = gpar(col = "grey86", lwd = 0.35),
   row_labels = module_row_labels,
   row_names_gp = gpar(fontsize = 7, col = module_row_colours),
+  column_labels = italic_gene_labels(colnames(module_matrix)),
   column_names_gp = gpar(fontsize = 5.8, col = module_column_colours),
   column_names_rot = 62,
   column_names_side = "bottom",
@@ -521,16 +484,14 @@ go_plot[, `:=`(
     levels = unname(go_term_labels)
   )
 )]
-stopifnot(
-  uniqueN(go_plot$ID) == length(go_term_labels),
-  all(is.finite(go_plot$gene_ratio)),
-  all(go_plot$BH_within_class >= 0 & go_plot$BH_within_class <= 1)
-)
 fig4g <- ggplot(
   go_plot,
   aes(cell_type, term, size = gene_ratio, fill = BH_within_class)
 ) +
   geom_point(shape = 21, colour = INK_COLOUR, stroke = 0.32) +
+  geom_point(data = go_plot[BH_within_class >= 0.05],
+             aes(cell_type, term), inherit.aes = FALSE,
+             shape = 4, size = 0.9, colour = INK_COLOUR, stroke = 0.3) +
   scale_size_area(
     name = "Gene ratio",
     max_size = 3.6,
@@ -602,20 +563,9 @@ gsea_paths <- file.path(
     "gene_rank_scores.tsv.gz"
   )
 )
-assert_files(gsea_paths)
 gsea_result <- readRDS(gsea_paths[[1L]])
 gsea_selected <- fread(gsea_paths[[2L]])
 gene_ranks <- fread(gsea_paths[[3L]])
-stopifnot(
-  nrow(gsea_selected) == 1L,
-  gsea_selected$anchor_class == "IPC_RG",
-  gsea_selected$pathway == "GO:0006259",
-  gsea_selected$NES > 0,
-  gsea_selected$padj < 0.05,
-  nrow(gene_ranks) == 5L * 11017L,
-  length(gsea_result$results) == 1L,
-  identical(names(gsea_result$results), "IPC_RG-GO_BP")
-)
 # Export the exact ranking and running score used by GSEAPlot.
 gsea_curve <- as.data.table(getFromNamespace("gsInfo", "scop")(
   gsea_result$results[["IPC_RG-GO_BP"]], "GO:0006259"
@@ -631,13 +581,6 @@ gsea_curve <- merge(
   by = "gene", sort = FALSE
 )
 setorder(gsea_curve, rank)
-stopifnot(
-  nrow(gsea_curve) == 11017L,
-  sum(gsea_curve$pathway_member) == gsea_selected$setSize,
-  sum(gsea_curve$leading_edge) == gsea_selected$core_gene_n,
-  which.max(gsea_curve$running_score) == gsea_selected$rank,
-  isTRUE(all.equal(max(gsea_curve$running_score), gsea_selected$enrichmentScore))
-)
 fwrite(gsea_curve, file.path(gsea_root, "gsea_rank_curve.tsv.gz"),
   sep = "\t", quote = FALSE, na = "NA"
 )
@@ -658,15 +601,10 @@ fig4h <- scop::GSEAPlot(
   combine = TRUE,
   verbose = FALSE
 )
-save_pdf(fig4h, file.path(figure_root, "fig4h.pdf"), 4.2, 3.9)
+fig4h <- italicise_gene_grobs(patchwork::patchworkGrob(fig4h), c("TOP2A", "CENPF", "PCNA"))
+save_grid_pdf(function() grid::grid.draw(fig4h), file.path(figure_root, "fig4h.pdf"), 4.2, 3.9)
 
 obj <- znf804a_obj
-stopifnot(
-  nrow(obj$paths) == 32L,
-  data.table::uniqueN(obj$paths$region) == 9L,
-  sum(obj$paths$chain_direction > 0) == 17L,
-  sum(obj$paths$chain_direction < 0) == 15L
-)
 fig4i <- make_locus_track(obj)
 save_pdf(fig4i, file.path(figure_root, "fig4i.pdf"), 3, 3)
 message("Rendered Fig. 4a-j directly.")

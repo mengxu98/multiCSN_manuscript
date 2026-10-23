@@ -1,5 +1,7 @@
 #!/usr/bin/env Rscript
 
+source("code/functions/table_io.R")
+
 suppressPackageStartupMessages(library(data.table))
 data.table::setDTthreads(1L)
 
@@ -9,20 +11,15 @@ safe_fraction <- function(numerator, denominator) {
 }
 
 # ---- Parameters ----
-# timepoints: replicate_deletion_stability timepoints directory.
 arguments <- list(
-  timepoints = "results/gse274113/replicate_deletion_stability/timepoints",
-  output = "results/gse274113/replicate_deletion_stability/multilayer_decomposition"
+  timepoints = "results/gse274113/stability",
+  output = "results/gse274113/stability"
 )
 # ---------------------------------------------------------------
 timepoint_root <- normalizePath(arguments$timepoints, mustWork = TRUE)
 output_root <- normalizePath(arguments$output, mustWork = FALSE)
-if (file.exists(output_root)) stop("Output already exists: ", output_root)
 dir.create(dirname(output_root), recursive = TRUE, showWarnings = FALSE)
-stage_root <- paste0(output_root, ".staging_", format(
-  Sys.time(), "%Y%m%dT%H%M%SZ",
-  tz = "UTC"
-))
+stage_root <- tempfile(".result-files-", tmpdir = dirname(output_root))
 dir.create(stage_root, recursive = FALSE)
 
 timepoint_lookup <- c(
@@ -38,7 +35,7 @@ edge_rows <- list()
 
 for (slug in names(timepoint_lookup)) {
   timepoint <- unname(timepoint_lookup[[slug]])
-  summary_path <- file.path(timepoint_root, slug, "fold_summary.tsv")
+  summary_path <- file.path(timepoint_root, paste0(slug, "_fold_summary.tsv"))
   summary <- fread(summary_path)
   if (nrow(summary) != expected_folds[[slug]] ||
     anyDuplicated(summary$heldout_replicate)) {
@@ -50,7 +47,7 @@ for (slug in names(timepoint_lookup)) {
   for (fold_index in seq_len(nrow(summary))) {
     replicate <- summary$heldout_replicate[[fold_index]]
     decomposition_path <- file.path(
-      timepoint_root, slug, "folds", replicate,
+      timepoint_root, "folds", paste0(slug, "_", replicate),
       "full_edge_decomposition.tsv.gz"
     )
     x <- fread(decomposition_path)
@@ -184,7 +181,7 @@ layer_attrition <- rbindlist(lapply(seq_len(nrow(folds)), function(i) {
   )
 }))
 
-fwrite(folds, file.path(stage_root, "all_fold_metrics.tsv"), sep = "\t")
+fwrite(folds, file.path(stage_root, "fold_decomposition.tsv"), sep = "\t")
 fwrite(edges, file.path(
   stage_root, "full_edge_multilayer_stability.tsv.gz"
 ), sep = "\t")
@@ -194,7 +191,5 @@ fwrite(rank_decile, file.path(
 ), sep = "\t")
 fwrite(layer_attrition, file.path(stage_root, "layer_attrition.tsv"), sep = "\t")
 
-if (!file.rename(stage_root, output_root)) {
-  stop("Unable to promote rebuilt-domain decomposition.")
-}
+publish_result_files(stage_root, output_root)
 cat("gse274113_rebuilt_domain_decomposition\tPASS\t", output_root, "\n", sep = "")

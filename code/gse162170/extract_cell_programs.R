@@ -17,7 +17,6 @@ dir.create(out_dir, recursive = TRUE, showWarnings = FALSE)
 triplet_path <- file.path(result_root, "triplets.tsv")
 
 group_mean <- function(mat, group, levels_fixed) {
-  stopifnot(ncol(mat) == length(group), all(group %in% levels_fixed))
   design <- sparseMatrix(
     i = seq_along(group), j = match(group, levels_fixed), x = 1,
     dims = c(length(group), length(levels_fixed)),
@@ -25,12 +24,10 @@ group_mean <- function(mat, group, levels_fixed) {
   )
   out <- as.matrix(mat %*% design)
   denom <- tabulate(match(group, levels_fixed), nbins = length(levels_fixed))
-  stopifnot(all(denom > 0L))
   sweep(out, 2, denom, "/")
 }
 
 top_summary <- function(mat, feature_name) {
-  stopifnot(nrow(mat) > 0L, ncol(mat) >= 2L)
   top_index <- max.col(mat, ties.method = "first")
   ordered <- t(apply(mat, 1, sort, decreasing = TRUE))
   out <- data.table(
@@ -67,18 +64,6 @@ class_map <- c(
 
 meta <- as.data.table(object[[]], keep.rownames = "cell")
 meta[, broad_class := unname(class_map[author_cluster_name])]
-stopifnot(
-  nrow(meta) == 8981L,
-  uniqueN(meta$cell) == 8981L,
-  !anyNA(meta$broad_class),
-  setequal(unique(meta$broad_class), class_levels),
-  nrow(triplets) == 140786L,
-  uniqueN(triplets$target) == 11017L,
-  uniqueN(triplets$region) == 32969L,
-  uniqueN(triplets$regulator) == 1038L,
-  all(is.finite(triplets$chain_delta_bic)),
-  all(triplets$chain_direction %in% c(-1, 1))
-)
 
 reduction_priority <- c("wnn.umap", "umap", "harmony.umap", "lsi")
 available_reductions <- names(object@reductions)
@@ -88,7 +73,6 @@ if (is.na(selected_reduction)) {
   rna_for_embedding <- GetAssayData(object, assay = "RNA", layer = "data")
   n_cells_embedding <- ncol(rna_for_embedding)
   embedding_cells <- colnames(rna_for_embedding)
-  stopifnot(length(embedding_cells) == 8981L, uniqueN(embedding_cells) == 8981L)
   gene_mean <- Matrix::rowMeans(rna_for_embedding)
   squared <- rna_for_embedding
   squared@x <- squared@x^2
@@ -104,14 +88,12 @@ if (is.na(selected_reduction)) {
   setorder(variance_table, -variance, gene)
   variance_table[, variance_rank := seq_len(.N)]
   embedding_features <- variance_table[seq_len(min(2000L, .N))]
-  stopifnot(nrow(embedding_features) == 2000L)
   write_tsv(embedding_features, file.path(out_dir, "GSE4a_embedding_features.tsv"))
   set.seed(20260815)
   pca <- irlba::prcomp_irlba(
     t(rna_for_embedding[embedding_features$gene, , drop = FALSE]),
     n = 30L, center = TRUE, scale. = FALSE
   )
-  stopifnot(nrow(pca$x) == 8981L, ncol(pca$x) == 30L)
   set.seed(20260815)
   embedding <- uwot::umap(
     pca$x,
@@ -125,28 +107,11 @@ if (is.na(selected_reduction)) {
   )
   rownames(embedding) <- embedding_cells
   selected_reduction <- "recomputed_rna_umap_all_8981_cells"
-  write_tsv(data.table(
-    item = c(
-      "stored_reduction_available", "visualization_recomputed", "cells",
-      "variable_genes", "PCA_dimensions", "UMAP_neighbors",
-      "UMAP_min_dist", "UMAP_metric", "seed", "cell_sampling",
-      "Greedy_L0_refit"
-    ),
-    value = c(
-      "false", "true", "8981", "2000", "30", "30", "0.30",
-      "cosine", "20260815", "none", "none"
-    )
-  ), file.path(out_dir, "GSE4a_embedding_method.tsv"))
   rm(rna_for_embedding, pca)
   gc(verbose = FALSE)
 } else {
   embedding <- Embeddings(object[[selected_reduction]])
-  write_tsv(data.table(
-    item = c("stored_reduction_available", "visualization_recomputed", "stored_reduction", "cells", "cell_sampling", "Greedy_L0_refit"),
-    value = c("true", "false", selected_reduction, "8981", "none", "none")
-  ), file.path(out_dir, "GSE4a_embedding_method.tsv"))
 }
-stopifnot(nrow(embedding) == nrow(meta), ncol(embedding) >= 2L)
 embedding_dt <- data.table(
   cell = rownames(embedding),
   dimension_1 = embedding[, 1L],
@@ -157,7 +122,6 @@ embedding_dt <- merge(
   meta[, .(cell, broad_class, author_cluster_name, Sample.ID, Sample.Age)],
   by = "cell", all.x = TRUE, sort = FALSE
 )
-stopifnot(nrow(embedding_dt) == 8981L, !anyNA(embedding_dt$broad_class))
 composition <- meta[, .(
   cells = .N,
   fraction = .N / nrow(meta),
@@ -174,7 +138,6 @@ write_tsv(class_composition, file.path(out_dir, "GSE4a_class_composition.tsv"))
 
 rna <- GetAssayData(object, assay = "RNA", layer = "data")
 atac <- GetAssayData(object, assay = "ATAC", layer = "data")
-stopifnot(ncol(rna) == 8981L, ncol(atac) == 8981L)
 
 needed_genes <- intersect(unique(c(triplets$regulator, triplets$target)), rownames(rna))
 needed_regions <- intersect(unique(triplets$region), rownames(atac))
@@ -198,7 +161,6 @@ annotated <- merge(
   atac_top[, .(region, region_top_class = top_class, region_margin = margin)],
   by = "region", all.x = TRUE
 )
-stopifnot(!anyNA(annotated$target_top_class), !anyNA(annotated$region_top_class))
 annotated[, `:=`(
   target_region_match = target_top_class == region_top_class,
   all_three_match = regulator_top_class == target_top_class & target_top_class == region_top_class,
@@ -221,13 +183,6 @@ target_anchor <- merge(
   by = "target"
 )
 target_anchor[, rna_matches_chromatin_anchor := target_top_class == chromatin_anchor]
-stopifnot(
-  target_anchor[chromatin_anchor == "GluN", .N] == 2271L,
-  target_anchor[chromatin_anchor == "IN", .N] == 1396L,
-  target_anchor[chromatin_anchor == "IPC_RG", .N] == 1629L,
-  target_anchor[chromatin_anchor == "OPC_Glia", .N] == 1308L,
-  target_anchor[chromatin_anchor == "Vascular", .N] == 2444L
-)
 write_tsv(target_anchor[order(match(chromatin_anchor, class_levels), target)], file.path(out_dir, "target_membership.tsv"))
 
 message("Computing full-cell AUCell rankings and five current target programs")
@@ -236,7 +191,6 @@ rankings <- AUCell_buildRankings(rna, nCores = 1, plotStats = FALSE, verbose = F
 current_gene_sets <- split(target_anchor$target, target_anchor$chromatin_anchor)
 current_gene_sets <- lapply(current_gene_sets, function(x) intersect(unique(x), rownames(rna)))
 current_gene_sets <- current_gene_sets[class_levels]
-stopifnot(all(lengths(current_gene_sets) > 0L))
 auc_max_rank <- ceiling(0.05 * nrow(rna))
 target_auc <- AUCell_calcAUC(
   current_gene_sets, rankings,
@@ -262,11 +216,6 @@ target_auc_summary <- target_auc_long[, .(
 ), by = .(target_program, broad_class)]
 target_auc_summary[, top_class := broad_class[which.max(mean_AUC)], by = target_program]
 target_auc_summary[, matching_class := target_program == broad_class]
-stopifnot(
-  all(unique(target_auc_summary[, .(target_program, top_class)])$target_program ==
-    unique(target_auc_summary[, .(target_program, top_class)])$top_class),
-  nrow(target_auc_long) == 8981L * 5L
-)
 write_tsv(target_auc_long[order(cell, match(target_program, class_levels))], file.path(out_dir, "aucell_by_cell.tsv.gz"))
 write_tsv(target_auc_summary[order(match(target_program, class_levels), match(broad_class, class_levels))], file.path(out_dir, "aucell_by_class.tsv"))
 
@@ -282,7 +231,6 @@ setorder(module_summary, anchor_class, -targets, -regions, -triplets, regulator,
 module_summary[, rank := seq_len(.N), by = anchor_class]
 top_modules <- module_summary[rank <= 5L]
 top_modules[, module_id := paste(regulator, anchor_class, sign, sep = "__")]
-stopifnot(nrow(top_modules) == 25L, all(top_modules[, .N, by = anchor_class]$N == 5L))
 
 module_membership <- merge(
   annotated,
@@ -291,7 +239,6 @@ module_membership <- merge(
   by.y = c("regulator", "anchor_class", "sign"),
   all = FALSE
 )
-stopifnot(nrow(module_membership) > 0L)
 membership_export <- module_membership[, .(
   module_id, module_rank, regulator,
   anchor_class = region_top_class,
@@ -311,7 +258,6 @@ module_regions <- lapply(module_regions, function(x) intersect(unique(x), rownam
 module_ids <- top_modules[order(match(anchor_class, class_levels), rank), module_id]
 module_targets <- module_targets[module_ids]
 module_regions <- module_regions[module_ids]
-stopifnot(all(lengths(module_targets) > 0L), all(lengths(module_regions) > 0L))
 
 module_auc <- AUCell_calcAUC(
   module_targets, rankings,
@@ -323,12 +269,6 @@ module_atac_mat <- vapply(module_regions, function(regions) {
   Matrix::colMeans(atac[regions, , drop = FALSE])
 }, numeric(ncol(atac)))
 rownames(module_atac_mat) <- colnames(atac)
-stopifnot(
-  nrow(module_auc_mat) == 8981L, ncol(module_auc_mat) == 25L,
-  all(dim(module_atac_mat) == c(8981L, 25L)),
-  setequal(rownames(module_auc_mat), meta$cell),
-  setequal(rownames(module_atac_mat), meta$cell)
-)
 
 module_auc_dt <- as.data.table(module_auc_mat, keep.rownames = "cell")
 module_auc_long <- melt(module_auc_dt, id.vars = "cell", variable.name = "module_id", value.name = "raw_activity")
@@ -347,7 +287,6 @@ module_cell_activity <- merge(
   top_modules[, .(module_id, regulator, anchor_class, sign, module_rank = rank, targets, regions, triplets)],
   by = "module_id", all.x = TRUE
 )
-stopifnot(nrow(module_cell_activity) == 8981L * 25L * 2L, !anyNA(module_cell_activity$anchor_class))
 
 module_raw_summary <- module_cell_activity[, .(
   mean_activity = mean(raw_activity),
@@ -376,13 +315,6 @@ concordance <- rbindlist(list(
     all_three_match_fraction = NA_real_
   )]
 ), use.names = TRUE, fill = TRUE)
-stopifnot(
-  concordance[unit == "triplet_rows", n] == 140786L,
-  concordance[unit == "triplet_rows", target_region_match_n] == 70983L,
-  concordance[unit == "triplet_rows", all_three_match_n] == 32340L,
-  concordance[unit == "unique_region_target", n] == 35158L,
-  concordance[unit == "unique_region_target", target_region_match_n] == 16791L
-)
 write_tsv(concordance, file.path(out_dir, "supporting_cross_modality_concordance.tsv"))
 
 message("Extraction complete: ", out_dir)

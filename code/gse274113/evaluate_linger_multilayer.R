@@ -7,20 +7,14 @@ source("code/functions/table_io.R")
 suppressPackageStartupMessages(library(data.table))
 data.table::setDTthreads(1L)
 
-# ---- Parameters ----
-# Evaluates multiomic_endpoint_evidence/ across modes (binding, contact, chain).
-arguments <- list(
-  mode = "binding",
-  networks = "runs/gse274113/LINGER",
-  endpoints = "results/gse274113/networks",
-  truth = "data/gse274113/heldout_pseudobulk_full",
-  evidence = "data/gse274113/external_resources",
-  object = "data/gse274113/objects/GSE274113_control_full",
-  chain_helper = "code/gse274113/evaluate_chain_response.R",
-  output = "results/gse274113/multiomic_endpoint_evidence/TF_region_external_binding/LINGER"
-)
-# ---------------------------------------------------------------
-
+evaluate_linger_multilayer <- function(mode = "binding", networks = "runs/gse274113/LINGER",
+  endpoints = "results/gse274113/networks", truth = "data/gse274113/heldout_pseudobulk_full",
+  evidence = "data/gse274113/external_resources", object = "data/gse274113/objects/GSE274113_control_full",
+  chain_helper = "code/gse274113/evaluate_chain_response.R", output = NULL) {
+  mode <- match.arg(mode, c("binding", "contact", "chain"))
+  if (is.null(output)) output <- "results/gse274113/evidence"
+  arguments <- list(mode = mode, networks = networks, endpoints = endpoints, truth = truth,
+                    evidence = evidence, object = object, chain_helper = chain_helper, output = output)
 network_root <- normalizePath(arguments$networks, mustWork = TRUE)
 truth_root <- normalizePath(arguments$truth, mustWork = TRUE)
 endpoint_root <- normalizePath(arguments$endpoints, mustWork = FALSE)
@@ -39,10 +33,7 @@ prepare_endpoints <- function() {
     file.path(endpoint_root, "LINGER", slug, c("tf_region.tsv.gz", "region_gene.tsv.gz"))
   }))
   linger_root <- file.path(endpoint_root, "LINGER")
-  if (dir.exists(linger_root)) {
-    if (!all(file.exists(required))) stop("Incomplete prepared endpoint root: ", endpoint_root)
-    return(invisible(NULL))
-  }
+  if (all(file.exists(required))) return(invisible(NULL))
   dir.create(endpoint_root, recursive = TRUE, showWarnings = FALSE)
   stage <- paste0(linger_root, ".staging_", Sys.getpid())
   if (file.exists(stage)) stop("Staging output already exists: ", stage)
@@ -100,7 +91,14 @@ prepare_endpoints <- function() {
     gc(verbose = FALSE)
   }
   write_tsv(rbindlist(summary_rows), file.path(stage, "endpoint_summary.tsv"))
-  if (!file.rename(stage, linger_root)) stop("Unable to publish prepared endpoints.")
+  dir.create(linger_root, recursive = TRUE, showWarnings = FALSE)
+  for (relative in list.files(stage, recursive = TRUE)) {
+    destination <- file.path(linger_root, relative)
+    dir.create(dirname(destination), recursive = TRUE, showWarnings = FALSE)
+    if (!file.rename(file.path(stage, relative), destination)) {
+      stop("Unable to publish prepared endpoint: ", destination)
+    }
+  }
 }
 
 run_endpoint_evaluator_for_linger <- function(mode) {
@@ -131,9 +129,8 @@ run_chain_evaluation <- function() {
     library(IRanges)
   })
   source(normalizePath(arguments$chain_helper, mustWork = TRUE), local = TRUE)
-  if (file.exists(output_root)) stop("Output already exists: ", output_root)
   dir.create(dirname(output_root), recursive = TRUE, showWarnings = FALSE)
-  stage <- paste0(output_root, ".staging_", Sys.getpid())
+  stage <- tempfile(".result-files-", tmpdir = dirname(output_root))
   dir.create(stage, recursive = FALSE)
   metric_rows <- list()
   cursor <- 1L
@@ -196,27 +193,10 @@ run_chain_evaluation <- function() {
   if (nrow(strata) != 76L || anyDuplicated(strata[, .(method, regulator, timepoint)])) {
     stop("LINGER chain response failed the 19-TF four-timepoint gate.")
   }
-  metric_columns <- c(
-    "atac_positive_fraction", "rna_positive_fraction",
-    "joint_positive_fraction", "joint_gene_direction_accuracy",
-    "joint_atac_direction_accuracy", "mediated_direction_consistency"
-  )
-  clusters <- strata[, {
-    means <- setNames(lapply(.SD, finite_mean), metric_columns)
-    finite_counts <- setNames(
-      lapply(.SD, function(x) sum(is.finite(x))),
-      paste0(metric_columns, "_finite_timepoints")
-    )
-    c(list(
-      cluster_unit = "perturbed_TF_mean_across_timepoints",
-      native_triplets = sum(native_triplets),
-      evaluable_triplets = sum(evaluable_triplets),
-      nonempty_timepoints = sum(native_triplets > 0L)
-    ), means, finite_counts)
-  }, by = .(method, regulator), .SDcols = metric_columns]
+  clusters <- summarize_chain_responses(strata)
   write_tsv(strata, file.path(stage, "chain_response_stratum_metrics.tsv.gz"))
   write_tsv(clusters, file.path(stage, "chain_response_TF_cluster_metrics.tsv"))
-  if (!file.rename(stage, output_root)) stop("Unable to publish LINGER chain evaluation.")
+  publish_result_files(stage, output_root, prefix = "linger_")
   cat("linger_chain_evaluation\tPASS\t", output_root, "\n", sep = "")
 }
 
@@ -226,3 +206,11 @@ if (arguments$mode %chin% c("binding", "contact")) {
 } else {
   run_chain_evaluation()
 }
+
+}
+
+run_linger_binding <- function() evaluate_linger_multilayer("binding")
+run_linger_contact <- function() evaluate_linger_multilayer("contact")
+run_linger_chain <- function() evaluate_linger_multilayer("chain")
+
+if (sys.nframe() == 0L) run_linger_binding()

@@ -67,26 +67,17 @@ export_endpoints <- function(method, input, output) {
   stage_root <- paste0(output, ".staging")
   if (file.exists(stage_root)) stop("Inspect existing staging output before retrying: ", stage_root)
   dir.create(stage_root, recursive = TRUE)
-  input_files <- character()
   write_endpoint <- function(method, slug, endpoint, table, keys, score_semantics) {
     validate_standard(table, keys, paste(method, slug, endpoint))
     write_tsv(table, file.path(stage_root, slug, paste0(gsub("-", "_", tolower(endpoint)), ".tsv.gz")))
-  }
-  write_target_eligibility <- function(method, slug, targets, source_semantics) {
-    targets <- sort(unique(as.character(targets)))
-    targets <- targets[!is.na(targets) & nzchar(targets)]
-    if (!length(targets)) stop("Empty target eligibility: ", method, " ", slug)
-    write_tsv(data.table(target = targets, eligibility_source = source_semantics),
-              file.path(stage_root, slug, "tf_gene_target_eligibility.tsv.gz"))
   }
   for (slug in c("day_7", "day_9", "day_11", "day_14")) {
     dir.create(file.path(stage_root, slug))
     roots <- list(multicsn = file.path(input, slug), pando = input, scenicplus = input)
     if (method == "multiCSN") {
   multi_dir <- roots$multicsn
-  multi_paths <- file.path(multi_dir, c("tf_gene.tsv", "tf_region.tsv", "region_gene.tsv", "triplets.tsv", "tf_gene_accounting.tsv"))
+  multi_paths <- file.path(multi_dir, c("tf_gene.tsv", "tf_region.tsv", "region_gene.tsv", "triplets.tsv"))
   if (!all(file.exists(multi_paths))) stop("Missing multiCSN endpoints: ", multi_dir)
-  input_files <- c(input_files, multi_paths)
   specs <- list(tf_gene = c("regulator", "target"), tf_region = c("regulator", "region"),
                 region_gene = c("region", "target"), triplet = c("regulator", "region", "target"))
   for (i in seq_along(specs)) {
@@ -98,20 +89,13 @@ export_endpoints <- function(method, input, output) {
            score_available = TRUE)), .SDcols = keys]
     write_endpoint("multiCSN", slug, names(specs)[[i]], standardized, keys, "within-timepoint ordinal weight")
   }
-  accounting <- read_fit_checkpoint(multi_paths[[5]])
-  require_columns(accounting, "target", "multiCSN target accounting")
-  write_target_eligibility("multiCSN", slug, accounting$target,
-    "all annotated release targets accounted by the complete Greedy-L0 run")
-
     } else if (method == "Pando") {
   pando_dir <- file.path(roots$pando, slug)
   pando_paths <- file.path(pando_dir, c(
     "native_module_metadata.tsv", "retained_native_triplets.tsv.gz",
-    "retained_tf_region_binary.tsv.gz", "retained_region_gene_binary.tsv.gz",
-    "native_variable_features.tsv"
+    "retained_tf_region_binary.tsv.gz", "retained_region_gene_binary.tsv.gz"
   ))
   if (!all(file.exists(pando_paths))) stop("Missing Pando endpoints at ", slug)
-  input_files <- c(input_files, pando_paths)
   pando_tg_raw <- read_fit_checkpoint(pando_paths[[1]])
   require_columns(pando_tg_raw, c("tf", "target", "estimate", "padj"),
                   "Pando TF-gene")
@@ -154,22 +138,12 @@ export_endpoints <- function(method, input, output) {
   write_endpoint("Pando", slug, "triplet", pando_triplet,
                  c("regulator", "region", "target"),
                  "interaction-term adjusted-p-value ranking")
-  pando_eligibility <- read_fit_checkpoint(pando_paths[[5]])
-  require_columns(pando_eligibility, "gene", "Pando target eligibility")
-  write_target_eligibility(
-    "Pando", slug, pando_eligibility$gene,
-    "Pando per-timepoint variable-feature selection"
-  )
-
-
     } else {
   scenic_dir <- file.path(roots$scenicplus, slug)
   scenic_path <- file.path(scenic_dir, "eRegulon_direct.tsv")
-  scenic_tf_gene_path <- file.path(scenic_dir, "tf_to_gene_adj.tsv")
-  if (!all(file.exists(c(scenic_path, scenic_tf_gene_path)))) {
-    stop("Missing SCENIC+ direct eRegulons or TF-gene eligibility at ", slug)
+  if (!file.exists(scenic_path)) {
+    stop("Missing SCENIC+ direct eRegulons at ", slug)
   }
-  input_files <- c(input_files, scenic_path, scenic_tf_gene_path)
   scenic <- read_fit_checkpoint(scenic_path)
   scenic_required <- c(
     "TF", "Region", "Gene", "importance_R2G", "rho_R2G",
@@ -218,26 +192,8 @@ export_endpoints <- function(method, input, output) {
                  c("region", "target"), "region-to-gene importance")
   write_endpoint("SCENICplus", slug, "triplet", scenic_triplet,
                  c("regulator", "region", "target"), "triplet_rank")
-  scenic_eligibility <- read_fit_checkpoint(scenic_tf_gene_path)
-  scenic_target_column <- intersect(c("target", "Gene", "gene"),
-                                    names(scenic_eligibility))
-  if (length(scenic_target_column) != 1L) {
-    stop("SCENIC+ TF-gene target column is ambiguous at ", slug)
-  }
-  write_target_eligibility(
-    "SCENICplus", slug, scenic_eligibility[[scenic_target_column]],
-    "targets in the SCENIC+ TF-to-gene adjacency fit"
-  )
     }
   }
-  input_files <- unique(normalizePath(c(input_files, "code/gse274113/export_endpoints.R",
-    "code/functions/network_io.R", "code/functions/table_io.R"), mustWork = TRUE))
-  outputs <- list.files(stage_root, recursive = TRUE, full.names = TRUE)
-  saveRDS(list(method = method,
-    inputs = data.table(file = input_files, sha256 = unname(sha256_files(input_files))),
-    outputs = data.table(file = substring(outputs, nchar(stage_root) + 2L),
-                         sha256 = unname(sha256_files(outputs))),
-    session = sessionInfo()), file.path(stage_root, "export_provenance.rds"))
   if (!file.rename(stage_root, output)) stop("Unable to promote canonical endpoints.")
   cat("PASS canonical endpoint export:", method, output, "\n")
 }
