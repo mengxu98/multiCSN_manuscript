@@ -22,12 +22,7 @@ from pycisTopic.utils import region_names_to_coordinates
 
 
 TOPICS = [2, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50]
-TIMEPOINTS = {
-    "day 7": 3304,
-    "day 9": 4167,
-    "day 11": 1903,
-    "day 14": 2073,
-}
+TIMEPOINTS = ("day 7", "day 9", "day 11", "day 14")
 
 
 def safe_name(value: str) -> str:
@@ -70,6 +65,7 @@ def main() -> None:
     repo_root = script.parents[2]
     object_root = OBJECT_ROOT
     input_root = object_root / "input"
+    metadata_path = repo_root / "data/gse274113/objects/GSE274113_control_full/GSE274113_all_NT_controls_metadata.tsv.gz"
     auxiliary = repo_root / "data/gse274113/external_resources/SCENICplus_auxiliary"
     mallet_path = auxiliary / "Mallet-202108/bin/mallet"
     parent = object_root
@@ -80,16 +76,22 @@ def main() -> None:
         / f"GSE274113_NT_{timepoint.replace(' ', '_')}_cistopic.pkl"
         for timepoint in TIMEPOINTS
     }
-    required = [mallet_path, *input_paths.values()]
+    required = [mallet_path, metadata_path, *input_paths.values()]
     missing = [str(path) for path in required if not path.exists()]
     if missing:
         raise SystemExit("Missing formal pycisTopic inputs:\n" + "\n".join(missing))
     if destination.exists():
         raise SystemExit(f"Formal pycisTopic result already exists: {destination}")
+    metadata = pd.read_csv(metadata_path, sep="\t", low_memory=False)
+    columns = ["cell_id", "Timepoint", "target"]
+    if metadata[columns].isna().any().any() or metadata["cell_id"].duplicated().any():
+        raise RuntimeError("Missing or duplicate control-cell IDs.")
+    if set(metadata["Timepoint"]) != set(TIMEPOINTS) or set(metadata["target"]) != {"NT"}:
+        raise RuntimeError("Control metadata violates the timepoint design.")
 
     work.mkdir(parents=True, exist_ok=True)
     summary_rows: list[dict[str, object]] = []
-    for index, (timepoint, expected_cells) in enumerate(TIMEPOINTS.items()):
+    for index, timepoint in enumerate(TIMEPOINTS):
         timepoint_started = time.monotonic()
         slug = timepoint.replace(" ", "_")
         time_work = work / slug
@@ -101,8 +103,9 @@ def main() -> None:
         input_path = input_paths[timepoint]
         with input_path.open("rb") as handle:
             cistopic = pickle.load(handle)
-        if len(cistopic.cell_names) != expected_cells or set(cistopic.cell_data["Timepoint"]) != {timepoint}:
-            raise RuntimeError(f"Formal pycisTopic input violates {timepoint} cell semantics.")
+        expected_cells = set(metadata.loc[metadata["Timepoint"] == timepoint, "cell_id"])
+        if len(cistopic.cell_names) != len(expected_cells) or set(cistopic.cell_names) != expected_cells or set(cistopic.cell_data["Timepoint"]) != {timepoint}:
+            raise RuntimeError(f"Invalid pycisTopic input for {timepoint}.")
 
         models = []
         for n_topics in TOPICS:
@@ -195,12 +198,11 @@ def main() -> None:
         del cistopic, models, selected, topics_otsu, topics_top3k
 
     summary = pd.DataFrame(summary_rows)
-    if list(summary["timepoint"]) != list(TIMEPOINTS) or int(summary["training_cells"].sum()) != 11447:
-        raise RuntimeError("Independent pycisTopic suite failed full-cell accounting.")
+    if list(summary["timepoint"]) != list(TIMEPOINTS) or int(summary["training_cells"].sum()) != len(metadata):
+        raise RuntimeError("pycisTopic cell totals do not match.")
     summary.to_csv(work / "timepoint_model_summary.tsv", sep="\t", index=False)
 
     os.replace(work, destination)
-    print(f"destination\t{destination}")
     print(summary.to_string(index=False))
 
 

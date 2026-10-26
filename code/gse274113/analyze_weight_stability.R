@@ -23,12 +23,18 @@ dir.create(stage_root, recursive = FALSE)
 timepoint_lookup <- c(
   day_7 = "day 7", day_9 = "day 9", day_11 = "day 11", day_14 = "day 14"
 )
-expected_folds <- c(day_7 = 4L, day_9 = 4L, day_11 = 3L, day_14 = 3L)
 top_k_requested <- c(100L, 1000L, 10000L, 50000L, 100000L)
 top_rows <- list()
 decile_rows <- list()
 edge_rows <- list()
 for (slug in names(timepoint_lookup)) {
+  fold_summary <- fread(file.path(support_root, paste0(slug, "_fold_summary.tsv")))
+  if (!all(c("timepoint", "heldout_replicate", "training_replicates") %in% names(fold_summary)) ||
+      nrow(fold_summary) < 2L || anyNA(fold_summary$training_replicates) ||
+      any(fold_summary$training_replicates != nrow(fold_summary) - 1L) || anyNA(fold_summary$heldout_replicate) ||
+      anyDuplicated(fold_summary$heldout_replicate) ||
+      any(fold_summary$timepoint != timepoint_lookup[[slug]])) stop("Invalid fold metadata: ", slug)
+  total_fold_count <- nrow(fold_summary)
   full_path <- file.path(full_root, "full", slug, "tf_gene.tsv")
   support_path <- file.path(
     support_root, paste0(slug, "_edge_fold_support.tsv.gz")
@@ -51,10 +57,10 @@ for (slug in names(timepoint_lookup)) {
   edge <- merge(full, support, by = c("regulator", "target"), all.x = TRUE)
   if (nrow(edge) != nrow(full)) stop("Full network join changed row count.")
   edge[is.na(selected_folds), `:=`(
-    selected_folds = 0L, total_folds = expected_folds[[slug]],
+    selected_folds = 0L, total_folds = total_fold_count,
     positive_folds = 0L, negative_folds = 0L
   )]
-  if (any(edge$total_folds != expected_folds[[slug]]) ||
+  if (any(edge$total_folds != total_fold_count) ||
     any(edge$selected_folds < 0L | edge$selected_folds > edge$total_folds)) {
     stop("Fold-support contract failed: ", slug)
   }
@@ -76,13 +82,13 @@ for (slug in names(timepoint_lookup)) {
     x <- edge[seq_len(k)]
     data.frame(
       dataset = "GSE274113", timepoint = timepoint_lookup[[slug]],
-      top_k = k, full_edges = nrow(edge), folds = expected_folds[[slug]],
+      top_k = k, full_edges = nrow(edge), folds = total_fold_count,
       mean_selection_fraction = mean(x$selection_fraction),
       median_selection_fraction = median(x$selection_fraction),
       selected_in_any_fold_fraction = mean(x$selected_folds >= 1L),
       selected_in_at_least_two_folds_fraction = mean(x$selected_folds >= 2L),
       selected_in_all_folds_fraction = mean(
-        x$selected_folds == expected_folds[[slug]]
+        x$selected_folds == total_fold_count
       ),
       sign_consistency_with_full_among_reselected = mean(
         x$sign_consistent_with_full,
@@ -125,4 +131,3 @@ fwrite(top, file.path(stage_root, "top_rank_stability.tsv"), sep = "\t")
 fwrite(deciles, file.path(stage_root, "rank_decile_stability.tsv"), sep = "\t")
 fwrite(edges, file.path(stage_root, "full_edge_fold_support.tsv.gz"), sep = "\t")
 publish_result_files(stage_root, final_root)
-cat("gse274113_weight_stability_calibration\tPASS\t", final_root, "\n", sep = "")

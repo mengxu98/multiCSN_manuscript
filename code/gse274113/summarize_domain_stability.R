@@ -26,9 +26,6 @@ input_paths <- c(
   rank_decile = file.path(input_root, "rank_decile_decomposition.tsv"),
   layer_attrition = file.path(input_root, "layer_attrition.tsv")
 )
-if (any(!file.exists(input_paths))) {
-  stop("Missing inputs: ", paste(input_paths[!file.exists(input_paths)], collapse = ", "))
-}
 
 folds <- fread(input_paths[["folds"]])
 pairwise <- fread(input_paths[["pairwise"]])
@@ -37,35 +34,30 @@ rank_decile <- fread(input_paths[["rank_decile"]])
 layer_attrition <- fread(input_paths[["layer_attrition"]])
 
 timepoint_order <- c("day 7", "day 9", "day 11", "day 14")
-expected_folds <- c("day 7" = 4L, "day 9" = 4L, "day 11" = 3L, "day 14" = 3L)
-observed_folds <- folds[, .N, by = timepoint]
-if (nrow(folds) != 14L || anyDuplicated(folds[, .(timepoint, heldout_replicate)]) ||
-  !identical(
-    setNames(observed_folds$N, observed_folds$timepoint)[timepoint_order],
-    expected_folds
-  )) {
-  stop("The 14-fold biological-replicate contract failed.")
+observed_folds <- folds[, .(N = .N,
+  complete_replicate_count = unique(training_replicates + 1L)), by = timepoint]
+if (anyNA(folds[, .(timepoint, heldout_replicate, training_replicates)]) ||
+  anyDuplicated(folds[, .(timepoint, heldout_replicate)]) ||
+  !setequal(observed_folds$timepoint, timepoint_order) || any(observed_folds$N < 2L) ||
+  anyDuplicated(observed_folds$timepoint) ||
+  any(observed_folds$N != observed_folds$complete_replicate_count)) {
+  stop("Invalid replicate metadata.")
 }
-expected_pairs <- c(
-  "day 7" = 6L, "day 9" = 6L, "day 11" = 3L,
-  "day 14" = 3L
-)
+expected_pairs <- setNames(choose(observed_folds$N, 2L), observed_folds$timepoint)[timepoint_order]
 observed_pairs <- pairwise[, .N, by = timepoint]
 pairwise_metrics <- c(
   "edge_jaccard", "shared_edge_sign_agreement",
   "shared_edge_weight_spearman"
 )
-if (nrow(pairwise) != 18L ||
+if (nrow(pairwise) != sum(expected_pairs) ||
   anyDuplicated(pairwise[, .(timepoint, fold_left, fold_right)]) ||
-  !identical(
-    setNames(observed_pairs$N, observed_pairs$timepoint)[timepoint_order],
-    expected_pairs
-  ) ||
+  !setequal(observed_pairs$timepoint, timepoint_order) ||
+  any(setNames(observed_pairs$N, observed_pairs$timepoint)[timepoint_order] != expected_pairs) ||
   !all(pairwise_metrics %in% names(pairwise)) ||
   any(!vapply(pairwise[, ..pairwise_metrics], function(x) {
     all(is.finite(x)) && all(x >= 0 & x <= 1)
   }, logical(1)))) {
-  stop("The 18-pair deletion-fold contract failed.")
+  stop("The deletion-fold pair design failed.")
 }
 
 required_fraction_columns <- c(
@@ -168,7 +160,7 @@ top_limit <- min(100L, min(top_limits$maximum_available))
 top100 <- top_rank[
   stratum == "top_k" & as.integer(stratum_value) == top_limit
 ]
-if (nrow(top100) != 4L || !setequal(top100$timepoint, timepoint_order)) {
+if (nrow(top100) != length(timepoint_order) || !setequal(top100$timepoint, timepoint_order)) {
   stop("Missing common top-rank decomposition.")
 }
 top100[, timepoint_index := match(timepoint, timepoint_order)]
@@ -190,7 +182,7 @@ decile_trends <- rank_decile[, .(
     method = "spearman", use = "complete.obs"
   ))
 ), by = timepoint]
-if (nrow(decile_trends) != 4L) {
+if (nrow(decile_trends) != length(timepoint_order)) {
   stop("Rank-decile stability trends are incomplete.")
 }
 timepoint_summary <- merge(timepoint_summary, decile_trends,
@@ -213,4 +205,3 @@ fwrite(pairwise_summary, file.path(stage_root, "pairwise_stability_summary.tsv")
 fwrite(top100, file.path(stage_root, "top100_decomposition.tsv"), sep = "\t")
 
 publish_result_files(stage_root, output_root)
-cat("gse274113_rebuilt_domain_manuscript_summary\tPASS\t", output_root, "\n", sep = "")

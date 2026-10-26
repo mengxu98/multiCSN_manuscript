@@ -25,7 +25,6 @@ dir.create(stage_root, recursive = FALSE)
 timepoint_lookup <- c(
   day_7 = "day 7", day_9 = "day 9", day_11 = "day 11", day_14 = "day 14"
 )
-expected_folds <- c(day_7 = 4L, day_9 = 4L, day_11 = 3L, day_14 = 3L)
 required_state_columns <- c(
   "rna_detection_eligible", "rna_model_eligible",
   "multiomic_candidate_present", "fit_eligible", "selected_in_fold"
@@ -37,9 +36,11 @@ for (slug in names(timepoint_lookup)) {
   timepoint <- unname(timepoint_lookup[[slug]])
   summary_path <- file.path(timepoint_root, paste0(slug, "_fold_summary.tsv"))
   summary <- fread(summary_path)
-  if (nrow(summary) != expected_folds[[slug]] ||
-    anyDuplicated(summary$heldout_replicate)) {
-    stop("Unexpected fold contract at ", slug)
+  if (!all(c("timepoint", "heldout_replicate", "training_replicates") %in% names(summary)) ||
+    nrow(summary) < 2L || anyNA(summary$training_replicates) ||
+      any(summary$training_replicates != nrow(summary) - 1L) || anyNA(summary$heldout_replicate) ||
+    any(summary$timepoint != timepoint) || anyDuplicated(summary$heldout_replicate)) {
+    stop("Invalid fold metadata: ", slug)
   }
   fold_rows[[slug]] <- summary
 
@@ -92,10 +93,10 @@ for (slug in names(timepoint_lookup)) {
 
 folds <- rbindlist(fold_rows)
 edges <- rbindlist(edge_rows)
-if (nrow(folds) != 14L || any(edges$selected_folds > edges$fit_eligible_folds) ||
+if (any(edges$selected_folds > edges$fit_eligible_folds) ||
   any(edges$fit_eligible_folds > edges$candidate_and_rna_model_folds) ||
   any(edges$candidate_and_rna_model_folds > edges$rna_model_eligible_folds)) {
-  stop("Aggregated decomposition contract failed.")
+  stop("Invalid fold decomposition.")
 }
 edges[, `:=`(
   rna_model_eligibility_fraction = rna_model_eligible_folds / folds,
@@ -192,4 +193,3 @@ fwrite(rank_decile, file.path(
 fwrite(layer_attrition, file.path(stage_root, "layer_attrition.tsv"), sep = "\t")
 
 publish_result_files(stage_root, output_root)
-cat("gse274113_rebuilt_domain_decomposition\tPASS\t", output_root, "\n", sep = "")

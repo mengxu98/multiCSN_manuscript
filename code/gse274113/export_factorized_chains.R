@@ -6,12 +6,6 @@ export_factorized_chains <- function(
 ) {
   timepoints <- c("day 7", "day 9", "day 11", "day 14")
   slugs <- gsub(" ", "_", timepoints, fixed = TRUE)
-  required <- unlist(lapply(slugs, function(slug) {
-    file.path(input, slug, c("tf_gene.tsv", "tf_region.tsv", "region_gene.tsv"))
-  }))
-  if (any(!file.exists(required))) {
-    stop("Missing fitted endpoints: ", paste(required[!file.exists(required)], collapse = ", "))
-  }
   if (file.exists(output)) stop("Output already exists: ", output)
   dir.create(dirname(output), recursive = TRUE, showWarnings = FALSE)
   stage <- tempfile(".factorized_chains_", tmpdir = dirname(output))

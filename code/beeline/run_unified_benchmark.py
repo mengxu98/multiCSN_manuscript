@@ -25,8 +25,8 @@ def case_paths(limit):
     # prefix case names such as case-1 versus case-1-10).
     paths = sorted((p for group in ("Curated", "Synthetic")
                     for p in (REPO / "data/beeline" / group).rglob("ExpressionData.csv")), key=str)
-    if len(paths) != 500:
-        raise ValueError(f"Expected 500 inputs, got {len(paths)}")
+    if not paths or len({path.parent.name for path in paths}) != len(paths):
+        raise ValueError("Benchmark inputs must contain distinct nonempty cases")
     return paths[:limit] if limit else paths
 
 
@@ -96,7 +96,7 @@ def validate(output, methods, limit):
         table = pd.read_csv(output / "work" / f"{method}.tsv", sep="\t")
         actual = set(zip(table.Case, table.DatasetGroup, table.DatasetType))
         if len(table) != len(expected) or actual != expected or set(table.Method) != {method}:
-            raise ValueError(f"Incomplete case contract: {method}")
+            raise ValueError(f"Incomplete benchmark cases: {method}")
         if not np.isfinite(table.RuntimeSeconds).all() or (table.RuntimeSeconds <= 0).any():
             raise ValueError(f"Invalid timings: {method}")
         if not table.Status.eq("complete").all():
@@ -141,7 +141,7 @@ SETTINGS = dict(output=REPO / "runs/beeline/unified_formal", limit=0)
 def main():
     use_python("beeline")
     args = SimpleNamespace(**SETTINGS, rscript=rscript_executable("beeline"),
-                           grnboost2_python=str(PYTHON_LOCATIONS["grnboost2"][0]))
+                           grnboost2_python=str(PYTHON_LOCATIONS["grnboost2"]))
     if args.limit < 0:
         raise ValueError("limit must be nonnegative")
     output = args.output.resolve()

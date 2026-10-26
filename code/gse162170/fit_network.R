@@ -85,16 +85,8 @@ fit_network <- function(arguments = list(
   dataset = "GSE162170",
   input = "data/gse162170/gse162170_candidates.rds",
   output = "results/gse162170/network",
-  expected_cells = 8981L,
   response_chunk = 1024L
 )) {
-if (!"fit_layered_network" %in% getNamespaceExports("multiCSN")) {
-  stop(
-    "The installed multiCSN does not export fit_layered_network(). ",
-    "Install the required packages using code/requirements/install_environments.sh."
-  )
-}
-
 input_path <- normalizePath(arguments$input, mustWork = TRUE)
 output_root <- normalizePath(arguments$output, mustWork = FALSE)
 if (file.exists(output_root)) stop("Output exists and will not be overwritten: ", output_root)
@@ -107,9 +99,9 @@ cells <- multiCSN::get_attribute(object, celltypes = "aggregate", attribute = "c
 targets_requested <- multiCSN::get_attribute(object, celltypes = "aggregate", attribute = "genes")
 peaks_requested <- multiCSN::get_attribute(object, celltypes = "aggregate", attribute = "peaks")
 regulators_requested <- multiCSN::get_attribute(object, attribute = "tfs")
-if (length(cells) != arguments$expected_cells || anyDuplicated(cells) ||
+if (!length(cells) || anyDuplicated(cells) || !setequal(cells, colnames(object)) ||
   !length(targets_requested) || !length(peaks_requested) || !length(regulators_requested)) {
-  stop("Complete candidate catalogue validation failed.")
+  stop("Invalid candidate catalogue.")
 }
 # The layered multi-omic fit itself lives in the multiCSN package; this script
 # only validates the catalogue, materialises the publication contract and
@@ -130,7 +122,7 @@ fit <- multiCSN::fit_layered_network(
   verbose = TRUE
 )
 
-write_layered_network(fit, stage_root)
+multiCSN::write_network_endpoints(fit, stage_root, overwrite = TRUE)
 # Count domains before the accessibility gate using the same annotation and
 # gene-body extension as the fit. Accounting supplies all subsequent gates.
 params <- multiCSN::Params(object)
@@ -150,7 +142,6 @@ part_dirs <- list.dirs(stage_root, recursive = FALSE, full.names = TRUE)
 part_dirs <- part_dirs[grepl("_parts$", part_dirs)]
 if (length(part_dirs)) unlink(part_dirs, recursive = TRUE, force = TRUE)
 if (!file.rename(stage_root, output_root)) stop("Unable to promote complete network result.")
-cat("network_fit_complete\tPASS\t", output_root, "\n", sep = "")
 
 }
 

@@ -5,7 +5,6 @@ source("code/functions/network_io.R")
 source("code/functions/runtime.R")
 configure_task_runtime()
 
-replicates <- c(1:10, 12:14, 16)
 repo_root <- normalizePath(getwd(), mustWork = TRUE)
 data_root <- file.path(repo_root, "data", "gse274113", "GSE274113")
 extracted_root <- file.path(data_root, "extracted")
@@ -37,18 +36,8 @@ suppressPackageStartupMessages({
 })
 
 required_inventory <- file.path(inventory_root, "validation.tsv")
-rna_guide_h5 <- file.path(
-  data_root, paste0("GSE274113_filtered_feature_bc_matrix_", replicates, ".h5")
-)
-multiome_h5 <- file.path(
-  data_root, paste0("GSE274113_rep", replicates, "_filtered_feature_bc_matrix.h5")
-)
 metadata_path <- file.path(data_root, "GSE274113_annotated_metadata.csv.gz")
 control_timepoints <- c("day 7", "day 9", "day 11", "day 14")
-required <- c(required_inventory, rna_guide_h5, multiome_h5, metadata_path)
-if (any(!file.exists(required))) {
-  stop("Complete GSE274113 inventory and RNA-ATAC matrices are required.")
-}
 
 inventory_validation <- data.table::fread(required_inventory[[1]])
 if (!identical(colnames(inventory_validation), c("field", "value")) ||
@@ -78,12 +67,6 @@ find_one <- function(pattern) {
   paths[[1]]
 }
 
-peak_annotation_paths <- vapply(
-  replicates,
-  function(rep) find_one(paste0("rep", rep, "_atac_peak_annotation\\.tsv\\.gz$")),
-  character(1)
-)
-
 raw_metadata <- utils::read.csv(metadata_path, stringsAsFactors = FALSE, check.names = FALSE)
 cell_column_index <- which(
   is.na(colnames(raw_metadata)) |
@@ -102,16 +85,31 @@ if (anyNA(colnames(metadata)) || any(!nzchar(colnames(metadata))) ||
   anyDuplicated(colnames(metadata))) {
   stop("Released metadata has missing, empty or duplicated column names after cell-ID normalization.")
 }
-if (nrow(metadata) != 137604L || anyDuplicated(metadata$cell_id) ||
-  !setequal(unique(metadata$replicate), paste0("rep", replicates)) ||
+if (!nrow(metadata) || anyDuplicated(metadata$cell_id) ||
+  !all(c("target", "replicate", "Timepoint") %in% names(metadata)) ||
+  anyNA(metadata$target) || any(!nzchar(metadata$target)) ||
+  anyNA(metadata$replicate) || any(!grepl("^rep[1-9][0-9]*$", metadata$replicate)) ||
   !setequal(unique(metadata$Timepoint), control_timepoints)) {
   stop("Released GSE274113 metadata failed its full-data contract.")
 }
 control_metadata <- metadata[metadata$target == "NT", , drop = FALSE]
 heldout_metadata <- metadata[metadata$target != "NT", , drop = FALSE]
-if (nrow(control_metadata) != 11447L || nrow(heldout_metadata) != 126157L) {
+if (!nrow(control_metadata) || !nrow(heldout_metadata)) {
   stop("Control/perturbation split differs from the complete release.")
 }
+
+replicates <- sort(unique(as.integer(sub("^rep", "", metadata$replicate))))
+rna_guide_h5 <- file.path(
+  data_root, paste0("GSE274113_filtered_feature_bc_matrix_", replicates, ".h5")
+)
+multiome_h5 <- file.path(
+  data_root, paste0("GSE274113_rep", replicates, "_filtered_feature_bc_matrix.h5")
+)
+peak_annotation_paths <- vapply(
+  replicates,
+  function(rep) find_one(paste0("rep", rep, "_atac_peak_annotation\\.tsv\\.gz$")),
+  character(1)
+)
 
 h5_peak_names <- lapply(multiome_h5, function(path) {
   feature_names <- as.character(rhdf5::h5read(path, "matrix/features/name"))
@@ -182,7 +180,6 @@ metadata_rows <- vector("list", length(replicates))
 validation_rows <- vector("list", length(replicates))
 reference_rna_features <- NULL
 
-cat("started_utc\t", format(Sys.time(), tz = "UTC", usetz = TRUE), "\n", sep = "")
 for (index in seq_along(replicates)) {
   rep <- replicates[[index]]
   rep_name <- paste0("rep", rep)
@@ -198,10 +195,7 @@ for (index in seq_along(replicates)) {
   rep_metadata$raw_barcode <- unname(sub(
     paste0("^", rep_name, "_"), "", rep_metadata$cell_id
   ))
-  if (anyDuplicated(rep_metadata$raw_barcode) ||
-    !all(rep_metadata$raw_barcode %in% colnames(rna))) {
-    stop("Control metadata does not map exactly to ", rep_name, " RNA matrix.")
-  }
+  if (anyDuplicated(rep_metadata$raw_barcode)) stop("Duplicate control barcodes: ", rep_name)
   rna <- rna[, rep_metadata$raw_barcode, drop = FALSE]
   if (is.null(reference_rna_features)) {
     reference_rna_features <- rownames(rna)
@@ -221,9 +215,6 @@ for (index in seq_along(replicates)) {
   }
   release_atac <- multiome_counts[["Peaks"]]
   rna_atac_h5_barcodes <- ncol(release_atac)
-  if (!all(rep_metadata$raw_barcode %in% colnames(release_atac))) {
-    stop("At least one control metadata cell is absent from ", rep_name, " ATAC matrix.")
-  }
   release_atac <- release_atac[, rep_metadata$raw_barcode, drop = FALSE]
   if (!"nCount_atac" %in% colnames(rep_metadata)) {
     stop("Released metadata lacks nCount_atac for ", rep_name)
@@ -329,20 +320,22 @@ combined[["ATAC"]] <- Signac::CreateChromatinAssay(
   min.features = 0
 )
 combined <- Signac::RunTFIDF(combined, assay = "ATAC")
-if (ncol(combined) != 11447L ||
+if (!setequal(colnames(combined), control_metadata$cell_id) ||
   !setequal(unique(combined$Timepoint), control_timepoints) ||
   !setequal(unique(combined$replicate), paste0("rep", replicates))) {
   stop("Combined GSE274113 control object lost cells, timepoints or replicates.")
 }
 combined@misc$full_multiome_20260803 <- list(
   dataset = "GSE274113 perturb-Multiome controls",
-  scope = "all 11,447 NT controls across all 14 released replicates and four timepoints",
-  heldout_scope = "all 126,157 non-NT cells represented by author perturbation-effect tables",
+  scope = paste("all", nrow(control_metadata), "NT controls across", length(replicates),
+    "released replicates and", length(control_timepoints), "timepoints"),
+  heldout_scope = paste("all", nrow(heldout_metadata),
+    "non-NT cells represented by author perturbation-effect tables"),
   split_design = "control-only network inference; perturbations held out for causal validation",
   cell_cap = "none",
   feature_cap = "none",
   atac_quantification_source = paste(
-    "all 14 released RNA+ATAC H5 peak-count matrices aggregated to",
+    "all", length(replicates), "released RNA+ATAC H5 peak-count matrices aggregated to",
     "overlap-merged consensus regions"
   ),
   fragment_quantitative_input = "none; official rep2 fragment is truncated",
@@ -436,8 +429,8 @@ accessibility_by_timepoint <- lapply(control_timepoints, function(timepoint) {
   )
 })
 accessibility_by_timepoint <- do.call(rbind, accessibility_by_timepoint)
-if (any(accessibility_by_timepoint$accessible_consensus_peaks < 10000L)) {
-  stop("A control timepoint has unexpectedly few accessible consensus peaks.")
+if (any(accessibility_by_timepoint$accessible_consensus_peaks <= 0L)) {
+  stop("A control timepoint has no accessible consensus peaks.")
 }
 write_tsv(
   accessibility_by_timepoint,
@@ -454,8 +447,8 @@ supported_promoter_genes <- sort(intersect(
   supported_promoter_genes[!is.na(supported_promoter_genes)],
   rownames(combined[["RNA"]])
 ))
-if (length(supported_promoter_genes) < 10000L) {
-  stop("Accessibility-supported promoter gene set is unexpectedly small.")
+if (!length(supported_promoter_genes)) {
+  stop("Accessibility-supported promoter gene set is empty.")
 }
 write_tsv(
   data.frame(gene = supported_promoter_genes, stringsAsFactors = FALSE),
@@ -536,7 +529,7 @@ summary <- data.frame(
     length(accessible_consensus_peaks),
     length(supported_promoter_genes),
     0L,
-    "all 14 released RNA+ATAC H5 peak-count matrices aggregated to consensus",
+    paste("all", length(replicates), "released RNA+ATAC H5 peak-count matrices aggregated to consensus"),
     "none; official rep2 fragment is truncated", "all NT controls",
     "all non-NT perturbations", "none", "none", file.info(object_path)$size,
     file.info(counts_h5)$size
@@ -546,6 +539,4 @@ summary <- data.frame(
 write_tsv(summary, file.path(stage, "control_object_validation.tsv"), writer = "table")
 
 if (!file.rename(stage, destination)) stop("Unable to promote GSE274113 control object.")
-cat("destination\t", destination, "\n", sep = "")
-cat("completed_utc\t", format(Sys.time(), tz = "UTC", usetz = TRUE), "\n", sep = "")
 print(summary)

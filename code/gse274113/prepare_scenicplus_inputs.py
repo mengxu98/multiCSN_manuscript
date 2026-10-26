@@ -24,12 +24,7 @@ import scanpy as sc
 from pycisTopic.cistopic_class import create_cistopic_object
 
 
-TIMEPOINTS = {
-    "day 7": 3304,
-    "day 9": 4167,
-    "day 11": 1903,
-    "day 14": 2073,
-}
+TIMEPOINTS = ("day 7", "day 9", "day 11", "day 14")
 
 
 def canonicalize_region_names(region_names: list[str]) -> list[str]:
@@ -65,14 +60,13 @@ def main() -> None:
     object_root = repo_root / "data/gse274113/objects/GSE274113_control_full"
     counts_path = object_root / "GSE274113_all_NT_controls_counts.h5"
     metadata_path = object_root / "GSE274113_all_NT_controls_metadata.tsv.gz"
-    validation_path = object_root / "control_object_validation.tsv"
     blacklist_path = (
         repo_root
         / "data/gse274113/external_resources/SCENICplus_auxiliary/hg38-blacklist.v2.bed"
     )
     parent = OBJECT_ROOT
     destination = parent / "input"
-    required = [counts_path, metadata_path, validation_path, blacklist_path]
+    required = [counts_path, metadata_path, blacklist_path]
     missing = [str(path) for path in required if not path.is_file()]
     if missing:
         raise SystemExit("Missing formal SCENIC+ inputs:\n" + "\n".join(missing))
@@ -86,18 +80,9 @@ def main() -> None:
             rna, genes, rna_cells = read_sparse_group(handle, "rna")
             atac, regions, atac_cells = read_sparse_group(handle, "atac")
 
-        source_validation = pd.read_csv(validation_path, sep="\t", dtype=str)
-        if set(source_validation.columns) != {"field", "value"}:
-            raise RuntimeError("Control-object validation schema is invalid.")
-        source_validation = source_validation.set_index("field")["value"]
-        expected_rna_features = int(source_validation["rna_release_features"])
-        expected_atac_features = int(source_validation["atac_consensus_features"])
-        expected_cells = int(source_validation["network_training_control_cells"])
-        if rna.shape != (expected_rna_features, expected_cells) or atac.shape != (
-            expected_atac_features, expected_cells
-        ):
+        if rna.shape != (len(genes), len(rna_cells)) or atac.shape != (len(regions), len(atac_cells)):
             raise RuntimeError(f"Unexpected full matrices: RNA={rna.shape}, ATAC={atac.shape}")
-        if rna_cells != atac_cells or len(set(rna_cells)) != expected_cells:
+        if not rna_cells or rna_cells != atac_cells or len(set(rna_cells)) != len(rna_cells):
             raise RuntimeError("RNA and ATAC cell identities are not an exact one-to-one match.")
         if len(set(genes)) != len(genes) or len(set(regions)) != len(regions):
             raise RuntimeError("SCENIC+ input feature identifiers are not unique.")
@@ -106,27 +91,28 @@ def main() -> None:
         regions = canonicalize_region_names(regions)
 
         metadata = pd.read_csv(metadata_path, sep="\t", low_memory=False)
-        if "cell_id" not in metadata or metadata["cell_id"].duplicated().any():
+        required_metadata = {"cell_id", "Timepoint", "replicate", "target"}
+        if metadata["cell_id"].duplicated().any():
             raise RuntimeError("Exported control metadata lacks unique cell identifiers.")
+        if metadata[list(required_metadata)].isna().any().any() or set(metadata["cell_id"]) != set(rna_cells):
+            raise RuntimeError("Exported control metadata does not match the count matrices.")
         metadata = metadata.set_index("cell_id", drop=False).loc[rna_cells].copy()
         if (
-            len(metadata) != 11447
-            or set(metadata["Timepoint"]) != {"day 7", "day 9", "day 11", "day 14"}
-            or metadata["replicate"].nunique() != 14
+            set(metadata["Timepoint"]) != set(TIMEPOINTS)
             or set(metadata["target"]) != {"NT"}
         ):
-            raise RuntimeError("Exported metadata violates the complete control-cell contract.")
+            raise RuntimeError("Invalid control-cell metadata.")
 
         cell_array = np.asarray(rna_cells, dtype=object)
         summary_rows: list[dict[str, object]] = []
-        for timepoint, expected_cells in TIMEPOINTS.items():
+        for timepoint in TIMEPOINTS:
             slug = timepoint.replace(" ", "_")
             time_dir = stage / slug
             time_dir.mkdir()
             mask = metadata["Timepoint"].to_numpy() == timepoint
             time_metadata = metadata.loc[mask].copy()
             time_cells = cell_array[mask].tolist()
-            if len(time_cells) != expected_cells or time_metadata["replicate"].nunique() < 1:
+            if not time_cells or time_metadata["replicate"].nunique() < 1:
                 raise RuntimeError(f"Unexpected full control input for {timepoint}.")
 
             time_rna = rna[:, mask].transpose().tocsr()
@@ -154,7 +140,7 @@ def main() -> None:
                 tag_cells=False,
             )
             cistopic.add_cell_data(time_metadata, split_pattern="___")
-            if len(cistopic.cell_names) != expected_cells or set(cistopic.cell_names) != set(time_cells):
+            if len(cistopic.cell_names) != len(time_cells) or set(cistopic.cell_names) != set(time_cells):
                 raise RuntimeError(f"pycisTopic preprocessing lost cells at {timepoint}.")
             if len(cistopic.region_names) <= 0 or len(cistopic.region_names) > len(regions):
                 raise RuntimeError(f"pycisTopic preprocessing produced invalid regions at {timepoint}.")
@@ -164,7 +150,7 @@ def main() -> None:
             summary_rows.append(
                 {
                     "timepoint": timepoint,
-                    "control_cells": expected_cells,
+                    "control_cells": len(time_cells),
                     "replicates": time_metadata["replicate"].nunique(),
                     "input_rna_features": len(genes),
                     "input_atac_consensus_features": len(regions),
@@ -185,12 +171,11 @@ def main() -> None:
             del gex, cistopic, time_rna, time_atac
 
         summary = pd.DataFrame(summary_rows)
-        if list(summary["timepoint"]) != list(TIMEPOINTS) or int(summary["control_cells"].sum()) != 11447:
-            raise RuntimeError("Independent SCENIC+ input suite failed full-cell accounting.")
+        if list(summary["timepoint"]) != list(TIMEPOINTS) or int(summary["control_cells"].sum()) != len(metadata):
+            raise RuntimeError("Control-cell totals do not match.")
         summary.to_csv(stage / "timepoint_input_summary.tsv", sep="\t", index=False)
 
         os.replace(stage, destination)
-        print(f"destination\t{destination}")
     except Exception:
         if stage.exists():
             shutil.rmtree(stage)

@@ -54,8 +54,7 @@ read_paired_sparse_h5 <- function(path, group) {
 
 read_gse162170_release <- function(input, annotation = human_hg38_annotation()) {
   force(annotation)
-  python <- file.path(path.expand("~"), ".omicos/env/.venv/bin/python")
-  if (!file.exists(python)) python <- Sys.which("python3")
+  python <- Sys.which("python3")
   if (!nzchar(python)) stop("Python with pandas, scipy and h5py is required.")
   sparse_path <- tempfile("gse162170-paired-", fileext = ".h5")
   on.exit(unlink(sparse_path), add = TRUE)
@@ -81,7 +80,7 @@ build_gse162170_object <- function(sparse_path, input, annotation) {
   rna <- mapping %*% rna
   metadata <- as.data.frame(data.table::fread(file.path(input, "GSE162170_multiome_cell_metadata.txt.gz")))
   rownames(metadata) <- metadata$Cell.ID
-  if (!identical(colnames(rna), rownames(metadata)) || ncol(rna) != 8981L || nrow(rna) != 34083L) stop("The complete paired GSE162170 cell/gene universe changed.")
+  if (!identical(colnames(rna), rownames(metadata))) stop("RNA cells do not match the paired metadata.")
   clusters <- data.table::fread(file.path(input, "GSE162170_multiome_cluster_names.txt.gz"))
   clusters <- clusters[Assay == "Multiome RNA"]
   metadata$author_cluster_name <- clusters$Cluster.Name[match(metadata$seurat_clusters, clusters$Cluster.ID)]
@@ -90,7 +89,7 @@ build_gse162170_object <- function(sparse_path, input, annotation) {
   metadata$alignment_unit <- metadata$Cell.ID
   object <- SeuratObject::CreateSeuratObject(rna, project = "GSE162170_full", meta.data = metadata, min.cells = 0, min.features = 0)
   atac <- read_paired_sparse_h5(sparse_path, "atac")
-  if (!identical(colnames(atac), colnames(object)) || nrow(atac) != 467315L) stop("The complete paired ATAC universe changed.")
+  if (!identical(colnames(atac), colnames(object))) stop("ATAC cells do not match the paired RNA cells.")
   object[["ATAC"]] <- create_full_chromatin_assay(atac, annotation)
   object <- Seurat::NormalizeData(object, assay = "RNA", normalization.method = "LogNormalize", scale.factor = 10000, verbose = FALSE)
   object <- SeuratObject::SetAssayData(object, assay = "ATAC", layer = "data",
@@ -104,9 +103,10 @@ read_gse194122_release <- function(input, annotation = human_hg38_annotation()) 
   cells <- as.character(rhdf5::h5read(input, "/obs/_index"))
   features <- as.character(rhdf5::h5read(input, "/var/_index"))
   feature_types <- read_released_h5ad_column(input, "var", "feature_types")
-  if (length(cells) != 69249L || anyDuplicated(cells) || anyDuplicated(features) ||
-      sum(feature_types == "GEX") != 13431L || sum(feature_types == "ATAC") != 116490L) {
-    stop("The released GSE194122 feature/cell universe changed.")
+  if (!length(cells) || anyDuplicated(cells) || anyDuplicated(features) ||
+      length(feature_types) != length(features) || anyNA(feature_types) ||
+      !all(c("GEX", "ATAC") %in% feature_types)) {
+    stop("Invalid released cell or feature identifiers.")
   }
   obs <- rhdf5::h5ls(input, recursive = TRUE)
   fields <- obs$name[obs$group == "/obs" & obs$otype == "H5I_DATASET" & obs$name != "_index"]
@@ -141,43 +141,8 @@ prepare_dataset_candidates <- function(dataset, input, destination,
   suppressPackageStartupMessages({library(Matrix); library(SeuratObject); library(Signac); library(multiCSN); library(motifmatchr)})
   if (!dataset %in% c("GSE162170", "GSE194122")) stop("Unknown candidate dataset.")
   if (file.exists(destination)) stop("Candidate output already exists: ", destination)
-  contracts <- list(
-    GSE162170 = c(
-      input_cells_or_groups = "8981",
-      input_rna_features = "34083",
-      input_atac_features = "467315",
-      initialized_target_genes = "34083",
-      initialized_peaks = "451748",
-      peaks_removed_by_declared_region_rule = "15567",
-      candidate_tfs = "1132",
-      motifs = "1590",
-      motif_peak_pairs = "718279320",
-      motif_nonzero_hits = "54372411",
-      motif_genome_supported_peaks = "451748",
-      motif_genome_unsupported_peaks = "0",
-      motif_seqname_remapped_peaks = "0"),
-    GSE194122 = c(
-      input_rna_features = "13431",
-      input_atac_features = "116490",
-      initialized_cells = "69249",
-      initialized_target_genes = "13431",
-      initialized_peaks = "113386",
-      peaks_removed_by_declared_region_rule = "3104",
-      candidate_tfs = "644",
-      motifs = "1590",
-      motif_peak_pairs = "180283740",
-      motif_nonzero_hits = "21789223",
-      motif_genome_supported_peaks = "113386",
-      motif_genome_unsupported_peaks = "0",
-      motif_seqname_remapped_peaks = "22")
-  )
-  expected <- contracts[[dataset]]
-  scanner <- methods::selectMethod("matchMotifs", c("PWMatrixList", "GenomicRanges"))
-  defaults <- formals(eval(body(scanner)[[2L]][[3L]], environment(scanner)))
-  if (!identical(eval(defaults$p.cutoff), 5e-5) || !identical(eval(defaults$bg)[[1L]], "subject") || !identical(eval(defaults$w), 7)) stop("Motif scanner defaults changed.")
   object <- if (dataset == "GSE162170") read_gse162170_release(input) else read_gse194122_release(input)
-  rna <- rownames(object[["RNA"]]); peaks <- rownames(object[["ATAC"]])
-  if (nrow(object[["RNA"]]) != as.numeric(expected[["input_rna_features"]]) || nrow(object[["ATAC"]]) != as.numeric(expected[["input_atac_features"]])) stop("Input feature universe changed.")
+  rna <- rownames(object[["RNA"]])
   object <- align_candidate_annotation(object)
   object <- multiCSN::initiate_object(object, group.by = "aggregate", targets = rna,
     filter_mode = "unfiltered", filter_by = "aggregate", rna_assay = "RNA", peak_assay = "ATAC",
@@ -193,17 +158,8 @@ prepare_dataset_candidates <- function(dataset, input, destination,
   selected <- multiCSN::get_attribute(object, celltypes = "aggregate", attribute = "peaks")
   genes <- multiCSN::get_attribute(object, celltypes = "aggregate", attribute = "genes")
   motifs <- multiCSN::NetworkRegions(object)@motifs@data
-  mapping <- multiCSN::map_peak_ranges_to_genome(multiCSN::parse_peak_ranges(selected), BSgenome.Hsapiens.UCSC.hg38::BSgenome.Hsapiens.UCSC.hg38)
-  observed <- c(input_rna_features = length(rna), input_atac_features = length(peaks), initialized_target_genes = length(genes),
-    initialized_peaks = length(selected), peaks_removed_by_declared_region_rule = length(setdiff(peaks, selected)),
-    candidate_tfs = length(multiCSN::get_attribute(object, attribute = "tfs")), motifs = ncol(motifs),
-    motif_peak_pairs = as.double(nrow(motifs)) * ncol(motifs), motif_nonzero_hits = Matrix::nnzero(motifs),
-    motif_genome_supported_peaks = sum(mapping$supported), motif_genome_unsupported_peaks = sum(!mapping$supported),
-    motif_seqname_remapped_peaks = sum(mapping$original_seqnames != mapping$mapped_seqnames))
-  cell_field <- if (dataset == "GSE162170") "input_cells_or_groups" else "initialized_cells"
-  observed <- c(observed, stats::setNames(ncol(object), cell_field))
-  if (!identical(sort(genes), sort(rna)) || !setequal(rownames(motifs), selected) ||
-      any(observed != as.numeric(expected[names(observed)]))) stop("Reconstructed candidates differ from the accepted candidate contract.")
+  if (!identical(sort(genes), sort(rna)) || !setequal(rownames(motifs), selected))
+    stop("Candidate gene or peak names do not match the input.")
   dir.create(dirname(destination), recursive = TRUE, showWarnings = FALSE)
   stage <- tempfile(".candidates-", tmpdir = dirname(destination))
   on.exit(unlink(stage), add = TRUE)

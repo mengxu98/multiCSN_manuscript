@@ -1,5 +1,5 @@
 <?xml version='1.0' encoding='utf-8'?>
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="1983" height="793" viewBox="0 0 1983 793" version="1.1" font-family="Arial, Helvetica, sans-serif">
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape" width="210mm" height="83.97881996974282mm" viewBox="0 0 1983 793" version="1.1" font-family="Arial, Helvetica, sans-serif">
   <title>Single-cell multiomics regulatory network inference</title>
   <desc>Independent TF–gene, TF–region and region–gene fits. Exact genomic-region matching produces region-resolved networks for fetal-cortex examples, with direct TF–gene overlap assessed separately; direct TF–gene associations and RNA profiles describe contrasting HMGA1 and SOX6 erythroid programs.</desc>
   <defs>
@@ -128,14 +128,14 @@
       <g id="candidate-resources" inkscape:label="Motifs and annotation candidate resources" transform="translate(42,12)">
         <text x="219" y="496" fill="#090765" font-size="35" font-weight="normal" text-anchor="middle" id="object-067">Motifs + annotations</text>
         <g id="motif-logo" inkscape:label="Editable motif letters" transform="translate(28,14)">
-          <text x="0" y="0" fill="#ff0711" font-size="110" font-weight="bold" text-anchor="start" transform="translate(56,596) scale(0.50587710,1)" id="object-068">T</text>
-          <text x="0" y="0" fill="#ffad00" font-size="61" font-weight="bold" text-anchor="start" transform="translate(85,572) scale(0.61106663,1)" id="object-069">G</text>
-          <text x="0" y="0" fill="#00b840" font-size="35" font-weight="bold" text-anchor="start" transform="translate(89,596) scale(1.02888801,1)" id="object-070">A</text>
-          <text x="0" y="0" fill="#ff0711" font-size="110" font-weight="bold" text-anchor="start" transform="translate(116,596) scale(0.49099836,1)" id="object-071">T</text>
-          <text x="0" y="0" fill="#ff0711" font-size="65" font-weight="bold" text-anchor="start" transform="translate(150,576) scale(0.67984389,1)" id="object-072">T</text>
-          <text x="0" y="0" fill="#ffad00" font-size="34" font-weight="bold" text-anchor="start" transform="translate(151,596) scale(0.94510812,1)" id="object-073">G</text>
-          <text x="0" y="0" fill="#ff0711" font-size="52" font-weight="bold" text-anchor="start" transform="translate(179,576) scale(0.72390784,1)" id="object-074">T</text>
-          <text x="0" y="0" fill="#ffad00" font-size="34" font-weight="bold" text-anchor="start" transform="translate(181,596) scale(0.90730380,1)" id="object-075">G</text>
+          <text x="0" y="0" fill="#ff0711" font-size="110" font-weight="bold" text-anchor="start" transform="translate(56,596) scale(0.50600650,1)" id="object-068">T</text>
+          <text x="0" y="0" fill="#ffad00" font-size="61" font-weight="bold" text-anchor="start" transform="translate(85,572) scale(0.61120165,1)" id="object-069">G</text>
+          <text x="0" y="0" fill="#00b840" font-size="35" font-weight="bold" text-anchor="start" transform="translate(89,596) scale(1.02864314,1)" id="object-070">A</text>
+          <text x="0" y="0" fill="#ff0711" font-size="110" font-weight="bold" text-anchor="start" transform="translate(116,596) scale(0.49112396,1)" id="object-071">T</text>
+          <text x="0" y="0" fill="#ff0711" font-size="65" font-weight="bold" text-anchor="start" transform="translate(150,576) scale(0.68001779,1)" id="object-072">T</text>
+          <text x="0" y="0" fill="#ffad00" font-size="34" font-weight="bold" text-anchor="start" transform="translate(151,596) scale(0.94531696,1)" id="object-073">G</text>
+          <text x="0" y="0" fill="#ff0711" font-size="52" font-weight="bold" text-anchor="start" transform="translate(179,576) scale(0.72409301,1)" id="object-074">T</text>
+          <text x="0" y="0" fill="#ffad00" font-size="34" font-weight="bold" text-anchor="start" transform="translate(181,596) scale(0.90750428,1)" id="object-075">G</text>
         </g>
         <g id="annotation-database" inkscape:label="Annotation database cylinder" transform="translate(-4,2)">
           <path d="M277,531 V604 C277,627 360,627 360,604 V531" fill="#ffffff" stroke="#090765" stroke-width="4.3" stroke-linejoin="round" stroke-linecap="round" id="object-076" />

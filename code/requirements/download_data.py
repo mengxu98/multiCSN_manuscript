@@ -7,10 +7,9 @@ import subprocess
 import sys
 import tempfile
 sys.path.insert(0, str(Path(__file__).absolute().parents[1] / "functions"))
-from runtime import REPO, USER_HOME, python_executable, rscript_executable, task_environment
+from runtime import REPO, EXECUTION_ROOT, python_executable, rscript_executable, task_environment
 from file_io import publish_directory
 
-WORK = USER_HOME / "srcpkgs"
 GTF_URL = "https://ftp.ensembl.org/pub/release-116/gtf/homo_sapiens/Homo_sapiens.GRCh38.116.gtf.gz"
 CHROMSIZES_URL = "https://hgdownload.soe.ucsc.edu/goldenPath/hg38/bigZips/p14/hg38.p14.chrom.sizes"
 INVENTORY = [('data/beeline/Synthetic', 'BEELINE synthetic'), ('data/beeline/Curated', 'BEELINE curated'), ('data/gse194122/processed_multiome.h5ad', 'GSE194122 H5AD'), ('data/gse274113/GSE274113', 'GSE274113 raw release'), ('data/gse274113/external_resources/primary_erythroid_ChIP_peaks_hg38.tsv.gz', 'external ChIP'), ('data/gse274113/external_resources/UniBind_perturbed_TFs_hg38.tsv.gz', 'external UniBind'), ('data/gse274113/external_resources/HSPC_loops_hg38.tsv.gz', 'external HSPC loops'), ('data/gse274113/external_resources/SCENICplus_GRCh38p14_Ensembl116/genome_annotation.tsv', 'SCENIC+ offline resources'), ('data/gse274113/external_resources/SCENICplus_hg38_screen_v10_clust/hg38_screen_v10_clust.regions_vs_motifs.rankings.feather', 'SCENIC+ screen resources'), ('data/resources/LINGER/data_bulk/TFName.txt', 'LINGER reference data')]
@@ -33,6 +32,13 @@ PERTURBATION_RELEASE_FILES = (
     "supplementary/NIHMS2076308-supplement-Table_S3.xlsx",
 )
 INVENTORY += [(f"data/gse274113/GSE274113/{name}", f"GSE274113 release {name}") for name in PERTURBATION_RELEASE_FILES]
+INVENTORY += [(f"data/gse274113/GSE274113/extracted/**/*rep{replicate}_atac_peak_annotation.tsv.gz",
+               f"GSE274113 replicate {replicate} peak annotation") for replicate in PERTURBATION_REPLICATES]
+INVENTORY += [
+    ("data/gse274113/external_resources/SCENICplus_GRCh38p14_Ensembl116/chromsizes.tsv", "SCENIC+ chromosome sizes"),
+    ("data/gse274113/external_resources/SCENICplus_hg38_screen_v10_clust/hg38_screen_v10_clust.regions_vs_motifs.scores.feather", "SCENIC+ screen scores"),
+    ("data/gse274113/external_resources/SCENICplus_hg38_screen_v10_clust/motifs-v10nr_clust-nr.hgnc-m0.001-o0.0.tbl", "SCENIC+ motif annotations"),
+]
 CORTEX_RELEASE_FILES = (
     "GSE162170_multiome_rna_counts.tsv.gz", "GSE162170_multiome_atac_counts.tsv.gz",
     "GSE162170_multiome_atac_consensus_peaks.txt.gz", "GSE162170_multiome_cell_metadata.txt.gz",
@@ -58,12 +64,18 @@ class Downloader:
         if destination.is_file() and destination.stat().st_size and not self.force:
             print(f"Already exists: {destination}")
             return
-        if not self.dry_run:
-            destination.parent.mkdir(parents=True, exist_ok=True)
-        self.run(["curl", "-fL", "--retry", "3", "--retry-delay", "5", "-o", destination, url])
+        command = ["curl", "-fL", "--retry", "3", "--retry-delay", "5", "-o"]
+        if self.dry_run:
+            self.run([*command, destination, url])
+            return
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        with tempfile.TemporaryDirectory(prefix=f".{destination.name}-", dir=destination.parent) as temporary:
+            candidate = Path(temporary) / destination.name
+            self.run([*command, candidate, url])
+            candidate.replace(destination)
 
     def check(self, relative, description):
-        present = (REPO / relative).exists()
+        present = len(list(REPO.glob(relative))) == 1
         print(f"{'Present' if present else 'Missing'}: {description} ({relative})")
         return present
 
@@ -125,9 +137,9 @@ class Downloader:
 
     def scenicplus(self):
         output = REPO / "data/gse274113/external_resources/SCENICplus_GRCh38p14_Ensembl116"
-        if not (output / "genome_annotation.tsv").is_file() or self.force:
-            gtf = WORK / "Homo_sapiens.GRCh38.116.gtf.gz"
-            chromsizes = WORK / "hg38.p14.chrom.sizes"
+        if not all((output / name).is_file() for name in ("genome_annotation.tsv", "chromsizes.tsv")) or self.force:
+            gtf = REPO / "data/gse274113/external_resources/Homo_sapiens.GRCh38.116.gtf.gz"
+            chromsizes = REPO / "data/gse274113/external_resources/hg38.p14.chrom.sizes"
             self.fetch(GTF_URL, gtf)
             self.fetch(CHROMSIZES_URL, chromsizes)
             producer = REPO / "code/gse274113/prepare_scenicplus_offline_genome_resources.py"
@@ -151,7 +163,8 @@ class Downloader:
         self.check("data/gse274113/external_resources/SCENICplus_hg38_screen_v10_clust/hg38_screen_v10_clust.regions_vs_motifs.rankings.feather", "screen motif rankings")
 
     def linger_bulk(self):
-        print("Download and extract data_bulk.tar.gz from the Google Drive links in sources/LINGER/docs/{GRN_infer,Cancer}.md into data/resources/LINGER/.")
+        print("Download and extract data_bulk.tar.gz from the Google Drive links in",
+              EXECUTION_ROOT / "sources/LINGER/docs/{GRN_infer,Cancer}.md", "into data/resources/LINGER/.")
         self.check("data/resources/LINGER/data_bulk/TFName.txt", "LINGER reference data")
 
     def verify(self):

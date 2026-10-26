@@ -99,7 +99,7 @@ p_forest_auprc <- ggplot(stats[Metric == "AUPRC"], aes(y = Method)) +
   geom_point(aes(x = mean), shape = 18, size = 2.0, colour = "#212121") +
   annotate(
     "text", x = 11, y = "multiCSN",
-    label = "Median: 1.0",
+    label = sprintf("Median: %.1f", stats[Metric == "AUPRC" & Method == "multiCSN", median]),
     colour = "#D81B60", size = 2.1, fontface = "bold.italic", hjust = 1
   ) +
   scale_colour_manual(values = colors) +
@@ -123,7 +123,7 @@ p_forest_epr <- ggplot(stats[Metric == "EPR"], aes(y = Method)) +
   geom_point(aes(x = mean), shape = 18, size = 2.0, colour = "#212121") +
   annotate(
     "text", x = 11, y = "multiCSN",
-    label = "Median: 1.5",
+    label = sprintf("Median: %.1f", stats[Metric == "EPR" & Method == "multiCSN", median]),
     colour = "#D81B60", size = 2.1, fontface = "bold.italic", hjust = 1
   ) +
   scale_colour_manual(values = colors) +
@@ -159,7 +159,7 @@ p_win <- ggplot(win_melt, aes(y = Method, x = Percent, fill = Tier)) +
   ) +
   scale_fill_manual(
     values = c("top1" = "#D81B60", "top2_3" = "#42A5F5", "other" = "#E0E0E0"),
-    labels = c("top1" = "Best (incl. ties)", "top2_3" = "Rank 2\u20133", "other" = "Rank \u22654"),
+    labels = c("top1" = "Best (incl. ties)", "top2_3" = "Rank 2\u20133", "other" = "Other"),
     name = NULL
   ) +
   scale_x_continuous(labels = function(x) paste0(x, "%"), limits = c(0, 100), breaks = c(0, 50, 100)) +
@@ -202,7 +202,6 @@ display_methods <- c(
   "GNIPLR",
   "SCSGL"
 )
-budget <- edges[Method == "multiCSN", .N]
 regulators <- unique(truth$regulator)
 targets <- unique(truth$target)
 truth_table <- truth[, .(regulator, target, weight = as.numeric(sign))]

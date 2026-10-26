@@ -204,4 +204,3 @@ summary <- do.call(rbind, lapply(split(metrics, metrics$scope), function(x) {
 }))
 write_tsv(summary, file.path(stage, "endpoint_summary.tsv"), writer = "table")
 if (!file.rename(stage, output_root)) stop("Could not publish output atomically.")
-cat("scMultiSim standard multiseed: PASS\t", output_root, "\n", sep = "")

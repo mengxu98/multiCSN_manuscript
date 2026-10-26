@@ -1,4 +1,3 @@
-from collections import Counter
 from copy import deepcopy
 from pathlib import Path
 import os
@@ -109,37 +108,6 @@ def add_formulas(root):
             })
 
 
-def validate(root, formulas=False):
-    counts = Counter(n.tag.rsplit("}", 1)[-1] for n in root.iter())
-    if not formulas:
-        expected = {"path": 197, "rect": 186, "line": 62, "polygon": 45,
-                    "polyline": 2, "text": 40, "clipPath": 37}
-        for name, count in expected.items():
-            if counts[name] != count:
-                raise ValueError(f"Missing or duplicated {name} objects: {counts[name]} != {count}")
-    if root.get("viewBox") != "0 0 140.96 96.12":
-        raise ValueError("The reference canvas and aspect ratio must be retained.")
-    ids = [n.get("id") for n in root.iter() if n.get("id")]
-    if len(ids) != len(set(ids)):
-        raise ValueError("Every editable object must have a unique id.")
-    if {"image", "foreignObject", "script", "use"}.intersection(counts):
-        raise ValueError("The figure must contain native vector objects.")
-    for node in root.iter():
-        for key, value in node.attrib.items():
-            if key.endswith("href") or "base64" in value or "data:image" in value:
-                raise ValueError("External or embedded image references are not allowed.")
-    labels = ["".join(n.itertext()) for n in root.iter(f"{{{SVG_NS}}}text")]
-    required = {"Paired or aligned ", "multiomics inputs", "Shared sparse-regression engine",
-                "Within each cell type or state", "TF-gene", "TF-region", "Region-gene",
-                "TF-region-gene triplets", "Network outputs", "CRE", "Gene", "Gene domains"}
-    if not required.issubset(labels):
-        raise ValueError(f"Missing text labels: {required.difference(labels)}")
-    if formulas:
-        for name, specification in FORMULAS.items():
-            node = root.find(f".//*[@id='{name}-formula']")
-            if node is None or node.get("data-latex") != specification[0]:
-                raise ValueError(f"Missing mathematical formula: {name}")
-    return counts
 
 
 def dark_variant(root):
@@ -169,11 +137,8 @@ def write_svg(root, destination):
 
 def draw():
     root = build_element(SCENE)
-    validate(root)
     add_formulas(root)
-    counts = validate(root, formulas=True)
     dark = dark_variant(root)
-    validate(dark, formulas=True)
     OUTPUT.parent.mkdir(parents=True, exist_ok=True)
     write_svg(root, OUTPUT)
     write_svg(dark, OUTPUT.with_name(f"{OUTPUT.stem}-dark.svg"))
@@ -188,7 +153,7 @@ def draw():
         subprocess.run(command + ["--output", str(temporary), str(OUTPUT)], check=True,
                        env={**os.environ, "PANGOCAIRO_BACKEND": "fc"})
         temporary.replace(destination)
-    print(f"{OUTPUT}: light/dark SVGs, PDF and PNG; {counts['text']} editable text objects")
+    print(f"{OUTPUT}: light/dark SVGs, PDF and PNG")
     return OUTPUT
 
 

@@ -189,7 +189,6 @@ for (day_index in seq_along(timepoints)) {
 
   enrichment_rows[[timepoint]] <- rbindlist(lapply(evaluated, `[[`, "enrichment"))
   response_rows[[timepoint]] <- rbindlist(lapply(evaluated, `[[`, "response"))
-  cat("timepoint\tPASS\t", timepoint, "\n", sep = "")
 }
 
 enrichment <- rbindlist(enrichment_rows)
@@ -213,4 +212,3 @@ fwrite(
   sep = "\t", quote = FALSE, na = "NA"
 )
 publish_result_files(stage, output_root)
-cat("linger_perturbation_evaluation\tPASS\t", output_root, "\n", sep = "")

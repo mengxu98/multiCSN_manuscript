@@ -7,11 +7,11 @@ import sys
 import time
 sys.path.insert(0, str(Path(__file__).absolute().parents[1] / "functions"))
 from runtime import (REPO, EXECUTION_ROOT, python_executable, use_python,
-                     run_task, task_environment, utc_now)
+                     run_task, task_environment)
 
 CORES = 12
-TIMEPOINTS = [("day_7", "day 7", 3304), ("day_9", "day 9", 4167),
-              ("day_11", "day 11", 1903), ("day_14", "day 14", 2073)]
+TIMEPOINTS = [("day_7", "day 7"), ("day_9", "day 9"),
+              ("day_11", "day 11"), ("day_14", "day 14")]
 OBJECT_ROOT = REPO / "data/gse274113/objects/GSE274113_SCENICplus_full"
 OUTPUT_PARENT = REPO / "runs/gse274113/method_fits"
 TIMING_ROOT = REPO / "runs/gse274113/timing_benchmark/SCENICplus"
@@ -90,14 +90,16 @@ def write_suite_summary(root, rows):
     import pandas as pd
 
     summary = pd.DataFrame(rows)
-    if int(summary["training_cells"].sum()) != 11447 or len(summary) != 4:
-        raise RuntimeError("SCENIC+ independent timepoint suite failed full-cell accounting.")
+    if list(summary["timepoint"]) != [label for _, label in TIMEPOINTS] or (summary["training_cells"] <= 0).any():
+        raise RuntimeError("Invalid SCENIC+ timepoint totals.")
     summary.to_csv(root / "timepoint_run_summary.tsv", sep="\t", index=False)
     print(summary.to_string(index=False))
 
 
 def run_scenicplus(object_root=OBJECT_ROOT, output_parent=OUTPUT_PARENT,
                    cores=CORES, monitor=True):
+    import anndata as ad
+
     if cores < 1:
         raise ValueError("cores must be positive")
     object_root, output_parent = map(Path, (object_root, output_parent))
@@ -128,14 +130,13 @@ def run_scenicplus(object_root=OBJECT_ROOT, output_parent=OUTPUT_PARENT,
     work.mkdir(parents=True, exist_ok=True)
     python = python_executable("scenicplus")
     env = task_environment(python=python)
-    print(f"started_utc\t{utc_now()}")
     print("network_unit\tfour independently fitted control-timepoint eRegulon networks\n"
           "network_pooling\tnone\ncell_cap\tnone\ngene_cap\tnone\nregion_cap\tnone")
     rows = []
-    for index, (slug, label, cells) in enumerate(TIMEPOINTS):
+    for index, (slug, label) in enumerate(TIMEPOINTS):
         time_work = work / slug
         settings.update({
-            "time_work": str(time_work), "timepoint": label, "expected_cells": cells,
+            "time_work": str(time_work), "timepoint": label,
             "input_cistopic": str(object_root / f"cistopic_models/{slug}/GSE274113_NT_{slug}_selected_cistopic.pkl"),
             "input_gex": str(object_root / f"input/{slug}/GSE274113_NT_{slug}_GEX.h5ad"),
             "region_sets": str(object_root / f"cistopic_models/{slug}/region_sets"),
@@ -143,9 +144,16 @@ def run_scenicplus(object_root=OBJECT_ROOT, output_parent=OUTPUT_PARENT,
             "seed": 666 + index,
         })
         time_work.mkdir(parents=True, exist_ok=True)
-        for name in ("input_cistopic", "input_gex", "region_sets"):
+        for name in ("input_cistopic", "region_sets"):
             if not Path(settings[name]).exists():
                 raise RuntimeError(f"Missing {label} SCENIC+ input: {settings[name]}")
+        gex = ad.read_h5ad(settings["input_gex"], backed="r")
+        try:
+            if gex.n_obs < 1 or not gex.obs_names.is_unique or "Timepoint" not in gex.obs or set(gex.obs["Timepoint"]) != {label}:
+                raise RuntimeError(f"Invalid SCENIC+ GEX cell identities at {label}")
+            settings["expected_cells"] = gex.n_obs
+        finally:
+            gex.file.close()
         (time_work / "tmp").mkdir(exist_ok=True)
         for name, source in (("genome_annotation.tsv", offline / "genome_annotation.tsv"),
                              ("chromsizes.tsv", offline / "chromsizes.tsv")):
@@ -154,7 +162,6 @@ def run_scenicplus(object_root=OBJECT_ROOT, output_parent=OUTPUT_PARENT,
                 shutil.copyfile(source, target)
                 target.chmod(0o444)
         write_config(settings)
-        print(f"timepoint_started\t{label}\t{utc_now()}")
         started = int(time.time())
         run_task([Path(python).parent / "snakemake", "--snakefile", settings["snakefile"],
                   "--configfile", settings["cfg_path"], "--cores", str(cores),
@@ -164,14 +171,12 @@ def run_scenicplus(object_root=OBJECT_ROOT, output_parent=OUTPUT_PARENT,
         settings["fit_seconds"] = int(time.time()) - started
         rows.append(summarize_timepoint(settings))
         shutil.rmtree(time_work / "tmp")
-        print(f"timepoint_completed\t{label}\t{utc_now()}")
     write_suite_summary(work, rows)
-    for slug, _, _ in TIMEPOINTS:
+    for slug, _ in TIMEPOINTS:
         workflow = work / slug / ".snakemake"
         if workflow.is_dir():
             shutil.rmtree(workflow)
     work.rename(destination)
-    print(f"destination\t{destination}\ncompleted_utc\t{utc_now()}")
 
 
 def main():

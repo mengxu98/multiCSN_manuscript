@@ -72,7 +72,6 @@ def prepare_functional_programs(root=REPO, output=None):
     metadata = dict(scope="Exploratory GSE194122 program display; no perturbation inputs or network refitting", program_definitions=dict(HMGA1="All 16 cytoplasmic-translation genes among the 23 original loss targets recurring in >=8/10 computational draws; original 23-gene set selected without GO filtering", SOX6="All 14 GO erythrocyte-development genes in the non-self positive direct-target union", KLF1="All 13 GO heme-biosynthesis genes in the non-self positive direct-target union", BNC2="All 39 GO immune-effector-process genes in the non-self positive chain-target union"), RNA_score="Per-feature z scores over the 49 donor-state means; target-program score is their gene mean. TF RNA uses the same per-feature standardization. Both are relative RNA measures from the discovery cohort.")
     reported_program_go(root).to_csv(output / "reported_program_GO.tsv", sep="\t", index=False)
     (output / "metadata.json").write_text(json.dumps(metadata, indent=2))
-    print("PASS: four fixed programs, 392 donor-state RNA scores; no fit or manuscript outputs")
 
 
 if __name__ == "__main__":

@@ -22,9 +22,9 @@ dir.create(file.path(stage, "cells"), recursive = FALSE)
 
 trajectory <- fread(trajectory_path)
 required <- c("cell_id", "state", "donor_id")
-if (!all(required %in% names(trajectory)) || nrow(trajectory) != 10952L ||
+if (!all(required %in% names(trajectory)) || !nrow(trajectory) ||
   anyDuplicated(trajectory$cell_id) || anyNA(trajectory[, ..required])) {
-  stop("Current trajectory table does not define the registered cell universe.")
+  stop("Invalid trajectory cell identifiers or metadata.")
 }
 states <- data.table(
   state_order = 1:5,
@@ -66,10 +66,5 @@ for (state_index in seq_len(nrow(states))) {
   }
 }
 task_table <- rbindlist(tasks)
-if (nrow(task_table) != 49L || uniqueN(task_table$heldout_donor) != 10L ||
-  sum(task_table$state == "MK/E prog") != 9L) {
-  stop("Expected 49 informative leave-one-donor-out state fits.")
-}
 fwrite(task_table, file.path(stage, "donor_deletion_plan.tsv"), sep = "\t", quote = FALSE)
 publish_result_files(stage, output)
-cat("gse194122_donor_deletion_manifests\tPASS\t", output, "\n", sep = "")

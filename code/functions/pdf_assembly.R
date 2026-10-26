@@ -69,16 +69,14 @@ assemble_pdf_figure <- function(
     character(1)
   )
   source_paths <- setNames(file.path(figure_root, source_files), panel_ids)
-  missing <- source_paths[!file.exists(source_paths)]
-  if (length(missing)) {
-    stop("Missing panel PDFs: ", paste(missing, collapse = ", "), call. = FALSE)
-  }
 
   cropped_paths <- file.path(cropped_root, basename(source_paths))
   names(cropped_paths) <- names(source_paths)
   for (id in names(source_paths)) {
     if (isFALSE(panels[[match(id, panel_ids)]]$crop)) {
-      file.copy(source_paths[[id]], cropped_paths[[id]], overwrite = TRUE)
+      if (!file.copy(source_paths[[id]], cropped_paths[[id]], overwrite = TRUE)) {
+        stop("Unable to copy panel: ", source_paths[[id]], call. = FALSE)
+      }
       next
     }
     run_checked(

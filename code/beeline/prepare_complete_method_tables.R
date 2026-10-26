@@ -6,9 +6,22 @@ setDTthreads(1L)
 
 repo <- normalizePath(getwd(), winslash = "/", mustWork = TRUE)
 result_root <- normalizePath(result_root, mustWork = TRUE)
+methods <- c(
+  "multiCSN", "GENIE3", "GNIPLR", "GRNBoost2", "LEAP", "PIDC",
+  "PPCOR", "SCODE", "SCORPION", "SCSGL", "SINCERITIES"
+)
+cases <- rbindlist(lapply(c("Curated", "Synthetic"), function(group) {
+  inputs <- list.files(file.path(repo, "data/beeline", group),
+                       pattern = "^ExpressionData[.]csv$", recursive = TRUE, full.names = TRUE)
+  if (!length(inputs)) stop("No benchmark inputs found for ", group)
+  data.table(Case = basename(dirname(inputs)), DatasetGroup = basename(dirname(dirname(inputs))),
+             DatasetType = tolower(group))
+}))
+if (anyDuplicated(cases$Case)) stop("Benchmark case names must be unique")
+expected <- cases[, .(Method = methods), by = .(Case, DatasetGroup, DatasetType)]
 evaluation_path <- file.path(result_root, "evaluation", "case_metrics.tsv")
 evaluated <- fread(evaluation_path)
-if (nrow(evaluated) != 5500L || uniqueN(evaluated$Case) != 500L ||
+if (!fsetequal(evaluated[, .(Case, DatasetGroup, DatasetType, Method)], expected) ||
     anyDuplicated(evaluated, by=c("Case", "Method"))) stop("Incomplete common network evaluation")
 set(evaluated, j = "Dataset", value = as.character(evaluated$Case))
 set(evaluated, j = "ReferenceNetwork", value = rep(NA_character_, nrow(evaluated)))
@@ -27,10 +40,6 @@ other_columns <- c(
   "Dataset", "ReferenceNetwork", "Species", "Case", "DatasetGroup",
   "Method", "AUROC", "ACC", "Precision", "Recall", "F1"
 )
-methods <- c(
-  "multiCSN", "GENIE3", "GNIPLR", "GRNBoost2", "LEAP", "PIDC",
-  "PPCOR", "SCODE", "SCORPION", "SCSGL", "SINCERITIES"
-)
 primary_groups <- list()
 other_groups <- list()
 
@@ -40,13 +49,13 @@ for (dataset_type in c("curated", "synthetic")) {
   other <- selected[, ..other_columns]
   setorder(primary, Case, Method)
   setorder(other, Case, Method)
-  expected_cases <- if (dataset_type == "curated") 200L else 300L
-  if (nrow(primary) != expected_cases * 11L || nrow(other) != nrow(primary) ||
-    uniqueN(primary$Case) != expected_cases ||
+  expected_cases <- cases[DatasetType == dataset_type, Case]
+  if (nrow(primary) != length(expected_cases) * length(methods) || nrow(other) != nrow(primary) ||
+    !setequal(primary$Case, expected_cases) ||
     !setequal(unique(primary$Method), methods) ||
     anyDuplicated(primary, by = c("Case", "Method")) ||
     anyDuplicated(other, by = c("Case", "Method"))) {
-    stop("Integrated BEELINE metric contract failed for ", dataset_type, ".")
+    stop("Invalid BEELINE metrics: ", dataset_type, ".")
   }
   fwrite(primary, file.path(stage, paste0(dataset_type, "__primary_metrics.csv")))
   fwrite(other, file.path(stage, paste0(dataset_type, "__other_metrics.csv")))
@@ -83,19 +92,6 @@ setorder(rank_summary, Metric, mean_rank, Method)
 fwrite(ranks, file.path(stage, "case_ranks.tsv"), sep = "\t", quote = FALSE)
 fwrite(rank_summary, file.path(stage, "rank_summary.tsv"), sep = "\t", quote = FALSE)
 
-# Source Data uses these two summaries; derive them in the same pass as ranks.
-method_summary <- merge(
-  primary_combined[, .(
-    cases = .N, mean_auprc = mean(AUPRC),
-    curated_mean_auprc = mean(AUPRC[DatasetType == "curated"]),
-    synthetic_mean_auprc = mean(AUPRC[DatasetType == "synthetic"])
-  ), by = .(method = Method)],
-  rank_summary[Metric == "AUPRC", .(method = Method, mean_within_case_auprc_rank = mean_rank)],
-  by = "method"
-)
-setorder(method_summary, mean_within_case_auprc_rank, method)
-fwrite(method_summary, file.path(result_root, "evaluation", "beeline_method_summary.tsv"),
-       sep = "\t", quote = FALSE)
 case_rows <- lapply(sort(unique(evaluated$Case)), function(case) {
   row <- evaluated[Case == case][1L]
   directory <- if (row$DatasetType == "curated") "Curated" else "Synthetic"
@@ -106,7 +102,7 @@ case_rows <- lapply(sort(unique(evaluated$Case)), function(case) {
   model <- sub("-[0-9]+-[0-9]+(-[0-9]+)?$", "", case)
   fields <- as.integer(strsplit(substring(case, nchar(model) + 2L), "-", fixed = TRUE)[[1L]])
   if (!length(fields) %in% c(2L, 3L) || anyNA(fields) || nrow(truth) != row$GoldEdges) {
-    stop("Case/truth identity changed: ", case)
+    stop("Case/truth IDs do not match: ", case)
   }
   data.table(case_id = case, model = model, dataset_type = row$DatasetType,
              cell_count = fields[[1L]], replicate = fields[[2L]],
@@ -119,7 +115,6 @@ fwrite(rbindlist(case_rows), file.path(result_root, "evaluation", "beeline_case_
        sep = "\t", quote = FALSE)
 
 if (!file.rename(stage, output)) stop("Unable to promote BEELINE metrics.")
-cat("beeline_metrics\tPASS\t", output, "\n", sep = "")
 }
 
 

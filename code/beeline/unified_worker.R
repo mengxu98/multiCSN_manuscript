@@ -83,7 +83,7 @@ run_benchmark_method <- function(output_root, method, limit = 0L) {
     load_seconds <- proc.time()[["elapsed"]] - load_started
     set.seed(1L)
     started <- proc.time()[["elapsed"]]
-    network <- runners[[method]](expression, bundle$pseudotime, 1L, output)
+    runners[[method]](expression, bundle$pseudotime, 1L, output)
     seconds <- proc.time()[["elapsed"]] - started
     records[[length(records) + 1L]] <- data.frame(
       Case = basename(d), Method = method, DatasetType = type, DatasetGroup = group,

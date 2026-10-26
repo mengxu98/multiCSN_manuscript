@@ -8,9 +8,17 @@ Run commands from the repository root. Saved inputs for the manuscript figures a
 
 To run the full analyses, install dependencies and prepare the additional raw data:
 
+Activate the analysis Python and R environments first. General tasks use the current Python and `PATH` R. Existing BEELINE Conda environments (`beeline_py39`, `beeline_r453`), the GRNBoost2 environment at `~/.venvs/beeline-unified-py39`, and Pando's `../comparator_r_library/` are reused when present. LINGER, SCENIC+ and new GRNBoost2 installations use `../comparator_envs/`. Conda is located through `CONDA_EXE` or `PATH`; GO resource preparation requires Bioconductor 3.22.
+
 ```bash
 bash code/requirements/install_environments.sh
 bash code/requirements/download_data.sh
+```
+
+The installer updates multiCSN from GitHub while reusing the other installed packages. To use changes from a local multiCSN checkout, install it afterwards in the same R environment:
+
+```bash
+R CMD INSTALL ../multiCSN
 ```
 
 Run the required tasks:

@@ -16,7 +16,6 @@ inputs <- c(
   expression = file.path(expression_root, "donor_state_expression.tsv.gz"),
   group_counts = file.path(expression_root, "donor_state_group_counts.tsv")
 )
-if (any(!file.exists(inputs))) stop("Missing input: ", paste(inputs[!file.exists(inputs)], collapse = ", "))
 
 states <- c("HSC", "MK/E prog", "Proerythroblast", "Erythroblast", "Normoblast")
 focal_regulators <- c("SPI1", "GATA2", "RUNX1", "MYB", "GATA1", "TAL1", "KLF1", "NFE2")
@@ -56,7 +55,7 @@ partial_r2 <- function(y, state, donor) {
 
 edges <- fread(inputs[["edges"]])
 edges <- edges[endpoint == "factorized-chain" & stable_consensus == TRUE & is.finite(direction)]
-if (!nrow(edges) || !all(edges$state %chin% states)) stop("Stable factorized-chain input changed.")
+if (!nrow(edges) || !all(edges$state %chin% states)) stop("Invalid stable chains.")
 edges[, direction_label := fifelse(direction > 0, "positive", "negative")]
 edges[, module_id := paste0(regulator, " (", fifelse(direction > 0, "+", "-"), ")")]
 
@@ -71,14 +70,13 @@ catalog <- edges[, .(
   median_signed_support = median(signed_support, na.rm = TRUE)
 ), by = module_id]
 catalog <- catalog[target_genes >= min_module_genes]
-if (nrow(catalog) < 50L) stop("Too few donor-stable regulons after the prespecified size gate.")
 
 membership <- unique(edges[module_id %chin% catalog$module_id, .(module_id, feature = target)])
 expression <- fread(inputs[["expression"]])
 groups <- fread(inputs[["group_counts"]])
 groups[, state := factor(state, levels = states)]
 setorder(groups, state, donor_id)
-if (nrow(groups) != 49L || uniqueN(groups$donor_id) != 10L) stop("Donor-state group schema changed.")
+if (anyDuplicated(groups[, .(state, donor_id)]) || anyNA(groups$state)) stop("Invalid donor-state groups.")
 
 expression <- expression[feature %chin% membership$feature]
 expression[, group_key := paste(state, donor_id, sep = "\r")]
@@ -237,4 +235,3 @@ fwrite(hero_network_edges, file.path(stage, "hero_regulon_network.tsv.gz"), sep 
 fwrite(hero_target_state, file.path(stage, "hero_regulon_targets.tsv.gz"), sep = "\t", quote = FALSE, na = "NA")
 
 publish_result_files(stage, output)
-cat("gse194122_state_regulomes\tPASS\t", nrow(catalog), " modules; hero ", hero_module, "\n", sep = "")

@@ -114,7 +114,6 @@ endpoint_specs <- list(
 read_endpoint <- function(slug, root, endpoint) {
   spec <- endpoint_specs[[endpoint]]
   path <- file.path(root, slug, spec$file)
-  if (!file.exists(path)) stop("Missing endpoint file: ", path)
   x <- fread(path, select = c(spec$keys, spec$direction))
   setnames(x, spec$direction, "direction")
   x[, direction := sign(as.numeric(direction))]
@@ -240,4 +239,3 @@ for (name in names(outputs)) {
 }
 
 publish_result_files(stage, output_dir)
-cat("GSE194122_SENSITIVITY_SUMMARY_PASS\n")

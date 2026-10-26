@@ -11,8 +11,6 @@ prepare_scaling_inputs <- function(repo, output_root) {
     m <- manifest[i, , drop = FALSE]
     path <- file.path(output_root, "inputs", paste0(m$Case, ".rds"))
     d <- file.path(repo, "data/beeline/scaling", m$Scenario, m$Case)
-    source_files <- c(manifest_path, file.path(d, c("ExpressionData.csv", "PseudoTime.csv")))
-    if (!all(file.exists(source_files))) stop("Missing scaling input: ", m$Case)
     x <- t(as.matrix(read.csv(file.path(d, "ExpressionData.csv"), row.names = 1L,
                               check.names = FALSE)))
     pt <- read.csv(file.path(d, "PseudoTime.csv"), row.names = 1L,

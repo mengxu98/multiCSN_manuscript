@@ -41,7 +41,7 @@ states <- data.table(
   state_slug = c("01_HSC", "02_MK_E_prog", "03_Proerythroblast", "04_Erythroblast", "05_Normoblast")
 )
 tasks <- fread(task_path)
-if (nrow(tasks) != 49L || anyDuplicated(tasks$task_slug)) stop("Task plan changed.")
+if (!nrow(tasks) || anyDuplicated(tasks$task_slug)) stop("Invalid task plan.")
 missing_tasks <- tasks[!dir.exists(file.path(jackknife_root, task_slug)), task_slug]
 if (length(missing_tasks)) stop("Missing completed folds: ", paste(missing_tasks, collapse = ", "))
 invisible(lapply(file.path(jackknife_root, tasks$task_slug), validate_network_result))
@@ -204,12 +204,12 @@ setorder(activity, endpoint, regulator, state_order)
 
 expression <- fread(file.path(expression_root, "donor_state_expression.tsv.gz"))
 expression_groups <- fread(file.path(expression_root, "donor_state_group_counts.tsv"))
-if (nrow(expression_groups) != 49L || uniqueN(expression_groups$donor_id) != 10L ||
+if (anyDuplicated(expression_groups[, .(state, donor_id)]) ||
   !all(c(
     "state", "donor_id", "feature", "feature_role",
     "mean_normalized_expression", "detection_fraction"
   ) %in% names(expression))) {
-  stop("Donor-state expression schema changed.")
+  stop("Invalid donor-state expression columns.")
 }
 expression[, state_order := match(state, states$state)]
 tf_expression <- expression[feature_role %chin% c("TF", "TF_and_target")]
@@ -446,4 +446,3 @@ fwrite(pairwise_summary, file.path(stage, "donor_deletion_transition_summary.tsv
 fwrite(go_enrichment, file.path(stage, "stable_rewiring_GO_BP.tsv.gz"), sep = "\t", quote = FALSE, na = "NA")
 
 if (!file.rename(stage, output)) stop("Unable to promote donor-stable rewiring outputs.")
-cat("gse194122_donor_stable_rewiring\tPASS\t", output, "\n", sep = "")

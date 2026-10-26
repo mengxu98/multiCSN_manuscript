@@ -8,7 +8,7 @@ import xml.etree.ElementTree as ET
 from PIL import ImageFont
 
 
-OUTPUT = Path(__file__).resolve().parents[2] / "figures" / "graphical_abstract.svg"
+OUTPUT = Path(__file__).resolve().parents[2] / "figures" / "Graphical Abstract.svg"
 WIDTH, HEIGHT = 1983, 793
 SVG_NS = "http://www.w3.org/2000/svg"
 INKSCAPE_NS = "http://www.inkscape.org/namespaces/inkscape"
@@ -26,7 +26,8 @@ def tag(name):
 class Canvas:
     def __init__(self):
         self.root = ET.Element(tag("svg"), {
-            "width": "1983", "height": "793", "viewBox": "0 0 1983 793",
+            "width": "210mm", "height": f"{210 * HEIGHT / WIDTH}mm",
+            "viewBox": f"0 0 {WIDTH} {HEIGHT}",
             "version": "1.1", "font-family": "Arial, Helvetica, sans-serif",
         })
         ET.SubElement(self.root, tag("title")).text = "Single-cell multiomics regulatory network inference"
@@ -470,6 +471,7 @@ def draw():
     for format_name in ("png", "pdf"):
         subprocess.run([
             "rsvg-convert", "--format", format_name,
+            *(["--width", str(WIDTH), "--height", str(HEIGHT)] if format_name == "png" else []),
             "--output", str(OUTPUT.with_suffix(f".{format_name}")), str(OUTPUT),
         ], check=True)
     return OUTPUT

@@ -87,18 +87,9 @@ evaluate_formal_chain_responses <- function(
   slugs <- gsub(" ", "_", timepoints, fixed = TRUE)
   effect_summary <- data.table::fread(file.path(truth, "effect_model_summary.tsv"))
   regulators <- sort(unique(as.character(effect_summary$target)))
-  if (length(regulators) != 19L || !setequal(effect_summary$timepoint, timepoints)) {
-    stop("Held-out truth failed the 19-TF four-timepoint gate.")
+  if (!length(regulators) || anyNA(regulators) || any(!nzchar(regulators)) || !setequal(effect_summary$timepoint, timepoints)) {
+    stop("Held-out truth has invalid TF or timepoint identifiers.")
   }
-  required <- c(
-    unlist(lapply(slugs, function(slug) unlist(lapply(methods, function(method) {
-      file.path(endpoints, method, slug, c("triplet.tsv.gz", "tf_region.tsv.gz", "region_gene.tsv.gz"))
-    })))),
-    unlist(lapply(slugs, function(slug) unlist(lapply(c("atac", "rna"), function(modality) {
-      file.path(truth, paste0(modality, "_effects"), paste0(slug, "__", regulators, ".tsv.gz"))
-    }))))
-  )
-  if (any(!file.exists(required))) stop("Missing chain-response inputs: ", paste(required[!file.exists(required)], collapse = ", "))
   destinations <- c(output, annotations)
   destinations <- vapply(destinations, normalizePath, character(1), mustWork = FALSE)
   if (destinations[[1]] == destinations[[2]] ||
@@ -146,10 +137,11 @@ evaluate_formal_chain_responses <- function(
         annotation_rows[[cursor]] <- evaluated$annotations
       }
     }
-    cat("chain_response_timepoint\tPASS\t", timepoints[[i]], "\n", sep = "")
   }
   strata <- data.table::rbindlist(metric_rows, use.names = TRUE, fill = TRUE)
-  if (nrow(strata) != 228L || anyDuplicated(strata[, .(method, regulator, timepoint)])) {
+  if (nrow(strata) != length(methods) * length(regulators) * length(timepoints) ||
+      !data.table::fsetequal(strata[, .(method, regulator, timepoint)],
+        data.table::CJ(method = methods, regulator = regulators, timepoint = timepoints)) || anyDuplicated(strata[, .(method, regulator, timepoint)])) {
     stop("Formal chain-response stratum accounting failed.")
   }
   clusters <- summarize_chain_responses(strata)

@@ -38,22 +38,22 @@ if (file.exists(stage)) stop("Staging path already exists: ", stage, call. = FAL
 dir.create(stage, recursive = FALSE)
 
 cell_ids <- h5read(input, "/obs/_index")
-if (length(cell_ids) != 69249L || anyDuplicated(cell_ids)) {
-  stop("The current H5AD cell universe is not the registered 69,249-cell release.")
+if (!length(cell_ids) || anyDuplicated(cell_ids)) {
+  stop("Invalid H5AD cell identifiers.")
 }
 current <- fread(cell_path)
 if (!identical(names(current), c("cell_id", "state")) ||
-  nrow(current) != 10952L || anyDuplicated(current$cell_id)) {
-  stop("Current erythroid cell manifest is invalid.")
+  !nrow(current) || anyDuplicated(current$cell_id)) {
+  stop("Invalid erythroid cell manifest.")
 }
 index <- match(current$cell_id, cell_ids)
 if (anyNA(index) || anyDuplicated(index)) {
-  stop("Current network cells do not map one-to-one to the current H5AD.")
+  stop("Invalid cell mapping.")
 }
 
 states <- read_hdf5_category(input, "cell_type")[index]
 if (anyNA(states) || any(states != current$state)) {
-  stop("Current H5AD state labels differ from the network cell manifest.")
+  stop("Cell states do not match.")
 }
 gex_umap <- orient_embedding(h5read(input, "/obsm/GEX_X_umap"), length(cell_ids))[index, ]
 atac_umap <- orient_embedding(h5read(input, "/obsm/ATAC_umap"), length(cell_ids))[index, ]
@@ -63,12 +63,7 @@ atac_pseudotime <- h5read(input, "/obs/ATAC_pseudotime_order")[index]
 if (any(!is.finite(gex_umap)) || any(!is.finite(atac_umap)) ||
   any(!is.finite(atac_pseudotime)) ||
   any(atac_pseudotime < 0 | atac_pseudotime > 1)) {
-  stop("Current embedding or ATAC pseudotime contains invalid values.")
-}
-gex_missing <- !is.finite(gex_pseudotime)
-if (sum(gex_missing) != 90L ||
-  !identical(unique(current$state[gex_missing]), "Normoblast")) {
-  stop("The registered 90-cell GEX-pseudotime limitation changed.")
+  stop("Invalid embedding or ATAC pseudotime.")
 }
 
 trajectory <- data.table(
@@ -112,4 +107,3 @@ fwrite(
   sep = "\t", quote = FALSE, na = "NA"
 )
 publish_result_files(stage, output)
-cat("gse194122_trajectory\tPASS\t", output, "\n", sep = "")

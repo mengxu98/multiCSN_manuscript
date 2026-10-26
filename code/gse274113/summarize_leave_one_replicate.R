@@ -14,19 +14,21 @@ values <- list(timepoints = timepoints, output = output)
 timepoint_root <- normalizePath(values$timepoints, mustWork = TRUE)
 output_root <- normalizePath(values$output, mustWork = FALSE)
 slugs <- c("day_7", "day_9", "day_11", "day_14")
-expected_folds <- c(day_7 = 4L, day_9 = 4L, day_11 = 3L, day_14 = 3L)
 summaries <- rbindlist(lapply(slugs, function(slug) {
   path <- file.path(timepoint_root, paste0(slug, "_fold_summary.tsv"))
   x <- fread(path)
-  if (nrow(x) != expected_folds[[slug]]) {
+  if (!all(c("timepoint", "heldout_replicate", "training_replicates") %in% names(x)) ||
+      nrow(x) < 2L || anyNA(x$training_replicates) ||
+      any(x$training_replicates != nrow(x) - 1L) || anyNA(x$heldout_replicate) ||
+      any(x$timepoint != sub("_", " ", slug, fixed = TRUE))) {
     stop("Unexpected fold count at ", slug)
   }
   x
 }))
-if (nrow(summaries) != 14L || anyDuplicated(summaries[, .(
+if (anyDuplicated(summaries[, .(
   timepoint, heldout_replicate
 )])) {
-  stop("The 14-fold biological-replicate contract failed.")
+  stop("Invalid replicate metadata.")
 }
 
 metrics <- c(
@@ -58,10 +60,8 @@ by_timepoint <- summaries[, summarize_group(.SD, unique(timepoint)), by = timepo
 overall <- summarize_group(summaries, "all biological replicates")
 
 dir.create(output_root, recursive = TRUE, showWarnings = FALSE)
-fwrite(summaries, file.path(output_root, "fold_metrics.tsv"), sep = "\t")
 fwrite(by_timepoint, file.path(output_root, "stability_by_timepoint.tsv"), sep = "\t")
 fwrite(overall, file.path(output_root, "stability_overall.tsv"), sep = "\t")
-cat("gse274113_leave_one_replicate_summary\tPASS\t", output_root, "\n", sep = "")
 }
 
 

@@ -9,27 +9,22 @@ import subprocess
 import sys
 import tempfile
 import threading
-import time
 
 sys.dont_write_bytecode = True
 
 REPO = Path(__file__).absolute().parents[2]
 EXECUTION_ROOT = REPO.parent
-USER_HOME = Path.home()
+ENV_ROOT = EXECUTION_ROOT / "comparator_envs"
+CONDA_EXE = os.environ.get("CONDA_EXE") or shutil.which("conda")
 PYTHON_LOCATIONS = {
-    "general": (USER_HOME / ".omicos/env/.venv/bin/python",),
-    "beeline": (USER_HOME / "miniconda3/envs/beeline_py39/bin/python",
-                USER_HOME / ".omicos/env/.venv/bin/python"),
-    "grnboost2": (USER_HOME / ".venvs/beeline-unified-py39/bin/python",
-                  USER_HOME / ".omicos/env/grnboost2-py39/bin/python"),
-    "scenicplus": (EXECUTION_ROOT / "comparator_envs/scenicplus/bin/python",),
-    "linger": (EXECUTION_ROOT / "comparator_envs/linger/bin/python",),
+    name: ENV_ROOT / name / "bin/python"
+    for name in ("grnboost2", "scenicplus", "linger")
 }
-R_LOCATIONS = {
-    "analysis": (USER_HOME / "miniconda3/envs/R_4.5/bin/Rscript",),
-    "beeline": (USER_HOME / "miniconda3/envs/R_4.5/bin/Rscript",),
-    "plotting": (USER_HOME / "miniconda3/envs/R_4.5/bin/Rscript",),
-}
+grnboost2_existing = Path.home() / ".venvs/beeline-unified-py39/bin/python"
+if grnboost2_existing.is_file():
+    PYTHON_LOCATIONS["grnboost2"] = grnboost2_existing
+if CONDA_EXE:
+    PYTHON_LOCATIONS["beeline"] = Path(CONDA_EXE).parent.parent / "envs/beeline_py39/bin/python"
 THREAD_SETTINGS = {key: "1" for key in (
     "OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS", "MKL_NUM_THREADS",
     "VECLIB_MAXIMUM_THREADS", "NUMEXPR_NUM_THREADS", "BLAS_NUM_THREADS",
@@ -38,16 +33,19 @@ THREAD_SETTINGS = {key: "1" for key in (
 
 
 def python_executable(role="general"):
-    for candidate in PYTHON_LOCATIONS[role]:
-        if candidate.is_file():
-            return str(candidate)
-    if role in {"general", "beeline"}:
+    if role == "general":
+        return sys.executable
+    candidate = PYTHON_LOCATIONS.get(role)
+    if candidate is not None and candidate.is_file():
+        return str(candidate)
+    if role == "beeline":
         return sys.executable
     raise RuntimeError(f"Missing {role} Python environment; see code/requirements/install_environments.py")
 
 
 def rscript_executable(role="analysis"):
-    for candidate in R_LOCATIONS[role]:
+    if role == "beeline" and CONDA_EXE:
+        candidate = Path(CONDA_EXE).parent.parent / "envs/beeline_r453/bin/Rscript"
         if candidate.is_file():
             return str(candidate)
     candidate = shutil.which("Rscript")
@@ -56,7 +54,7 @@ def rscript_executable(role="analysis"):
     raise RuntimeError("Rscript is unavailable; see code/requirements/install_environments.py")
 
 
-def r_function_command(script, function, *, executable=None, role="analysis", **settings):
+def r_function_command(script, function, *, executable=None, **settings):
     def literal(value):
         if value is None:
             return "NULL"
@@ -70,7 +68,7 @@ def r_function_command(script, function, *, executable=None, role="analysis", **
             return "list(" + ", ".join(literal(item) for item in value) + ")"
         return json.dumps(str(value) if isinstance(value, Path) else value)
     arguments = ", ".join(f"{key}={literal(value)}" for key, value in settings.items())
-    return [executable or rscript_executable(role), "--vanilla", "-e",
+    return [executable or rscript_executable(), "--vanilla", "-e",
             f"source({literal(REPO / script)}); {function}({arguments})"]
 
 
@@ -112,10 +110,6 @@ def use_python(role="general", hash_seed=None, mallet_memory=None):
     ):
         os.execve(executable, [executable, *sys.argv], env)
     os.environ.update(env)
-
-
-def utc_now():
-    return time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
 
 def raise_on_termination(signum, frame):

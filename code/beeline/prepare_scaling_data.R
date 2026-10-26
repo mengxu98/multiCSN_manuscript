@@ -49,7 +49,7 @@ prepare_scaling_data <- function(output = "data/beeline/scaling") {
   design <- scaling_design()
   if (dir.exists(output)) {
     manifest <- file.path(output, "scaling_manifest.csv")
-    if (!file.exists(manifest) || !identical(read.csv(manifest), design)) stop("Existing scaling design differs from the accepted ten cases.")
+    if (!identical(read.csv(manifest), design)) stop("Scaling design does not match.")
     for (i in seq_len(nrow(design))) {
       required <- file.path(output, design$Scenario[i], design$Case[i],
                             c("ExpressionData.csv", "PseudoTime.csv", "refNetwork.csv", "case_metadata.csv"))

@@ -91,7 +91,6 @@ def summarize_link_recurrence(root=REPO, output=None):
                                  direct_pair_present_both=len(before)>0 and len(after)>0,
                                  direct_pair_same_sign=bool(len(before)>0 and len(after)>0 and before.direction.iloc[0]==after.direction.iloc[0])))
     pd.DataFrame(switches).to_csv(out / "full_cohort_candidate_regional_changes.tsv", sep="\t", index=False)
-    print("PASS: descriptive reference and saved-budget summaries; inputs unchanged")
 
 
 if __name__ == "__main__":

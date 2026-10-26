@@ -27,15 +27,15 @@ from runtime import r_function_command, python_function_command, rscript_executa
 OUTPUT_ROOT = REPO / "runs" / "gse274113" / "timing_benchmark"
 TIMING_TSV = OUTPUT_ROOT / "timing.tsv"
 RSCRIPT = rscript_executable()
-LINGER_PYTHON = str(PYTHON_LOCATIONS["linger"][0])
+LINGER_PYTHON = str(PYTHON_LOCATIONS["linger"])
 LINGER_BIN = str(Path(LINGER_PYTHON).parent)
-SCENICPLUS_PYTHON = str(PYTHON_LOCATIONS["scenicplus"][0])
+SCENICPLUS_PYTHON = str(PYTHON_LOCATIONS["scenicplus"])
 CANDIDATES = REPO / "data/gse274113/objects/GSE274113_control_full/candidates"
 TIME_POINTS = {
-    "day 7": ("day_7", 3304),
-    "day 9": ("day_9", 4167),
-    "day 11": ("day_11", 1903),
-    "day 14": ("day_14", 2073),
+    "day 7": "day_7",
+    "day 9": "day_9",
+    "day 11": "day_11",
+    "day 14": "day_14",
 }
 METHODS = ("multiCSN", "Pando", "LINGER", "SCENICplus")
 ELAPSED = re.compile(r"Elapsed \(wall clock\) time \(h:mm:ss or m:ss\): (?P<value>[\d:.]+)")
@@ -125,13 +125,13 @@ def run_step(method: str, timepoint: str, label: str, command: list[str], env_ex
 
 def multi_csn_steps(timepoints):
     for timepoint in timepoints:
-        slug, cells = TIME_POINTS[timepoint]
+        slug = TIME_POINTS[timepoint]
         output = OUTPUT_ROOT / "multiCSN" / slug
         yield timepoint, "inference_export_multilayer", r_function_command(
             "code/functions/network_fit.R", "fit_state_networks", executable=RSCRIPT,
             dataset="GSE274113", input=CANDIDATES / "GSE274113_NT_timepoint_candidates.rds",
             output=output,
-            state=timepoint, expected_cells=cells, response_chunk=1024, profile="gse274113"), {}, output, "endpoint_summary.tsv"
+            state=timepoint, response_chunk=1024, profile="gse274113"), {}, output, "endpoint_summary.tsv"
 
 
 
@@ -146,7 +146,7 @@ def pando_steps(timepoints):
 
 def linger_steps(timepoints):
     for timepoint in timepoints:
-        slug = TIME_POINTS[timepoint][0]
+        slug = TIME_POINTS[timepoint]
         output = OUTPUT_ROOT / "LINGER"
         yield timepoint, "prepare_preprocess_train_networks_export", python_function_command(
             "code/gse274113/run_linger.py", "run_timepoint", executable=LINGER_PYTHON,

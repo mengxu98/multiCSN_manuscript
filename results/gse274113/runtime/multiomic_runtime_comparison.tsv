@@ -1,7 +1,7 @@
-method	core_configuration	cores_measured	inference_seconds	scope	timing_source	cited_in	note
-multiCSN	single core	1	738.139	timepoint normalization, candidate preparation, three-layer fitting, checkpoints, chain projection, export and validation; four timepoints	results/gse274113/runtime/*_timing.tsv	Figure S7a	Full wrapper including input reading and initial identity checks: 867.064 s.
-multiCSN	8 cores (fork)	8	428.723	timepoint normalization, candidate preparation, three-layer fitting, checkpoints, chain projection, export and validation; four timepoints	results/gse274113/runtime/*_timing.tsv	Figure S7a	Full wrapper including input reading and initial identity checks: 554.312 s.
-Pando	single core	1	2848	inference and export, four timepoints	timing.tsv fit_seconds	Figure S7a	wall 3303 s
-Pando	8 cores (doParallel)	8	926.5	inference and export, four timepoints	infer_grn(parallel = TRUE) + registerDoParallel(8)	Figure S7a	wall 926.5 s; 392% CPU
-LINGER	native (~7.8 cores)	7.8	13607	training and network construction, four timepoints	run_linger.py phase timestamps	Figure S7a	preprocess/export excluded; wall 18219 s
-SCENICplus	12 threads (snakemake)	12	32095	downstream eRegulon inference from archived pycisTopic models	timepoint_run_summary.tsv scenicplus_fit_seconds	Figure S7a	scope A; LDA-inclusive scope B not counted
+method	core_configuration	cores_measured	inference_seconds	scope	cited_in
+multiCSN	single core	1	738.139	data preparation, three-layer fitting, chain projection, export and checking; four timepoints	Figure S7a
+multiCSN	8 cores (fork)	8	428.723	data preparation, three-layer fitting, chain projection, export and checking; four timepoints	Figure S7a
+Pando	single core	1	2848	inference and export, four timepoints	Figure S7a
+Pando	8 cores (doParallel)	8	926.5	inference and export, four timepoints	Figure S7a
+LINGER	native (~7.8 cores)	7.8	13607	training and network construction, four timepoints	Figure S7a
+SCENICplus	12 threads (snakemake)	12	32095	downstream eRegulon inference from archived pycisTopic models	Figure S7a

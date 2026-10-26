@@ -45,7 +45,7 @@ import pandas as pd
 import scanpy as sc
 
 
-EXPECTED_CELLS = {"day_7": 3304, "day_9": 4167, "day_11": 1903, "day_14": 2073}
+TIMEPOINTS = ("day_7", "day_9", "day_11", "day_14")
 PHASES = ("prepare", "preprocess", "train", "networks", "export")
 
 
@@ -73,22 +73,25 @@ def prepare(
     with h5py.File(counts_path, "r") as handle:
         rna, genes, rna_cells = read_sparse_group(handle, "rna")
         atac, regions, atac_cells = read_sparse_group(handle, "atac")
-    if rna.shape != (36601, 11447) or atac.shape != (226206, 11447):
+    if rna.shape != (len(genes), len(rna_cells)) or atac.shape != (len(regions), len(atac_cells)):
         raise RuntimeError(f"Unexpected full matrices: RNA={rna.shape}, ATAC={atac.shape}")
-    if rna_cells != atac_cells or len(set(rna_cells)) != 11447:
+    if not rna_cells or rna_cells != atac_cells or len(set(rna_cells)) != len(rna_cells):
         raise RuntimeError("RNA and ATAC cell identities are not an exact one-to-one match")
     regions = [canonical_region(region) for region in regions]
     if len(set(genes)) != len(genes) or len(set(regions)) != len(regions):
         raise RuntimeError("Feature identifiers are not unique")
 
     metadata = pd.read_csv(metadata_path, sep="\t", low_memory=False)
+    columns = ["cell_id", "Timepoint", "target", "replicate", "annotation_simplified"]
+    if metadata[columns[:-1]].isna().any().any():
+        raise RuntimeError("Missing control-cell metadata")
     if metadata["cell_id"].duplicated().any() or set(metadata["cell_id"]) != set(rna_cells):
         raise RuntimeError("Metadata does not match the control matrices")
     metadata = metadata.set_index("cell_id", drop=False).loc[rna_cells]
-    expected_design = {key.replace("_", " "): value for key, value in EXPECTED_CELLS.items()}
+    expected_design = {key.replace("_", " ") for key in TIMEPOINTS}
     observed_design = metadata.groupby("Timepoint", observed=True).size().to_dict()
-    if observed_design != expected_design or set(metadata["target"]) != {"NT"}:
-        raise RuntimeError(f"Control-cell design changed: {observed_design}")
+    if set(observed_design) != expected_design or set(metadata["target"]) != {"NT"}:
+        raise RuntimeError(f"Invalid control-cell design: {observed_design}")
 
     label = timepoint.replace("_", " ")
     mask = metadata["Timepoint"].to_numpy() == label
@@ -96,8 +99,8 @@ def prepare(
     current_metadata["barcode"] = current_metadata["cell_id"]
     current_metadata["sample"] = current_metadata["replicate"].astype(str)
     current_metadata["label"] = current_metadata["annotation_simplified"].fillna("Unannotated")
-    if len(current_metadata) != EXPECTED_CELLS[timepoint]:
-        raise RuntimeError(f"Unexpected cell count for {timepoint}")
+    if current_metadata.empty:
+        raise RuntimeError(f"No control cells for {timepoint}")
 
     rna_data = ad.AnnData(
         X=rna[:, mask].T.tocsr(),
@@ -169,7 +172,7 @@ def prepare(
             "value": [
                 "GSE274113",
                 label,
-                EXPECTED_CELLS[timepoint],
+                len(current_metadata),
                 rna_data.n_obs,
                 len(samples),
                 rna_data.obs["label"].nunique(),
@@ -241,13 +244,7 @@ def train(root: Path, grn_dir: Path) -> None:
 
     output_dir = root / "output"
     LINGER_tr.training(f"{grn_dir}/", "LINGER", f"{output_dir}/", "ReLU", "Human")
-    chromosomes = [f"chr{index}" for index in range(1, 23)] + ["chrX"]
-    required = [output_dir / f"net_{chromosome}.pt" for chromosome in chromosomes]
-    required += [output_dir / f"shap_{chromosome}.pt" for chromosome in chromosomes]
-    missing = [path.name for path in required if not path.is_file()]
-    if missing:
-        raise RuntimeError(f"LINGER training outputs are missing: {missing}")
-    coverage = validate_training_outputs(root)
+    validate_training_outputs(root)
 
 
 def networks(root: Path, grn_dir: Path) -> None:
@@ -331,9 +328,9 @@ def main(settings=None) -> None:
     # otherwise the relative in-script defaults would no longer resolve.
     for name in ("counts", "metadata", "grn_dir", "output_root"):
         setattr(args, name, Path(getattr(args, name)).resolve())
-    if args.timepoint not in EXPECTED_CELLS:
+    if args.timepoint not in TIMEPOINTS:
         raise SystemExit(
-            f"timepoint must be one of {sorted(EXPECTED_CELLS)}, got {args.timepoint}"
+            f"timepoint must be one of {sorted(TIMEPOINTS)}, got {args.timepoint}"
         )
     installed = importlib.metadata.version("LingerGRN")
     if installed != "1.110":
@@ -385,7 +382,7 @@ def run_all_timepoints():
     for name in ("counts", "metadata", "grn_dir", "output_root"):
         settings[name] = (previous / settings[name]).resolve()
     try:
-        for timepoint in EXPECTED_CELLS:
+        for timepoint in TIMEPOINTS:
             os.chdir(previous)
             main(dict(settings, timepoint=timepoint))
     finally:

@@ -39,7 +39,6 @@ metadata <- object[[]]
 timepoint_lookup <- c(
   day_7 = "day 7", day_9 = "day 9", day_11 = "day 11", day_14 = "day 14"
 )
-expected_folds <- c(day_7 = 4L, day_9 = 4L, day_11 = 3L, day_14 = 3L)
 top_k_requested <- c(100L, 1000L, 10000L, 50000L, 100000L)
 edge_rows <- list()
 top_rows <- list()
@@ -63,9 +62,9 @@ for (slug in names(timepoint_lookup)) {
   )]
   cells <- rownames(metadata)[as.character(metadata$Timepoint) == timepoint]
   replicates <- sort(unique(as.character(metadata[cells, "replicate"])))
-  if (length(replicates) != expected_folds[[slug]]) stop("Fold count mismatch.")
+  if (length(replicates) < 2L || anyNA(replicates) || any(!nzchar(replicates)))
+    stop("Invalid replicate metadata.")
   genes <- sort(unique(c(full$regulator, full$target)))
-  if (!all(genes %in% rownames(counts))) stop("Full edge gene absent from counts.")
   full_detection <- as.integer(Matrix::rowSums(counts[genes, cells] != 0))
   names(full_detection) <- genes
   if (!identical(
@@ -190,4 +189,3 @@ fwrite(deciles, file.path(stage_root, "rank_decile_conditioned_stability.tsv"),
   sep = "\t"
 )
 publish_result_files(stage_root, final_root)
-cat("gse274113_eligibility_conditioned_stability\tPASS\t", final_root, "\n", sep = "")
