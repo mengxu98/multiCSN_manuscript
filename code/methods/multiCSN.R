@@ -1,7 +1,4 @@
 csn_export <- function(name) {
-  if (!requireNamespace("inferCSN", quietly = TRUE)) {
-    stop("Install inferCSN before running the benchmark.", call. = FALSE)
-  }
   getExportedValue("inferCSN", name)
 }
 

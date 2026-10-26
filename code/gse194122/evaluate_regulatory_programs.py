@@ -131,7 +131,6 @@ def evaluate_regulatory_programs(root=REPO, output=None):
     case_go.merge(primary[["regulator", "transition_order", "go_id"]].drop_duplicates(), on=["regulator", "transition_order", "go_id"]).to_csv(out / "HMGA1_BNC2_original_terms.tsv", sep="\t", index=False)
     tf_expression = expression[expression.feature.isin(edges.regulator.unique())].copy()
     tf_expression.to_csv(out / "all_TF_donor_expression.tsv.gz", sep="\t", index=False)
-    print("PASS: exploratory program tables generated; inputs unchanged", flush=True)
 
 
 if __name__ == "__main__":

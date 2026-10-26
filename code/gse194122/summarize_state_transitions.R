@@ -33,7 +33,6 @@ read_endpoint <- function(slug, endpoint) {
     `mediated-TF-gene` = "mediated_tf_gene.tsv"
   )
   path <- file.path(result_root, slug, filename)
-  if (!file.exists(path)) stop("Missing endpoint: ", path)
   fread(path)
 }
 

@@ -68,13 +68,12 @@ stage_root <- tempfile(".result-files-", tmpdir = dirname(output_root))
 dir.create(stage_root, recursive = FALSE)
 
 loop_path <- file.path(evidence_root, "HSPC_loops_hg38.tsv.gz")
-if (!file.exists(loop_path)) stop("Prepared HSPC loops are required.")
 loops <- fread(loop_path)
 loop_columns <- c(
   "loop_id", "anchor1_chrom", "anchor1_start", "anchor1_end",
   "anchor2_chrom", "anchor2_start", "anchor2_end"
 )
-if (!all(loop_columns %in% names(loops))) stop("HSPC loop schema changed.")
+if (!all(loop_columns %in% names(loops))) stop("Invalid HSPC loop columns.")
 anchor1 <- table_to_granges(
   loops, "anchor1_chrom", "anchor1_start", "anchor1_end"
 )
@@ -166,7 +165,6 @@ for (timepoint in timepoints) {
   accessible_path <- file.path(
     object_root, paste0("accessible_consensus_peaks_", slug, ".tsv")
   )
-  if (!file.exists(accessible_path)) stop("Missing accessible peak universe: ", accessible_path)
   accessible_table <- regions_to_table(fread(accessible_path)$peak)
   accessible_ranges <- table_to_granges(accessible_table)
   accessible_midpoint <- floor((accessible_table$start + accessible_table$end) / 2)
@@ -175,7 +173,6 @@ for (timepoint in timepoints) {
   target_union <- character()
   for (method in methods) {
     path <- file.path(endpoint_root, method, slug, "region_gene.tsv.gz")
-    if (!file.exists(path)) stop("Missing region-gene endpoint: ", path)
     prediction <- fread(path)
     if (!all(c("region", "target") %in% names(prediction)) ||
       anyDuplicated(prediction[, .(region, target)])) {
@@ -391,7 +388,6 @@ if (!identical(arguments$methods, "LINGER")) {
 }
 
 publish_result_files(stage_root, output_root, prefix = if (identical(arguments$methods, "LINGER")) "linger_" else "")
-cat("region_gene_HSPC_contact_evaluation\tPASS\t", output_root, "\n", sep = "")
 
 }
 

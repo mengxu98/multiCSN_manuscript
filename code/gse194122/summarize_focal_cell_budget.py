@@ -73,10 +73,9 @@ def summarize_focal_cell_budget(root=REPO, output=None):
     output.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix=".focal-budget-", dir=output) as temporary:
         for name, table in tables.items():
-            if not (output / name).exists():
-                staged = Path(temporary) / name
-                table.to_csv(staged, sep="\t", index=False, lineterminator="\r\n")
-                staged.replace(output / name)
+            staged = Path(temporary) / name
+            table.to_csv(staged, sep="\t", index=False, lineterminator="\r\n")
+            staged.replace(output / name)
     return tables
 
 

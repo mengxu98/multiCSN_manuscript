@@ -45,7 +45,7 @@ dir.create(output_root, recursive = FALSE)
 timepoint_lookup <- c(
   day_7 = "day 7", day_9 = "day 9", day_11 = "day 11", day_14 = "day 14"
 )
-expected_folds <- c(day_7 = 4L, day_9 = 4L, day_11 = 3L, day_14 = 3L)
+expected_pair_count <- 0L
 pair_rows <- list()
 consensus_rows <- list()
 row_index <- 0L
@@ -53,10 +53,17 @@ for (slug in names(timepoint_lookup)) {
   folds_root <- file.path(timepoint_root, "folds")
   fold_dirs <- sort(list.dirs(folds_root, full.names = TRUE, recursive = FALSE))
   fold_dirs <- fold_dirs[startsWith(basename(fold_dirs), paste0(slug, "_"))]
-  if (length(fold_dirs) != expected_folds[[slug]]) {
-    stop("Unexpected fold directory count at ", slug)
-  }
+  fold_summary <- fread(file.path(timepoint_root, paste0(slug, "_fold_summary.tsv")))
   fold_names <- substring(basename(fold_dirs), nchar(slug) + 2L)
+  if (!all(c("timepoint", "heldout_replicate", "training_replicates") %in% names(fold_summary)) ||
+      nrow(fold_summary) < 2L || anyNA(fold_summary$training_replicates) ||
+      any(fold_summary$training_replicates != nrow(fold_summary) - 1L) || anyNA(fold_summary$heldout_replicate) ||
+      anyDuplicated(fold_summary$heldout_replicate) ||
+      any(fold_summary$timepoint != timepoint_lookup[[slug]]) ||
+      !setequal(fold_names, as.character(fold_summary$heldout_replicate))) {
+    stop("Fold directories do not match the fold metadata at ", slug)
+  }
+  expected_pair_count <- expected_pair_count + choose(nrow(fold_summary), 2L)
   networks <- setNames(lapply(fold_dirs, function(root) {
     x <- fread(file.path(root, "tf_gene.tsv"))[, .(
       regulator = as.character(regulator), target = as.character(target),
@@ -152,10 +159,10 @@ metrics <- c(
   "median_target_jaccard", "mean_target_jaccard",
   "median_regulator_jaccard", "mean_regulator_jaccard"
 )
-if (nrow(pairs) != 18L || any(!vapply(pairs[, ..metrics], function(x) {
+if (nrow(pairs) != expected_pair_count || any(!vapply(pairs[, ..metrics], function(x) {
   all(is.finite(x)) && all(x >= 0 & x <= 1)
 }, logical(1)))) {
-  stop("Pairwise fold stability contract failed.")
+  stop("Invalid pairwise fold metrics.")
 }
 pair_summary <- melt(
   pairs,
@@ -173,7 +180,6 @@ fwrite(consensus_summary, file.path(output_root, "edge_fold_support_summary.tsv"
   sep = "\t"
 )
 publish_result_files(output_root, final_root)
-cat("gse274113_pairwise_fold_stability\tPASS\t", final_root, "\n", sep = "")
 }
 
 

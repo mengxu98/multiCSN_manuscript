@@ -19,11 +19,6 @@ day_slugs <- c("day_7", "day_9", "day_11", "day_14")
 day_labels <- c("day 7", "day 9", "day 11", "day 14")
 names(day_labels) <- day_slugs
 
-required <- c(
-  annotation_path,
-  file.path(truth_root, "effect_model_summary.tsv")
-)
-if (any(!file.exists(required))) stop("Missing required input: ", paste(required[!file.exists(required)], collapse = ", "))
 
 stage <- tempfile(pattern = ".perturbation_neighborhood_", tmpdir = dirname(output))
 dir.create(stage, recursive = TRUE, showWarnings = FALSE)
@@ -129,7 +124,7 @@ evaluate_set <- function(truth, members) {
 
 effect_summary <- fread(file.path(truth_root, "effect_model_summary.tsv"))
 targets <- sort(unique(effect_summary$target))
-if (length(targets) != 19L) stop("Expected 19 perturbation targets.")
+if (!length(targets) || anyNA(targets) || any(!nzchar(targets))) stop("Invalid perturbation targets.")
 annotations <- fread(annotation_path)
 annotations[, method := fifelse(method == "SCENIC+", "SCENICplus", method)]
 annotations <- annotations[method %chin% methods]
@@ -139,7 +134,6 @@ for (method_name in methods) {
   network_cache[[method_name]] <- list()
   for (day_slug in day_slugs) {
     path <- file.path(network_root, method_name, day_slug, "tf_gene.tsv.gz")
-    if (!file.exists(path)) stop("Missing TF-gene network: ", path)
     network_cache[[method_name]][[day_slug]] <- collapse_tf_gene(path)
   }
 }
@@ -155,7 +149,6 @@ for (day_slug in day_slugs) {
   for (target_tf in targets) {
     rna_path <- file.path(truth_root, "rna_effects", paste0(day_slug, "__", target_tf, ".tsv.gz"))
     atac_path <- file.path(truth_root, "atac_effects", paste0(day_slug, "__", target_tf, ".tsv.gz"))
-    if (!file.exists(rna_path) || !file.exists(atac_path)) stop("Missing full effect matrix for ", target_tf, " ", day_label)
     rna_truth <- fread(rna_path)
     atac_truth <- fread(atac_path)
     rna_stats <- perturbation_response_stat(rna_truth)
@@ -348,4 +341,3 @@ fwrite(hero_paths, file.path(stage, "hero_direction_consistent_paths.tsv"), sep 
 fwrite(hero_curve, file.path(stage, "hero_full_background_enrichment_curves.tsv.gz"), sep = "\t", quote = FALSE, na = "NA")
 
 publish_result_files(stage, output)
-cat("gse274113_perturbation_neighborhood\tPASS\thero ", hero_tf, " at ", hero_day, "; ", nrow(enrichment), " enrichment rows\n", sep = "")

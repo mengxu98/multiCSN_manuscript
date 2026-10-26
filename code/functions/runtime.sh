@@ -5,20 +5,11 @@ export LC_ALL=C
 export PYTHONDONTWRITEBYTECODE=1
 
 task_rscript() {
-  local environment=R_4.5
-  if [[ -f "$HOME/miniconda3/envs/$environment/bin/Rscript" ]]; then
-    printf '%s\n' "$HOME/miniconda3/envs/$environment/bin/Rscript"
-  else
-    command -v Rscript
-  fi
+  command -v Rscript
 }
 
 task_python() {
-  if [[ -f "$HOME/.omicos/env/.venv/bin/python" ]]; then
-    printf '%s\n' "$HOME/.omicos/env/.venv/bin/python"
-  else
-    command -v python3
-  fi
+  command -v python3
 }
 
 r_string() {
@@ -34,10 +25,10 @@ run_task() (
   local script=$1 stage='' timed=false
   local command
   if [[ "$script" == *.R ]]; then
-    command=("$(task_rscript "$script")" --vanilla "$script")
+    command=("$(task_rscript)" --vanilla "$script")
     if [[ $# == 2 ]]; then
       [[ "$2" =~ ^[A-Za-z][A-Za-z0-9_]*$ ]] || exit 1
-      command=("$(task_rscript "$script")" --vanilla -e "source($(r_string "$script")); $2()")
+      command=("$(task_rscript)" --vanilla -e "source($(r_string "$script")); $2()")
     fi
   else
     command=("$(task_python)" "$script")
@@ -63,7 +54,7 @@ run_task() (
     trap 'exit 130' INT TERM
     setsid bash -c 'while [[ ! -f "$1/go" ]]; do sleep 0.02; done; shift; exec /usr/bin/time -v "$@"' bash "$directory" "${command[@]}" &
     task_pid=$!
-    "$(task_rscript "$script")" --vanilla -e "source(\"code/functions/sample_process_tree_rss.R\"); sample_rss($task_pid, $(r_string "$directory"))" &
+    "$(task_rscript)" --vanilla -e "source(\"code/functions/sample_process_tree_rss.R\"); sample_rss($task_pid, $(r_string "$directory"))" &
     sampler_pid=$!
     while [[ ! -f "$directory/ready" ]]; do
       kill -0 "$sampler_pid" 2>/dev/null || { wait "$sampler_pid" || true; exit 1; }

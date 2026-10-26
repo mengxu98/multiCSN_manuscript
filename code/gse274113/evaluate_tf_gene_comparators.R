@@ -240,6 +240,11 @@ if (!all(c("target", "timepoint", "modality", truth_annotation_columns) %in%
   stop("Heldout truth lacks the prespecified perturbation-direction annotations.")
 }
 targets <- sort(unique(effect_summary$target))
+method_design <- rbindlist(list(
+  data.table(method = c("multiCSN", "Pando", "SCENIC+"), endpoint = "TF-gene"),
+  data.table(method = "multiCSN", endpoint = "TF-region")
+))
+comparators <- c("Pando", "SCENIC+")
 expected_effect_design <- CJ(
   target = targets, timepoint = timepoints, modality = c("ATAC", "RNA"),
   unique = TRUE
@@ -247,13 +252,13 @@ expected_effect_design <- CJ(
 observed_effect_design <- unique(effect_summary[, .(target, timepoint, modality)])
 direction_validated <- tolower(as.character(effect_summary$direction_validated)) %in%
   c("true", "1")
-if (length(targets) != 19L || nrow(effect_summary) != 19L * 4L * 2L ||
-  nrow(observed_effect_design) != 19L * 4L * 2L ||
+if (!length(targets) || anyNA(targets) || any(!nzchar(targets)) ||
+  anyDuplicated(effect_summary[, .(target, timepoint, modality)]) ||
   !data.table::fsetequal(observed_effect_design, expected_effect_design) ||
   any(effect_summary$perturbation_type != "coding-sequence loss-of-function") ||
   any(effect_summary$expected_function_direction != "reduced TF function") ||
   any(!direction_validated) || any(!nzchar(effect_summary$validation_basis))) {
-  stop("Heldout truth does not contain the declared 19 TF x 4 timepoint x 2 modality design.")
+  stop("Heldout truth does not cover the input TF/timepoint/modality design.")
 }
 truth_direction_contract <- unique(effect_summary[, .(
   regulator = target, timepoint, perturbation_type,
@@ -261,7 +266,7 @@ truth_direction_contract <- unique(effect_summary[, .(
   direction_validated = TRUE,
   validation_basis
 )])
-if (nrow(truth_direction_contract) != 19L * 4L ||
+if (nrow(truth_direction_contract) != length(targets) * length(timepoints) ||
   anyDuplicated(truth_direction_contract[, .(regulator, timepoint)])) {
   stop("Perturbation-direction annotations disagree across truth modalities.")
 }
@@ -309,18 +314,12 @@ for (timepoint in timepoints) {
   rna_truth_paths <- setNames(file.path(
     truth_root, "rna_effects", paste0(slug, "__", targets, ".tsv.gz")
   ), targets)
-  if (any(!file.exists(rna_truth_paths))) {
-    stop(
-      "Missing RNA truth strata at ", timepoint, ": ",
-      paste(names(rna_truth_paths)[!file.exists(rna_truth_paths)], collapse = ", ")
-    )
-  }
   rna_truth_by_tf <- lapply(rna_truth_paths, fread)
   for (tf in targets) {
     current_truth <- rna_truth_by_tf[[tf]]
     if (!all(c("feature", "logFC", "FDR") %in% names(current_truth)) ||
       anyDuplicated(current_truth$feature)) {
-      stop("RNA truth feature universe changed for ", tf, " at ", timepoint)
+      stop("RNA truth features do not match: ", tf, " at ", timepoint)
     }
   }
   topology_eligibility <- list(
@@ -420,9 +419,6 @@ for (timepoint in timepoints) {
     atac_truth_path <- file.path(
       truth_root, "atac_effects", paste0(slug, "__", tf, ".tsv.gz")
     )
-    if (!file.exists(atac_truth_path)) {
-      stop("Missing heldout truth for ", tf, " at ", timepoint)
-    }
     rna_truth <- rna_truth_by_tf[[tf]]
     atac_truth <- fread(atac_truth_path)
     for (method_key in c("multiCSN", "Pando", "SCENIC+")) {
@@ -449,10 +445,13 @@ for (timepoint in timepoints) {
 }
 
 metrics <- rbindlist(metric_rows, use.names = TRUE)
-expected_rows <- 19L * 4L * 4L
+expected_stratum_design <- method_design[, CJ(regulator = targets, timepoint = timepoints),
+  by = .(method, endpoint)]
+expected_rows <- nrow(expected_stratum_design)
 if (nrow(metrics) != expected_rows ||
-  nrow(metrics[endpoint == "TF-gene"]) != 19L * 4L * 3L ||
-  nrow(metrics[endpoint == "TF-region"]) != 19L * 4L ||
+  !fsetequal(metrics[, .(method, endpoint, regulator, timepoint)], expected_stratum_design) ||
+  nrow(metrics[endpoint == "TF-gene"]) != length(targets) * length(timepoints) * sum(method_design$endpoint == "TF-gene") ||
+  nrow(metrics[endpoint == "TF-region"]) != length(targets) * length(timepoints) * sum(method_design$endpoint == "TF-region") ||
   anyDuplicated(metrics[, .(
     method, endpoint, comparison_universe, regulator, timepoint
   )]) ||
@@ -481,7 +480,9 @@ for (column in c("signed_spearman_all", "signed_spearman_selected")) {
 }
 write_tsv(metrics, file.path(stage, "stratum_metrics.tsv"))
 adapter_summary <- rbindlist(adapter_rows)
-if (nrow(adapter_summary) != 16L ||
+if (nrow(adapter_summary) != nrow(method_design) * length(timepoints) ||
+  !fsetequal(adapter_summary[, .(method, endpoint, timepoint)],
+    method_design[, .(timepoint = timepoints), by = .(method, endpoint)]) ||
   anyDuplicated(adapter_summary[, .(method, endpoint, timepoint)]) ||
   any(adapter_summary$collapsed_relations > adapter_summary$input_rows) ||
   any(adapter_summary$score_available_edges +
@@ -497,7 +498,9 @@ topology_denominators <- network_topology[, .(
   regulator_values = uniqueN(evaluation_regulators),
   target_values = uniqueN(evaluation_targets)
 ), by = .(timepoint, comparison_universe)]
-if (nrow(network_topology) != 3L * 4L ||
+if (nrow(network_topology) != sum(method_design$endpoint == "TF-gene") * length(timepoints) ||
+  !fsetequal(network_topology[, .(method, timepoint)],
+    method_design[endpoint == "TF-gene", .(timepoint = timepoints), by = method]) ||
   anyDuplicated(network_topology[, .(method, timepoint, comparison_universe)]) ||
   any(topology_denominators$possible_values != 1L) ||
   any(topology_denominators$regulator_values != 1L) ||
@@ -542,7 +545,7 @@ setcolorder(truth_strata, c(
   "validation_basis", "evaluable_features", "truth_responses_fdr_0_05",
   "truth_response_prevalence"
 ))
-if (nrow(truth_strata) != 19L * 4L * 2L ||
+if (nrow(truth_strata) != length(targets) * length(timepoints) * length(unique(expected_effect_design$modality)) ||
   any(!truth_strata$direction_validated) ||
   any(truth_strata$perturbation_type != "coding-sequence loss-of-function") ||
   any(truth_strata$expected_function_direction != "reduced TF function") ||
@@ -635,7 +638,7 @@ for (current_method in unique(metrics$method)) {
   }
 }
 macro_metrics <- rbindlist(macro_rows)
-if (nrow(macro_metrics) != 4L * length(metric_columns) ||
+if (nrow(macro_metrics) != nrow(method_design) * length(metric_columns) ||
   anyDuplicated(macro_metrics[, .(
     method, endpoint, comparison_universe, metric
   )]) ||
@@ -657,7 +660,8 @@ tf_metrics <- metrics[
   , lapply(.SD, finite_mean),
   by = .(method, endpoint, comparison_universe, regulator), .SDcols = metric_columns
 ]
-if (nrow(timepoint_metrics) != 16L || nrow(tf_metrics) != 76L ||
+if (nrow(timepoint_metrics) != nrow(method_design) * length(timepoints) ||
+  nrow(tf_metrics) != nrow(method_design) * length(targets) ||
   anyDuplicated(timepoint_metrics[, .(
     method, endpoint, comparison_universe, timepoint
   )]) ||
@@ -677,7 +681,7 @@ paired_metrics <- c(
 )
 comparison_rows <- list()
 cursor <- 1L
-for (comparator in c("Pando", "SCENIC+")) {
+for (comparator in comparators) {
   for (current_universe in "full_truth_feature_universe") {
     base <- metrics[
       method == "multiCSN" & endpoint == "TF-gene" &
@@ -692,7 +696,7 @@ for (comparator in c("Pando", "SCENIC+")) {
       by = c("regulator", "timepoint", "endpoint", "comparison_universe"),
       suffixes = c("_multicsn", "_comparator"), sort = TRUE
     )
-    if (nrow(paired) != 76L) {
+    if (nrow(paired) != length(targets) * length(timepoints)) {
       stop("Incomplete paired comparison for ", comparator, " in ", current_universe)
     }
     tf_clusters <- sort(unique(paired$regulator))
@@ -779,7 +783,7 @@ for (comparator in c("Pando", "SCENIC+")) {
   }
 }
 paired_comparisons <- rbindlist(comparison_rows)
-if (nrow(paired_comparisons) != 16L ||
+if (nrow(paired_comparisons) != length(comparators) * length(paired_metrics) ||
   anyDuplicated(paired_comparisons[, .(
     comparator, comparison_universe, metric
   )]) ||
@@ -797,6 +801,4 @@ if (nrow(paired_comparisons) != 16L ||
 write_tsv(paired_comparisons, file.path(stage, "paired_method_differences.tsv"))
 
 publish_result_files(stage, destination)
-cat("destination\t", destination, "\n", sep = "")
-cat("completed_utc\t", format(Sys.time(), tz = "UTC", usetz = TRUE), "\n", sep = "")
 print(macro_metrics)

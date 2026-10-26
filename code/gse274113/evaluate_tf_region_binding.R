@@ -93,15 +93,12 @@ dir.create(stage_root, recursive = FALSE)
 chip_path <- file.path(evidence_root, "primary_erythroid_ChIP_peaks_hg38.tsv.gz")
 unibind_path <- file.path(evidence_root, "UniBind_perturbed_TFs_hg38.tsv.gz")
 effect_summary_path <- file.path(truth_root, "effect_model_summary.tsv")
-if (!all(file.exists(c(chip_path, unibind_path, effect_summary_path)))) {
-  stop("Prepared binding evidence and held-out truth are required.")
-}
 chip <- fread(chip_path)
 unibind <- fread(unibind_path)
 required_binding <- c("regulator", "chrom", "start", "end")
 if (!all(required_binding %in% names(chip)) ||
   !all(required_binding %in% names(unibind))) {
-  stop("Prepared binding-evidence schema changed.")
+  stop("Invalid binding-evidence columns.")
 }
 effect_summary <- fread(effect_summary_path)
 targets <- sort(unique(as.character(effect_summary$target)))
@@ -114,7 +111,7 @@ methods <- if (is.null(arguments$methods)) {
 if (!length(methods) || anyDuplicated(methods) || any(!nzchar(methods))) {
   stop("methods must contain unique method names.")
 }
-if (length(targets) != 19L) stop("Expected 19 perturbed TFs.")
+if (!length(targets) || anyNA(targets) || any(!nzchar(targets))) stop("Invalid perturbed TF identifiers.")
 
 evidence_sets <- list(
   primary_erythroid_ChIP = chip,
@@ -132,7 +129,6 @@ for (timepoint in timepoints) {
   predictions <- list()
   for (method in methods) {
     path <- file.path(endpoint_root, method, slug, "tf_region.tsv.gz")
-    if (!file.exists(path)) stop("Missing TF-region endpoint: ", path)
     predictions[[method]] <- fread(path)
   }
   for (regulator in targets) {
@@ -140,7 +136,6 @@ for (timepoint in timepoints) {
     truth_path <- file.path(
       truth_root, "atac_effects", paste0(slug, "__", regulator, ".tsv.gz")
     )
-    if (!file.exists(truth_path)) stop("Missing ATAC universe: ", truth_path)
     universe <- fread(truth_path, select = "feature")$feature
     if (anyDuplicated(universe)) stop("Duplicated ATAC universe regions.")
     universe_ranges <- regions_to_granges(universe)
@@ -268,7 +263,6 @@ write_tsv(
 )
 
 publish_result_files(stage_root, output_root, prefix = if (identical(arguments$methods, "LINGER")) "linger_" else "")
-cat("TF_region_external_binding_evaluation\tPASS\t", output_root, "\n", sep = "")
 
 }
 

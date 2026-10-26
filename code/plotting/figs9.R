@@ -79,7 +79,10 @@ setorder(module_meta, anchor_class, source_rank, regulator)
 target_sets <- split(membership$target, membership$module_id)
 module_ids <- module_meta$module_id
 n_modules <- length(module_ids)
-target_universe <- 11017L
+target_universe <- uniqueN(fread(
+  file.path(repo, "results", "gse162170", "network", "triplets.tsv"),
+  select = "target"
+)$target)
 
 jaccard <- matrix(
   0,

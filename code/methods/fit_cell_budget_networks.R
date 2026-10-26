@@ -57,16 +57,14 @@ worker <- function(task) {
     saveRDS(list(settings = fit$settings, summary = fit$summary, accounting = fit$accounting), file.path(path, "fit_summary.rds"))
     TRUE
 }
-result <- parallel::mclapply(all_tasks, worker, mc.cores = config$parallel_jobs, mc.preschedule = FALSE, mc.set.seed = FALSE)
-
-
+invisible(parallel::mclapply(all_tasks, worker, mc.cores = config$parallel_jobs, mc.preschedule = FALSE, mc.set.seed = FALSE))
 }
 
 run_cortex_sensitivity <- function() {
   fit_cell_budget_networks(
     list(input = "data/gse162170/gse162170_candidates.rds", dataset = "cortex",
          classes = c("GluN", "IN", "IPC_RG", "OPC_Glia"),
-         fit_cores = 1L, parallel_jobs = 2L, expected_tasks = 4L),
+         fit_cores = 1L, parallel_jobs = 2L),
     "results/gse162170/within_class/fits"
   )
 }
@@ -77,7 +75,7 @@ run_erythroid_sensitivity <- function() {
          trajectory = "results/gse194122/trajectory/erythroid_coordinates_and_pseudotime.tsv.gz",
          states = c("HSC", "MK/E prog", "Proerythroblast", "Erythroblast", "Normoblast"),
          budget = 500L, seeds = 3101:3110, fit_cores = 1L,
-         parallel_jobs = 24L, expected_tasks = 540L),
+         parallel_jobs = 24L),
     "results/gse194122/cell_budget/fits"
   )
 }

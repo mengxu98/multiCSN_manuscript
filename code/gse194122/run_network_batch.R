@@ -26,9 +26,10 @@ run_batch <- function(settings, memory_available = available_memory_kib,
   if (!all(file.exists(c(settings$input, plan)))) stop("Missing required input")
   tasks <- read.delim(plan, colClasses = "character", check.names = FALSE)
   required <- c("task_order", "task_slug", "state", "expected_cells", "cell_manifest")
-  if (!all(required %in% names(tasks)) || nrow(tasks) != settings$expected_tasks || anyNA(tasks[, required]))
+  if (!all(required %in% names(tasks)) || !nrow(tasks) || anyNA(tasks[, required]))
     stop("Invalid task plan or task count")
   if (!identical(as.integer(tasks$task_order), seq_len(nrow(tasks)))) stop("Task orders must be contiguous and unique")
+  if (is.null(settings$task_end)) settings$task_end <- nrow(tasks)
   slugs <- tasks$task_slug
   if (anyDuplicated(slugs) || any(!nzchar(slugs) | basename(slugs) != slugs | slugs %in% c(".", "..")))
     stop("Task output names must be unique directory names")
@@ -57,53 +58,50 @@ run_batch <- function(settings, memory_available = available_memory_kib,
       job$process$wait()
     }
   }, add = TRUE)
-  if (!isTRUE(settings$validate_only)) {
-    queue <- seq.int(settings$task_start, settings$task_end)
-    last_gate <- -Inf
-    while (length(queue) || length(active)) {
-      for (key in names(active)) {
-        job <- active[[key]]
-        if (job$process$is_alive()) next
-        code <- job$process$get_exit_status()
-        active[[key]] <- NULL
-        if (code != 0L) stop("Network worker failed: ", job$slug, " (exit ", code, ")")
-      }
-      while (length(queue) && length(active) < settings$max_jobs) {
-        i <- queue[1L]
-        task <- tasks[i, ]
-        output <- file.path(root, "results", task$task_slug)
-        if (file.exists(output)) {
-          validate_task(i)
-          queue <- queue[-1L]
-          next
-        }
-        available <- memory_available()
-        if (!is.finite(available)) stop("Invalid available memory reading")
-        if (available < settings$memory_gate_kib) {
-          if (as.numeric(Sys.time()) - last_gate >= 30) {
-            message("Waiting for memory: ", task$task_slug, " (", available, " KiB available)")
-            last_gate <- as.numeric(Sys.time())
-          }
-          break
-        }
-        arguments <- c(list(dataset = paste0("GSE194122_", task$task_slug), output = output), task_arguments(task, settings))
-        job <- list(slug = task$task_slug)
-        executable <- if (is.null(settings$rscript)) file.path(R.home("bin"), "Rscript") else settings$rscript
-        worker <- if (is.null(settings$worker_script)) "code/functions/network_fit.R" else settings$worker_script
-        env <- Sys.getenv()
-        env["R_PROFILE_USER"] <- "/dev/null"
-        if (!is.null(settings$r_library)) env["R_LIBS_USER"] <- settings$r_library
-        job$process <- processx::process$new(executable, c("--vanilla", "-e", r_function_expression(worker, "fit_state_networks", arguments)),
-          stdout = "", stderr = "",
-          env = env, cleanup_tree = TRUE, supervise = TRUE)
-        active[[task$task_slug]] <- job
-        queue <- queue[-1L]
-      }
-      if (length(queue) || length(active)) Sys.sleep(0.1)
+  queue <- seq.int(settings$task_start, settings$task_end)
+  last_gate <- -Inf
+  while (length(queue) || length(active)) {
+    for (key in names(active)) {
+      job <- active[[key]]
+      if (job$process$is_alive()) next
+      code <- job$process$get_exit_status()
+      active[[key]] <- NULL
+      if (code != 0L) stop("Network worker failed: ", job$slug, " (exit ", code, ")")
+      validate_task(job$index)
     }
+    while (length(queue) && length(active) < settings$max_jobs) {
+      i <- queue[1L]
+      task <- tasks[i, ]
+      output <- file.path(root, "results", task$task_slug)
+      if (file.exists(output)) {
+        validate_task(i)
+        queue <- queue[-1L]
+        next
+      }
+      available <- memory_available()
+      if (!is.finite(available)) stop("Invalid available memory reading")
+      if (available < settings$memory_gate_kib) {
+        if (as.numeric(Sys.time()) - last_gate >= 30) {
+          message("Waiting for memory: ", task$task_slug, " (", available, " KiB available)")
+          last_gate <- as.numeric(Sys.time())
+        }
+        break
+      }
+      arguments <- c(list(dataset = paste0("GSE194122_", task$task_slug), output = output), task_arguments(task, settings))
+      job <- list(slug = task$task_slug, index = i)
+      executable <- if (is.null(settings$rscript)) file.path(R.home("bin"), "Rscript") else settings$rscript
+      worker <- if (is.null(settings$worker_script)) "code/functions/network_fit.R" else settings$worker_script
+      env <- Sys.getenv()
+      env["R_PROFILE_USER"] <- "/dev/null"
+      if (!is.null(settings$r_library)) env["R_LIBS_USER"] <- settings$r_library
+      job$process <- processx::process$new(executable, c("--vanilla", "-e", r_function_expression(worker, "fit_state_networks", arguments)),
+        stdout = "", stderr = "",
+        env = env, cleanup_tree = TRUE, supervise = TRUE)
+      active[[task$task_slug]] <- job
+      queue <- queue[-1L]
+    }
+    if (length(queue) || length(active)) Sys.sleep(0.1)
   }
-  for (i in seq_len(nrow(tasks))) validate_task(i)
-  cat("All declared network outputs validated.\n")
   invisible(TRUE)
 }
 
@@ -111,13 +109,13 @@ TASKS <- list(
   donor_deletion = list(root = "runs/gse194122/donor_deletion_runs",
     manifest_source = "results/gse194122/sampling",
     input = "data/gse194122/gse194122_candidates.rds",
-    plan = "donor_deletion_plan.tsv", expected_tasks = 49L, max_jobs = 3L,
-    task_start = 1L, task_end = 49L, response_chunk = 1024L, memory_gate_kib = 125829120),
+    plan = "donor_deletion_plan.tsv", max_jobs = 3L,
+    task_start = 1L, task_end = NULL, response_chunk = 1024L, memory_gate_kib = 125829120),
   cell_budget = list(root = "runs/gse194122/cell_budget_runs",
     manifest_source = "results/gse194122/sampling",
     input = "data/gse194122/gse194122_candidates.rds",
-    plan = "cell_budget_sampling_plan.tsv", expected_tasks = 50L, max_jobs = 5L,
-    task_start = 1L, task_end = 50L, response_chunk = 1024L, memory_gate_kib = 125829120))
+    plan = "cell_budget_sampling_plan.tsv", max_jobs = 5L,
+    task_start = 1L, task_end = NULL, response_chunk = 1024L, memory_gate_kib = 125829120))
 
 run_donor_deletion <- function() run_batch(TASKS$donor_deletion)
 run_cell_budget <- function() run_batch(TASKS$cell_budget)

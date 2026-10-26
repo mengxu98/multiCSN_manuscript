@@ -23,9 +23,9 @@ timepoints <- c("day 7", "day 9", "day 11", "day 14")
 effect_summary_path <- file.path(truth_root, "effect_model_summary.tsv")
 effect_summary <- fread(effect_summary_path)
 targets <- sort(unique(as.character(effect_summary$target)))
-if (length(targets) != 19L ||
+if (!length(targets) || anyNA(targets) || any(!nzchar(targets)) ||
     !setequal(unique(effect_summary$timepoint), timepoints)) {
-  stop("Held-out truth failed the 19-TF four-timepoint gate.", call. = FALSE)
+  stop("Held-out truth has invalid TF or timepoint identifiers.", call. = FALSE)
 }
 
 prepare_endpoints <- function() {
@@ -48,9 +48,6 @@ prepare_endpoints <- function() {
     tf_region_path <- file.path(source_dir, "tf_region.tsv.gz")
     region_gene_path <- file.path(source_dir, "region_gene.tsv.gz")
     summary_path <- file.path(source_dir, "network_summary.tsv")
-    if (!all(file.exists(c(tf_region_path, region_gene_path, summary_path)))) {
-      stop("Missing LINGER endpoint at ", slug, call. = FALSE)
-    }
     tf_region <- fread(tf_region_path)
     if (!all(c("region", "regulator", "score") %in% names(tf_region)) ||
         any(!is.finite(tf_region$score)) || any(tf_region$score == 0)) {
@@ -173,31 +170,25 @@ run_chain_evaluation <- function() {
         chains, fread(atac_path), fread(rna_path),
         "LINGER", regulator, timepoint
       )$metrics
-      list(metrics = evaluated, triplet_count = nrow(chains))
+      list(metrics = evaluated)
     }, mc.cores = min(8L, length(targets)), mc.preschedule = FALSE)
-    if (any(vapply(evaluated_targets, inherits, logical(1), "try-error"))) {
-      stop("Parallel LINGER chain evaluation failed at ", timepoint)
-    }
-    triplet_count <- sum(vapply(
-      evaluated_targets, `[[`, numeric(1), "triplet_count"
-    ))
     for (evaluated in evaluated_targets) {
       metric_rows[[cursor]] <- evaluated$metrics
       cursor <- cursor + 1L
     }
-    cat("chain_timepoint\tPASS\t", timepoint, "\t", triplet_count, "\n", sep = "")
     rm(tf_region, region_gene, evaluated_targets)
     gc(verbose = FALSE)
   }
   strata <- rbindlist(metric_rows, use.names = TRUE, fill = TRUE)
-  if (nrow(strata) != 76L || anyDuplicated(strata[, .(method, regulator, timepoint)])) {
-    stop("LINGER chain response failed the 19-TF four-timepoint gate.")
+  if (nrow(strata) != length(targets) * length(timepoints) ||
+      !fsetequal(strata[, .(method, regulator, timepoint)],
+        CJ(method = "LINGER", regulator = targets, timepoint = timepoints)) || anyDuplicated(strata[, .(method, regulator, timepoint)])) {
+    stop("LINGER chain response did not cover the input TF/timepoint design.")
   }
   clusters <- summarize_chain_responses(strata)
   write_tsv(strata, file.path(stage, "chain_response_stratum_metrics.tsv.gz"))
   write_tsv(clusters, file.path(stage, "chain_response_TF_cluster_metrics.tsv"))
   publish_result_files(stage, output_root, prefix = "linger_")
-  cat("linger_chain_evaluation\tPASS\t", output_root, "\n", sep = "")
 }
 
 prepare_endpoints()

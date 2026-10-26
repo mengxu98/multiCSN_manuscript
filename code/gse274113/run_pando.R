@@ -4,7 +4,7 @@ run_pando <- function(cores = 1L, output_root = NULL) {
 source("code/functions/network_io.R")
 
 source("code/functions/runtime.R")
-configure_task_runtime()
+configure_task_runtime(comparator_library = TRUE)
 
 suppressPackageStartupMessages({
   library(data.table)
@@ -43,12 +43,7 @@ if (!all(file.exists(c(input_path, input_validation)))) {
 }
 if (dir.exists(destination)) stop("Formal Pando result already exists: ", destination)
 
-safe_slot <- function(object, expression, fallback = data.frame()) {
-  tryCatch(force(expression), error = function(error) fallback)
-}
-
 timepoints <- c("day 7", "day 9", "day 11", "day 14")
-expected_cells <- c("day 7" = 3304L, "day 9" = 4167L, "day 11" = 1903L, "day 14" = 2073L)
 pando_p_thresh <- 0.05
 pando_rsq_thresh <- 0.1
 pando_nvar_thresh <- 10L
@@ -57,12 +52,11 @@ dir.create(output_parent, recursive = TRUE, showWarnings = FALSE)
 stage <- tempfile(pattern = ".staging_Pando_GSE274113_", tmpdir = output_parent)
 dir.create(stage)
 
-cat("started_utc\t", format(Sys.time(), tz = "UTC", usetz = TRUE), "\n", sep = "")
 object <- readRDS(input_path)
 observed_timepoint_cells <- table(object$Timepoint)
-if (ncol(object) != 11447L ||
+if (!ncol(object) || anyDuplicated(colnames(object)) || anyNA(object$Timepoint) ||
   !setequal(names(observed_timepoint_cells), timepoints) ||
-  !identical(as.integer(observed_timepoint_cells[timepoints]), unname(expected_cells))) {
+  !"target" %in% names(object[[]]) || anyNA(object$target) || any(object$target != "NT")) {
   stop("GSE274113 control object failed Pando input validation.")
 }
 
@@ -95,7 +89,7 @@ for (index in seq_along(timepoints)) {
   time_dir <- file.path(stage, slug)
   dir.create(time_dir)
   cells <- colnames(template@data)[template@data$Timepoint == timepoint]
-  if (length(cells) != expected_cells[[timepoint]]) {
+  if (!setequal(cells, colnames(object)[object$Timepoint == timepoint])) {
     stop("Unexpected control-cell count for ", timepoint)
   }
   fitted <- template
@@ -141,10 +135,7 @@ for (index in seq_along(timepoints)) {
     nvar_thresh = pando_nvar_thresh,
     min_genes_per_module = pando_min_genes_per_module
   )
-  module_meta <- safe_slot(
-    fitted,
-    as.data.frame(Pando::NetworkModules(fitted)@meta)
-  )
+  module_meta <- as.data.frame(Pando::NetworkModules(fitted)@meta)
   required_coefficient_columns <- c(
     "tf", "region", "target", "estimate", "pval", "padj"
   )
@@ -231,13 +222,11 @@ for (index in seq_along(timepoints)) {
   gc(verbose = FALSE)
 }
 summary <- do.call(rbind, summary_rows)
-if (!identical(summary$timepoint, timepoints) || sum(summary$control_cells) != 11447L) {
+if (!identical(summary$timepoint, timepoints) || sum(summary$control_cells) != ncol(object)) {
   stop("Pando timepoint suite failed control-cell accounting.")
 }
 write_tsv(summary, file.path(stage, "timepoint_run_summary.tsv"), na = "")
 if (!file.rename(stage, destination)) stop("Unable to promote formal Pando result.")
-cat("destination\t", destination, "\n", sep = "")
-cat("completed_utc\t", format(Sys.time(), tz = "UTC", usetz = TRUE), "\n", sep = "")
 print(summary)
 }
 

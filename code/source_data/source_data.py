@@ -98,8 +98,6 @@ def _sanitize_sheet_name(name):
 def read_table(relative_path):
     """Read a result table (tsv/csv, optionally gzip-compressed)."""
     path = os.path.join(PROJECT_ROOT, relative_path)
-    if not os.path.exists(path):
-        raise FileNotFoundError(relative_path)
     if path.endswith(".gz"):
         engine_path = path
         lowered = path[:-3].lower()
@@ -120,15 +118,15 @@ SOURCE_SHEETS = [
     dict(sheet="BEELINE_case_metrics", figure="Figure 2a,b; Figures S1-S3",
          content="Complete case-level AP, benchmark metrics, prevalence, within-case ranks and paired AP differences (multiCSN minus comparator) for 500 cases and 11 methods; self-comparisons are blank; DatasetType distinguishes curated and synthetic cases",
          path="results/beeline/metrics/case_metrics.tsv", transform="beeline_metrics"),
-    dict(sheet="BEELINE_AP_summary", figure="Figure S1; Table S2",
+    dict(sheet="BEELINE_AP_summary", nonempty=True, figure="Figure S1; Table S2",
          content="Mean AP and trapezoidal AUPRC, with case counts and mean case ranks for all 500 cases and the curated and synthetic subsets",
-         path="results/beeline/ap_sensitivity/method_summary.tsv", expected_rows=33),
+         path="results/beeline/ap_sensitivity/method_summary.tsv"),
     dict(sheet="BEELINE_AP_groups", figure="Figure S1",
          content="AP and trapezoidal AUPRC means by benchmark model and method",
          path="results/beeline/ap_sensitivity/group_summary.tsv"),
-    dict(sheet="BEELINE_AP_paired_summary", figure="Figure S1",
+    dict(sheet="BEELINE_AP_paired_summary", nonempty=True, figure="Figure S1",
          content="Descriptive paired AP differences and case win/tie/loss counts",
-         path="results/beeline/ap_sensitivity/paired_summary.tsv", expected_rows=10),
+         path="results/beeline/ap_sensitivity/paired_summary.tsv"),
     dict(sheet="Fig2b_rank_summary", figure="Figure 2b",
          content="Mean, median and quartile within-case ranks per method and metric across the 500 cases",
          path="results/beeline/metrics/rank_summary.tsv"),
@@ -207,14 +205,13 @@ SOURCE_SHEETS = [
     dict(sheet="Fig4e_aucell_by_class", figure="Figure 4e",
          content="RNA AUCell of the five chromatin-anchored target programs by cell class",
          path="results/gse162170/cell_programs/aucell_by_class.tsv"),
-    dict(sheet="Fig4e_aucell_by_cell", figure="Figure 4e",
+    dict(sheet="Fig4e_aucell_by_cell", nonempty=True, figure="Figure 4e",
          content="All five RNA AUCell scores per cell, UMAP coordinates and cell annotations",
          path="results/gse162170/cell_programs/aucell_by_cell.tsv.gz",
-         expected_rows=44905, transform="aucell_cells"),
-    dict(sheet="Fig4e_threshold_summary", figure="Figure 4e",
+         transform="aucell_cells"),
+    dict(sheet="Fig4e_threshold_summary", nonempty=True, figure="Figure 4e",
          content="Fixed program-specific AUC thresholds, above-threshold counts, cell totals and fractions by cell class",
-         path="results/gse162170/cell_programs/aucell_threshold_summary.tsv",
-         expected_rows=25),
+         path="results/gse162170/cell_programs/aucell_threshold_summary.tsv"),
     dict(sheet="Fig4f_module_activity", figure="Figure 4f",
          content="Aligned RNA target-AUCell and selected-region ATAC activity for the 25 regulator-anchor-sign modules",
          path="results/gse162170/cell_programs/module_raw_and_scaled_activity.tsv"),
@@ -230,14 +227,13 @@ SOURCE_SHEETS = [
     dict(sheet="Fig4h_gsea_genes", figure="Figure 4h",
          content="Leading-edge and rank statistics of the displayed GSEA terms",
          path="results/gse162170/key_gene_gsea/gsea_key_genes.tsv"),
-    dict(sheet="Fig4h_rank_curve", figure="Figure 4h",
+    dict(sheet="Fig4h_rank_curve", nonempty=True, figure="Figure 4h",
          content="Complete 11,017-target IPC/RG RNA ranking, exact plotted running enrichment score, pathway membership and leading-edge membership",
-         path="results/gse162170/key_gene_gsea/gsea_rank_curve.tsv.gz",
-         expected_rows=11017),
+         path="results/gse162170/key_gene_gsea/gsea_rank_curve.tsv.gz"),
     dict(sheet="Fig4ij_S11_ZNF804A_paths", figure="Figure 4i,j; Figure S11a,b",
          content="The 32 ZNF804A exact-region paths with regulators, regions, signs and deletion evidence",
          path="results/gse162170/loci/candidates/ZNF804A_paths.tsv",
-         identity=("target", "ZNF804A"), expected_rows=32),
+         identity=("target", "ZNF804A")),
     dict(sheet="Fig4i_ZNF804A_annotation", figure="Figure 4i",
          content="ZNF804A gene annotation used with the path coordinates to draw the locus track",
          path="results/gse162170/loci/candidates/ZNF804A_gene_annotation.tsv",
@@ -252,7 +248,7 @@ SOURCE_SHEETS = [
     dict(sheet="FigS11_KCNC2_paths", figure="Figure S11c-e",
          content="The 33 KCNC2 exact-region paths with regulators, regions, signs and deletion evidence",
          path="results/gse162170/loci/candidates/KCNC2_paths.tsv",
-         identity=("target", "KCNC2"), expected_rows=33),
+         identity=("target", "KCNC2")),
     dict(sheet="FigS11c_KCNC2_annotation", figure="Figure S11c",
          content="KCNC2 gene annotation used with the path coordinates to draw the locus track",
          path="results/gse162170/loci/candidates/KCNC2_gene_annotation.tsv",
@@ -291,18 +287,18 @@ SOURCE_SHEETS = [
          content="Gained, lost, sign-stable and sign-flipped support across adjacent erythroid states",
          path="results/gse194122/trajectory/GSE5d_adjacent_transition_topology.tsv"),
 
-    dict(sheet="Fig5e_budget_coupling", figure="Figure 5e",
+    dict(sheet="Fig5e_budget_coupling", nonempty=True, figure="Figure 5e",
          content="Ten equal-budget donor-exclusion reconstructions: finite module counts and median five-state RNA-support correlations",
-         path="results/gse194122/cell_budget/global_coupling_summary.tsv", expected_rows=10),
-    dict(sheet="Erythroid_target_retention", figure="Methods: Erythroid network stability and program analysis",
+         path="results/gse194122/cell_budget/global_coupling_summary.tsv"),
+    dict(sheet="Erythroid_target_retention", nonempty=True, figure="Methods: Erythroid network stability and program analysis",
          content="Complete HMGA1 and BNC2 direct-target retention in ten 500-cell donor-exclusion reconstructions",
-         path="results/gse194122/cell_budget/focal_target_set_retention.tsv", expected_rows=30),
-    dict(sheet="Erythroid_GO_sensitivity", figure="Methods: Erythroid network stability and program analysis",
+         path="results/gse194122/cell_budget/focal_target_set_retention.tsv"),
+    dict(sheet="Erythroid_GO_sensitivity", nonempty=True, figure="Methods: Erythroid network stability and program analysis",
          content="Retention of all original HMGA1 and BNC2 GO terms with same-family full-cohort controls",
-         path="results/gse194122/cell_budget/displayed_GO_reproducibility.tsv", expected_rows=10),
-    dict(sheet="TableS6_GATA1_gate", figure="Table S6",
-         content="All five states of the failed fixed GATA1 case-validation gate; complete chains and all four RNA timepoints are in the annex",
-         path="results/gse194122/cases/GATA1_gate_stages.tsv", expected_rows=5),
+         path="results/gse194122/cell_budget/displayed_GO_reproducibility.tsv"),
+    dict(sheet="TableS6_GATA1_gate", nonempty=True, figure="Table S6",
+         content="Five-state GATA1 cross-cohort assessment combining reconstruction consensus, ChIP overlap and RNA responses",
+         path="results/gse194122/cases/GATA1_gate_stages.tsv"),
 
     # Supplementary Figures
     dict(sheet="FigS4_scaling_runs", figure="Figure S4",
@@ -424,24 +420,24 @@ SOURCE_SHEETS = [
          content="Complete ordered fetal-cortex locus screen with all screening statistics and within-class ranks",
          path="results/gse162170/loci/eligible_loci_by_class.tsv"),
 
-    dict(sheet="Fig5ij_RNA_donor_scores", figure="Figure 5i,j; Figure S15c,d",
+    dict(sheet="Fig5ij_RNA_donor_scores", nonempty=True, figure="Figure 5i,j; Figure S15c,d",
          content="All four fixed functional subsets and TF RNA, feature-standardized over 49 donor-state observations; no RNA-based gene filtering",
-         path="results/gse194122/cases/program_donor_RNA_scores.tsv", expected_rows=392),
-    dict(sheet="Fig5ij_S15_program_members", figure="Figure 5i,j; Figure S15b-d",
+         path="results/gse194122/cases/program_donor_RNA_scores.tsv"),
+    dict(sheet="Fig5ij_S15_program_members", nonempty=True, figure="Figure 5i,j; Figure S15b-d",
          content="Complete GO-defined display memberships for HMGA1 (16), SOX6 (14), KLF1 (13) and BNC2 (39)",
-         path="results/gse194122/cases/program_members.tsv", expected_rows=82),
-    dict(sheet="FigS15a_HMGA1_retention", figure="Figure S15a",
+         path="results/gse194122/cases/program_members.tsv"),
+    dict(sheet="FigS15a_HMGA1_retention", nonempty=True, figure="Figure S15a",
          content="Reference recall and budget containment for all ten HMGA1 loss-set reconstructions; full-cohort reference also retained",
-         path="results/gse194122/cases/HMGA1_target_retention.tsv", expected_rows=11),
-    dict(sheet="FigS15b_SOX6_link_recurrence", figure="Figure S15b",
+         path="results/gse194122/cases/HMGA1_target_retention.tsv"),
+    dict(sheet="FigS15b_SOX6_link_recurrence", nonempty=True, figure="Figure S15b",
          content="All 14 SOX6 functional-subset genes across five states; same-sign direct-link selection counts out of ten and reference selection",
-         path="results/gse194122/cases/SOX6_signed_link_recurrence.tsv", expected_rows=70),
-    dict(sheet="Erythroid_reported_GO", figure="Figure 5i,j; Figure S15c,d",
+         path="results/gse194122/cases/SOX6_signed_link_recurrence.tsv"),
+    dict(sheet="Erythroid_reported_GO", nonempty=True, figure="Figure 5i,j; Figure S15c,d",
          content="Reported GO tests with explicit endpoint and correction family; HMGA1 GO test is for the 23-gene core, whose 16 translation members are plotted",
-         path="results/gse194122/cases/reported_program_GO.tsv", expected_rows=4),
-    dict(sheet="Fig5ij_GO_display", figure="Figure 5i,j",
+         path="results/gse194122/cases/reported_program_GO.tsv"),
+    dict(sheet="Fig5ij_GO_display", nonempty=True, figure="Figure 5i,j",
          content="Five displayed GO terms with full tested set sizes, term overlaps, explicit backgrounds and distinct BH correction families",
-         path="source_data/files/fig5ij_GO_display.tsv", expected_rows=5),
+         path="source_data/files/fig5ij_GO_display.tsv"),
 ]
 
 
@@ -489,7 +485,7 @@ def load_source_sheet(entry):
         if case not in _case_views:
             with tempfile.TemporaryDirectory(prefix="beeline-case-") as directory:
                 subprocess.run(r_function_command(
-                    "code/functions/beeline_case_views.R", "write_beeline_case", role="beeline",
+                    "code/functions/beeline_case_views.R", "write_beeline_case",
                     repo=PROJECT_ROOT, case=case, output=directory), env=task_environment(), check=True)
                 _case_views[case] = {
                     name: pd.read_csv(os.path.join(directory, name + ".tsv"), sep="\t")
@@ -498,23 +494,26 @@ def load_source_sheet(entry):
         df = _case_views[case][entry["view"]].copy()
     else:
         df = read_table(entry["path"])
+    if entry.get("nonempty") and df.empty:
+        raise ValueError(f"{entry['sheet']}: no data rows")
     if entry.get("identity"):
         column, expected = entry["identity"]
-        if column not in df or df.empty or df[column].isna().any() or set(df[column]) != {expected}:
+        if df.empty or df[column].isna().any() or set(df[column]) != {expected}:
             raise ValueError(f"{entry['sheet']}: expected {column}={expected} in {entry['path']}")
-    if "expected_rows" in entry and len(df) != entry["expected_rows"]:
-        raise ValueError(f"{entry['sheet']}: expected {entry['expected_rows']} rows, got {len(df)}")
     if entry.get("transform"):
         df = transform_source(df, entry["transform"])
     if entry.get("columns"):
         df = df[entry["columns"]]
     for column, labels in entry.get("display_labels", {}).items():
         df[column] = df[column].replace(labels)
+    if entry.get("nonempty") and df.empty:
+        raise ValueError(f"{entry['sheet']}: no data rows")
     return _format_columns(df)
 
 
 def write_workbook(xlsx_path, index, sheets):
     wb = Workbook(write_only=True)
+    wb.properties.creator = "multiCSN"
     wb._fonts[0] = Font(name=FONT_NAME, size=11)
     used = set()
     header_fill = PatternFill(fill_type="solid", fgColor=HEADER_FILL)
@@ -564,14 +563,17 @@ def write_workbook(xlsx_path, index, sheets):
                 cells.append(cell)
             ws.append(cells)
         log(f"{sheet_name}: {len(df):,} rows")
-    wb.save(xlsx_path)
+    destination = Path(xlsx_path)
+    with tempfile.TemporaryDirectory(prefix=".source-data-", dir=destination.parent) as directory:
+        candidate = Path(directory) / destination.name
+        wb.save(candidate)
+        os.replace(candidate, destination)
 
 
 def main():
     _case_views.clear()
     os.makedirs(OUT_DIR, exist_ok=True)
     from export_sensitivity_tables import export_sensitivity_tables
-    export_sensitivity_tables()
     log(f"Building Source Data from {len(SOURCE_SHEETS)} result tables")
 
     index_rows = []
@@ -602,6 +604,7 @@ def main():
     source_index = pd.DataFrame(index_rows).sort_values(
         "Figure", key=lambda s: s.map(_figure_sort_key), kind="stable"
     ).reset_index(drop=True)
+    export_sensitivity_tables()
     write_workbook(
         SOURCE_XLSX,
         source_index,

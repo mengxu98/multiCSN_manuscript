@@ -45,6 +45,10 @@ metric_columns <- c(
 )
 comparators <- c("Pando", "SCENIC+")
 universes <- "full_truth_feature_universe"
+truth_design <- unique(fread(file.path(input_root, "truth_stratum_summary.tsv"),
+  select = c("regulator", "timepoint")))
+if (!nrow(truth_design) || anyNA(truth_design)) stop("Invalid truth stratum identifiers.")
+regulators <- sort(unique(truth_design$regulator))
 
 difference_rows <- list()
 test_rows <- list()
@@ -55,7 +59,7 @@ for (universe in universes) {
     method == "multiCSN" & endpoint == "TF-gene" &
       comparison_universe == universe
   ]
-  if (nrow(reference) != 76L) stop("Incomplete multiCSN strata in ", universe)
+  if (!fsetequal(reference[, .(regulator, timepoint)], truth_design)) stop("Incomplete multiCSN strata in ", universe)
   for (comparator in comparators) {
     other <- metrics[
       method == comparator & endpoint == "TF-gene" &
@@ -66,7 +70,7 @@ for (universe in universes) {
       by = c("endpoint", "comparison_universe", "regulator", "timepoint"),
       suffixes = c("_multicsn", "_comparator"), sort = TRUE
     )
-    if (nrow(paired) != 76L) stop("Incomplete paired strata for ", comparator)
+    if (!fsetequal(paired[, .(regulator, timepoint)], truth_design)) stop("Incomplete paired strata for ", comparator)
     for (metric in metric_columns) {
       left <- paired[[paste0(metric, "_multicsn")]]
       right <- paired[[paste0(metric, "_comparator")]]
@@ -107,7 +111,7 @@ for (universe in universes) {
         comparison_universe = universe, metric,
         difference_definition = "comparator minus multiCSN",
         independent_unit = "perturbed TF mean across its finite timepoints",
-        regulator_clusters_total = 19L,
+        regulator_clusters_total = length(regulators),
         regulator_clusters_finite = nrow(finite_cluster),
         mean_cluster_difference = if (length(difference)) mean(difference) else NA_real_,
         median_cluster_difference = if (length(difference)) median(difference) else NA_real_,
@@ -129,8 +133,8 @@ tests[, holm_p_two_comparators := p.adjust(
 tests[, multiplicity_family :=
   "two comparator-versus-multiCSN tests within endpoint, universe and metric"]
 
-if (nrow(cluster_differences) != 2L * 8L * 19L ||
-  nrow(tests) != 2L * 8L ||
+if (nrow(cluster_differences) != length(comparators) * length(universes) * length(metric_columns) * length(regulators) ||
+  nrow(tests) != length(comparators) * length(universes) * length(metric_columns) ||
   any(tests$regulator_clusters_finite > tests$regulator_clusters_total) ||
   any(tests$comparator_wins + tests$exact_ties + tests$comparator_losses !=
     tests$regulator_clusters_finite)) {
@@ -141,4 +145,3 @@ write_tsv(cluster_differences, file.path(stage_root, "tf_cluster_metric_differen
 write_tsv(tests, file.path(stage_root, "paired_method_cluster_tests.tsv"))
 
 publish_result_files(stage_root, output_root)
-cat("gse274113_current_method_evidence\tPASS\t", output_root, "\n", sep = "")

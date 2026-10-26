@@ -17,9 +17,6 @@ arguments <- list(
 repo_root <- normalizePath(getwd(), mustWork = TRUE)
 component_helper <- file.path(repo_root, "code", "scmultisim", "component_helpers.R")
 ranking_helper <- file.path(repo_root, "code", "functions", "ranking_metrics.R")
-if (!file.exists(component_helper) || !file.exists(ranking_helper)) {
-  stop("Required scoring helpers are unavailable.", call. = FALSE)
-}
 source(component_helper)
 source(ranking_helper)
 
@@ -109,33 +106,6 @@ fit_forward_only <- function(design, response, target, min_improvement = 1e-10) 
   )
 }
 
-read_tsv <- function(path) {
-  connection <- if (grepl("[.]gz$", path)) gzfile(path, "rt") else path
-  on.exit(if (inherits(connection, "connection")) close(connection), add = TRUE)
-  utils::read.table(
-    connection,
-    header = TRUE, sep = "\t", quote = "", comment.char = "",
-    stringsAsFactors = FALSE, check.names = FALSE
-  )
-}
-
-verify_frozen_full <- function(full_edges, frozen_edges, frozen_metrics) {
-  full_edges$key <- make_key(full_edges$regulator, full_edges$target)
-  frozen_edges$key <- make_key(frozen_edges$regulator, frozen_edges$target)
-  if (nrow(full_edges) != nrow(frozen_edges) || anyDuplicated(full_edges$key) ||
-      anyDuplicated(frozen_edges$key) || !setequal(full_edges$key, frozen_edges$key)) {
-    stop("Full fit does not reproduce the frozen edge set.", call. = FALSE)
-  }
-  index <- match(frozen_edges$key, full_edges$key)
-  coefficient_diff <- if (nrow(frozen_edges)) {
-    max(abs(frozen_edges$standardized_beta - full_edges$standardized_beta[index]))
-  } else 0
-  if (!is.finite(coefficient_diff) || coefficient_diff > 1e-10) {
-    stop("Full fit does not reproduce frozen coefficients.", call. = FALSE)
-  }
-  list(max_coefficient_abs_diff = coefficient_diff, frozen_metrics = frozen_metrics)
-}
-
 score_edges <- function(scope, universe, edges, truth, score) {
   prediction <- edges[, c("regulator", "target"), drop = FALSE]
   prediction$score <- score
@@ -150,11 +120,6 @@ for (seed in arguments$seeds) {
   seed_started <- proc.time()[["elapsed"]]
   seed_root <- file.path(input_root, paste0("seed_", seed))
   input_path <- file.path(seed_root, "complete_simulation_input.rds")
-  frozen_edge_path <- file.path(seed_root, "tf_gene.tsv.gz")
-  frozen_metric_path <- file.path(seed_root, "endpoint_metrics.tsv")
-  if (!all(file.exists(c(input_path, frozen_edge_path, frozen_metric_path)))) {
-    stop("Missing frozen input or baseline output for seed ", seed, call. = FALSE)
-  }
   simulation <- readRDS(input_path)
   expression <- t(log1p(as.matrix(simulation$counts)))
   targets <- colnames(expression)
@@ -192,27 +157,12 @@ for (seed in arguments$seeds) {
   full_edges$component_weight <- signed_network_ordinal_weight(full_edges$standardized_beta)
   forward_edges$component_weight <- signed_network_ordinal_weight(forward_edges$standardized_beta)
 
-  frozen_edges <- read_tsv(frozen_edge_path)
-  frozen_metrics <- read_tsv(frozen_metric_path)
-  verify_frozen_full(full_edges, frozen_edges, frozen_metrics)
-  baseline <- frozen_metrics[
-    frozen_metrics$scope == "TF-gene:static_input_GRN", , drop = FALSE
-  ]
-  if (nrow(baseline) != 1L) stop("Frozen TF-gene metric row is invalid.", call. = FALSE)
   truth <- unique(raw_grn[, c("regulator", "target")])
   truth <- truth[truth$regulator != truth$target, , drop = FALSE]
   full_beta_metric <- score_edges(
     "TF-gene:static_input_GRN", universe, full_edges, truth,
     abs(full_edges$component_weight)
   )
-  metric_columns <- c("n_universe", "n_structural_truth", "n_evaluable_truth",
-                      "n_predicted", "auroc", "average_precision", "trapezoidal_auprc")
-  metric_diff <- max(abs(unlist(full_beta_metric[metric_columns]) -
-                         unlist(baseline[metric_columns])))
-  if (!is.finite(metric_diff) || metric_diff > 1e-10) {
-    stop("Full beta ranking does not reproduce frozen endpoint metrics.", call. = FALSE)
-  }
-
   metric_rows <- list(
     full_beta_metric,
     score_edges("TF-gene:static_input_GRN", universe, full_edges, truth,

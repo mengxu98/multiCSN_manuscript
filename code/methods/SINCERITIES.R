@@ -1,19 +1,3 @@
-required_packages <- c("glmnet", "ppcor")
-missing_packages <- required_packages[!vapply(
-  required_packages,
-  requireNamespace,
-  logical(1),
-  quietly = TRUE
-)]
-
-if (length(missing_packages) > 0) {
-  stop(
-    "Missing R packages for SINCERITIES benchmark: ",
-    paste(missing_packages, collapse = ", "),
-    ". Install them before running the method."
-  )
-}
-
 suppressPackageStartupMessages(library(glmnet))
 suppressPackageStartupMessages(library(ppcor))
 

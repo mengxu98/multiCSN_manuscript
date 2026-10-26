@@ -30,9 +30,8 @@ if (file.exists(stage)) stop("Staging path already exists: ", stage, call. = FAL
 dir.create(stage, recursive = TRUE)
 
 trajectory <- fread(trajectory_path, select = c("cell_id", "state", "donor_id"))
-if (nrow(trajectory) != 10952L || anyDuplicated(trajectory$cell_id) ||
-  uniqueN(trajectory$donor_id) != 10L) {
-  stop("Current erythroid trajectory identity changed.")
+if (!nrow(trajectory) || anyDuplicated(trajectory$cell_id) || anyNA(trajectory)) {
+  stop("Invalid trajectory cell identifiers or metadata.")
 }
 states <- c("HSC", "MK/E prog", "Proerythroblast", "Erythroblast", "Normoblast")
 trajectory[, state := factor(state, levels = states)]
@@ -44,9 +43,7 @@ gene_layer <- multiCSN::get_layer_data(object, assay = params$rna_assay, layer =
 requested_targets <- multiCSN::get_attribute(object, celltypes = "aggregate", attribute = "genes")
 requested_tfs <- multiCSN::get_attribute(object, attribute = "tfs")
 features <- sort(intersect(union(requested_targets, requested_tfs), rownames(gene_layer)), method = "radix")
-if (length(features) < 1000L || !all(trajectory$cell_id %in% colnames(gene_layer))) {
-  stop("Current expression feature or cell universe changed.")
-}
+if (!length(features)) stop("No expression features.")
 
 groups <- unique(trajectory[, .(state, donor_id)])
 groups[, group_id := seq_len(.N)]
@@ -105,4 +102,3 @@ fwrite(groups[, .(
   cells = group_cells[group_id]
 )], file.path(stage, "donor_state_group_counts.tsv"), sep = "\t", quote = FALSE)
 publish_result_files(stage, output)
-cat("gse194122_donor_state_expression\tPASS\t", output, "\n", sep = "")

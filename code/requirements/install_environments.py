@@ -7,16 +7,10 @@ import subprocess
 import sys
 import time
 sys.path.insert(0, str(Path(__file__).absolute().parents[1] / "functions"))
-from runtime import REPO, EXECUTION_ROOT, USER_HOME
+from runtime import REPO, EXECUTION_ROOT, ENV_ROOT, CONDA_EXE, PYTHON_LOCATIONS, rscript_executable
 
-CONDA = USER_HOME / "miniconda3/bin/conda"
-R_ENV_NAME = "R_4.5"
-R_ENV = USER_HOME / "miniconda3/envs" / R_ENV_NAME
-PY_ENV = USER_HOME / ".omicos/env/.venv"
-ENV_ROOT = EXECUTION_ROOT / "comparator_envs"
+CONDA = CONDA_EXE or "conda"
 SOURCE_ROOT = EXECUTION_ROOT / "sources"
-WORK = USER_HOME / "srcpkgs"
-GRNBOOST2_ENV = USER_HOME / ".venvs/beeline-unified-py39"
 PYPI = "https://pypi.org/simple"
 CLONE_RETRIES = 4
 
@@ -59,16 +53,35 @@ class Installer:
             [str(python), "-c", modules], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).returncode == 0
 
     def r(self):
-        if not R_ENV.is_dir() or self.force:
-            self.run([CONDA, "create", "-y", "-n", R_ENV_NAME, "-c", "conda-forge", "r-base=4.5", "r-essentials"])
-        rscript = R_ENV / "bin/Rscript"
-        expression = "pkgs <- readLines(\"code/requirements/r-requirements.txt\"); pkgs <- pkgs[nzchar(pkgs) & !grepl('^#', pkgs)]; github <- pkgs[grepl('/', pkgs)]; standard <- pkgs[!grepl('/', pkgs)]; need <- standard[!vapply(standard, function(p) requireNamespace(p, quietly=TRUE), logical(1))]; if (length(need)) { if (!requireNamespace('BiocManager', quietly=TRUE)) install.packages('BiocManager', repos='https://cloud.r-project.org'); BiocManager::install(need, version='3.22', ask=FALSE, update=FALSE, Ncpus=4) }; remotes::install_github(github, dependencies=NA, upgrade='never')"
+        rscript = rscript_executable()
+        expression = '''pkgs <- readLines("code/requirements/r-requirements.txt")
+pkgs <- pkgs[nzchar(pkgs) & !grepl("^#", pkgs)]
+github <- pkgs[grepl("/", pkgs)]
+standard <- pkgs[!grepl("/", pkgs)]
+reusable_github <- function(spec) {
+  parts <- strsplit(spec, "@", fixed = TRUE)[[1L]]
+  name <- basename(parts[[1L]])
+  if (name == "multiCSN") return(FALSE)
+  libraries <- .libPaths()
+  comparator <- file.path(normalizePath("..", mustWork = TRUE), "comparator_r_library")
+  if (name == "Pando" && dir.exists(comparator)) libraries <- c(comparator, libraries)
+  path <- find.package(name, lib.loc = libraries, quiet = TRUE)
+  if (!length(path)) return(FALSE)
+  if (length(parts) == 1L) return(TRUE)
+  description <- utils::packageDescription(name, lib.loc = dirname(path))
+  identical(description$RemoteSha, parts[[2L]])
+}
+github <- github[!vapply(github, reusable_github, logical(1))]
+need <- standard[!vapply(standard, function(p) requireNamespace(p, quietly = TRUE), logical(1))]
+if (length(need)) {
+  if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager", repos = "https://cloud.r-project.org")
+  BiocManager::install(need, version = "3.22", ask = FALSE, update = FALSE, Ncpus = 4)
+}
+if (length(github)) remotes::install_github(github, dependencies = NA, upgrade = "never")'''
         self.run([rscript, "--vanilla", "-e", expression])
 
     def py(self):
-        if not (PY_ENV / "bin/python").is_file():
-            self.run([sys.executable, "-m", "venv", PY_ENV])
-        python = PY_ENV / "bin/python"
+        python = sys.executable
         self.run([python, "-m", "pip", "install", "-q", "--index-url", PYPI, "--upgrade", "pip"])
         self.run([python, "-m", "pip", "install", "-q", "--index-url", PYPI, "-r", REPO / "code/requirements/py-requirements.txt"])
         self.run([python, "-c", "import pandas, openpyxl; print('pandas/openpyxl OK')"])
@@ -86,7 +99,7 @@ class Installer:
         self.run([CONDA, "create", "-y", "-p", prefix, "-c", "conda-forge", "-c", "bioconda", *packages])
         self.run([python, "-m", "pip", "install", "-q", "--index-url", PYPI, "setuptools<81"])
         for name in ("LoomXpy", "pycisTopic", "pycistarget"):
-            target = WORK / name
+            target = SOURCE_ROOT / name
             self.clone(f"https://github.com/aertslab/{name}.git", target)
             flags = [] if name == "LoomXpy" else ["--no-build-isolation"]
             self.run([python, "-m", "pip", "install", "-q", "--index-url", PYPI, *flags, target])
@@ -123,9 +136,18 @@ class Installer:
 
     def grnboost2(self):
         # The lock targets Python 3.9; the bootstrap interpreter may be newer.
-        if not (GRNBOOST2_ENV / "bin/python").is_file() or self.force:
-            self.run([CONDA, "create", "-y", "-p", GRNBOOST2_ENV, "-c", "conda-forge", "python=3.9", "pip"])
-        python = GRNBOOST2_ENV / "bin/python"
+        python = PYTHON_LOCATIONS["grnboost2"]
+        lock = REPO / "code/requirements/grnboost2-official-py39.lock.txt"
+        expected = dict(line.strip().split("==", 1) for line in lock.read_text().splitlines()
+                        if line.strip() and not line.lstrip().startswith("#"))
+        version_check = ("import sys; from importlib.metadata import version; "
+                         "assert sys.version_info[:2] == (3, 9); "
+                         f"assert all(version(name) == value for name, value in {expected!r}.items())")
+        if self.available(python, version_check):
+            print(f"Already available: {python.parent.parent}")
+            return
+        if not python.is_file():
+            self.run([CONDA, "create", "-y", "-p", python.parent.parent, "-c", "conda-forge", "python=3.9", "pip"])
         self.run([python, "-m", "pip", "install", "-q", "--upgrade", "pip"])
         self.run([python, "-m", "pip", "install", "-q", "--index-url", PYPI, "-r", REPO / "code/requirements/grnboost2-official-py39.lock.txt"])
 

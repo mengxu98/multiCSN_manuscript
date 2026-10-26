@@ -1,11 +1,22 @@
 source("code/functions/network_io.R")
 
 inventory_release <- function(data_root = "data/gse274113/GSE274113",
-    destination = "results/gse274113/inventory", replicates = c(1:10, 12:14, 16),
-    expected_cells = 137604L, expected_controls = 11447L) {
+    destination = "results/gse274113/inventory") {
   suppressPackageStartupMessages({library(data.table); library(rhdf5); library(Signac); library(multiCSN)})
   if (dir.exists(destination)) stop("Release inventory already exists: ", destination)
   metadata_path <- file.path(data_root, "GSE274113_annotated_metadata.csv.gz")
+  metadata <- utils::read.csv(metadata_path, stringsAsFactors = FALSE, check.names = FALSE)
+  column <- which(is.na(names(metadata)) | !nzchar(names(metadata)) | grepl("^Unnamed:", names(metadata)))
+  if (length(column) != 1L || !all(c("replicate", "target", "Timepoint") %in% names(metadata))) stop("Invalid released metadata schema.")
+  ids <- as.character(metadata[[column]])
+  metadata <- metadata[!is.na(ids) & nzchar(trimws(ids)), , drop = FALSE]
+  metadata$cell_id <- as.character(metadata[[column]])
+  if (!nrow(metadata) || anyDuplicated(metadata$cell_id) ||
+      anyNA(metadata$target) || any(!nzchar(metadata$target)) ||
+      !any(metadata$target == "NT") || !any(metadata$target != "NT") ||
+      anyNA(metadata$replicate) ||
+      any(!grepl("^rep[1-9][0-9]*$", metadata$replicate))) stop("Released cell universe or control split changed.")
+  replicates <- sort(unique(as.integer(sub("^rep", "", metadata$replicate))))
   rna_paths <- file.path(data_root, paste0("GSE274113_filtered_feature_bc_matrix_", replicates, ".h5"))
   atac_paths <- file.path(data_root, paste0("GSE274113_rep", replicates, "_filtered_feature_bc_matrix.h5"))
   extracted <- list.files(file.path(data_root, "extracted"), recursive = TRUE, full.names = TRUE)
@@ -17,15 +28,6 @@ inventory_release <- function(data_root = "data/gse274113/GSE274113",
   supplements <- file.path(data_root, "supplementary", c("NIHMS2076308-supplement-Table_S2.xlsx", "NIHMS2076308-supplement-Table_S3.xlsx"))
   inputs <- c(metadata_path, rna_paths, atac_paths, annotation_paths, supplements)
   if (any(!file.exists(inputs))) stop("Incomplete raw GSE274113 release.")
-  metadata <- utils::read.csv(metadata_path, stringsAsFactors = FALSE, check.names = FALSE)
-  column <- which(is.na(names(metadata)) | !nzchar(names(metadata)) | grepl("^Unnamed:", names(metadata)))
-  if (length(column) != 1L || !all(c("replicate", "target", "Timepoint") %in% names(metadata))) stop("Invalid released metadata schema.")
-  ids <- as.character(metadata[[column]])
-  metadata <- metadata[!is.na(ids) & nzchar(trimws(ids)), , drop = FALSE]
-  metadata$cell_id <- as.character(metadata[[column]])
-  if (nrow(metadata) != expected_cells || anyDuplicated(metadata$cell_id) ||
-      sum(metadata$target == "NT") != expected_controls ||
-      !setequal(unique(metadata$replicate), paste0("rep", replicates))) stop("Released cell universe or control split changed.")
   alignment <- vector("list", length(replicates)); peaks <- vector("list", length(replicates))
   for (index in seq_along(replicates)) {
     replicate <- paste0("rep", replicates[[index]])

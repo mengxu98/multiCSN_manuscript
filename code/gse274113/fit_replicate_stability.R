@@ -215,7 +215,7 @@ fit_replicate_fold <- function(
       any(edges$regulator == edges$target) ||
       any(edges$regulator_detected_control_cells < 20L) ||
       any(edges$target_detected_control_cells < 20L)) {
-    stop("Fold edge contract failed: ", heldout)
+    stop("Invalid fold edges: ", heldout)
   }
 
   full_gene_set <- unique(c(full_network$regulator, full_network$target))
@@ -235,7 +235,7 @@ fit_replicate_fold <- function(
   selected_in_fold <- full_keys %chin% fold_keys
   if (any(full_fit_eligible & (!rna_model_eligible | !full_candidate_present)) ||
       any(selected_in_fold & !full_fit_eligible)) {
-    stop("Full-edge decomposition contract failed: ", heldout)
+    stop("Invalid edge decomposition: ", heldout)
   }
   decomposition <- data.table(
     regulator = full_network$regulator,
@@ -314,27 +314,18 @@ fit_replicate_fold <- function(
 
 fit_replicate_stability <- function(
   input = "data/gse274113/objects/GSE274113_control_full/candidates/GSE274113_NT_timepoint_candidates.rds",
-  validation = "data/gse274113/objects/GSE274113_control_full/candidates/candidate_validation.tsv",
   output = "results/gse274113/stability"
 ) {
   # All scientific settings are fixed here and in fit_replicate_fold(): RNA
   # detection >=20 cells, peak detection >=3 cells, 100 kb upstream domains,
   # self/affine-alias exclusion, uncapped Greedy-L0+BIC and one solver thread.
   input <- normalizePath(input, mustWork = TRUE)
-  validation <- normalizePath(validation, mustWork = TRUE)
   timepoints <- c(day_7 = "day 7", day_9 = "day 9", day_11 = "day 11", day_14 = "day 14")
-  expected_cells <- c(day_7 = 3304L, day_9 = 4167L, day_11 = 1903L, day_14 = 2073L)
-  expected_folds <- c(day_7 = 4L, day_9 = 4L, day_11 = 3L, day_14 = 3L)
-  v <- fread(validation, colClasses = "character")
-  if (!all(c("field", "value") %in% names(v)) ||
-      !identical(v[field == "training_control_cells", value], "11447") ||
-      !identical(v[field == "filter_mode", value], "unfiltered")) {
-    stop("Expected the full unfiltered 11,447-cell NT-control candidate object.")
-  }
   object <- readRDS(input)
   metadata <- object[[]]
-  if (ncol(object) != 11447L ||
-      !all(c("Timepoint", "replicate") %in% names(metadata)) ||
+  if (!ncol(object) || anyDuplicated(colnames(object)) ||
+      !all(c("Timepoint", "replicate", "target") %in% names(metadata)) ||
+      anyNA(metadata$target) || any(metadata$target != "NT") ||
       anyNA(metadata$Timepoint) || anyNA(metadata$replicate) ||
       any(!grepl("^[A-Za-z0-9_.-]+$", as.character(metadata$replicate))) ||
       !setequal(unique(as.character(metadata$Timepoint)), unname(timepoints))) {
@@ -342,12 +333,12 @@ fit_replicate_stability <- function(
   }
   for (slug in names(timepoints)) {
     rows <- as.character(metadata$Timepoint) == timepoints[[slug]]
-    if (sum(rows) != expected_cells[[slug]] ||
-        uniqueN(as.character(metadata$replicate[rows])) != expected_folds[[slug]]) {
+    if (!sum(rows) || uniqueN(as.character(metadata$replicate[rows])) < 2L) {
       stop("Timepoint cell or replicate count mismatch: ", slug)
     }
   }
   params <- multiCSN::Params(object)
+  if (!identical(params$filter_mode, "unfiltered")) stop("Expected unfiltered candidate features.")
   regulators_requested <- multiCSN::get_attribute(object, attribute = "tfs")
   gene_annotation <- multiCSN::get_peak_annotation(object, params$peak_assay)
   features <- intersect(unique(gene_annotation$gene_name), rownames(object[[params$rna_assay]]))
@@ -432,14 +423,12 @@ fit_replicate_stability <- function(
     gc(verbose = FALSE)
   }
   publish_result_files(stage, output)
-  cat("replicate_stability\tPASS\t", output, "\n", sep = "")
   invisible(output)
 }
 
 if (sys.nframe() == 0L) {
   options <- list(
     input = "data/gse274113/objects/GSE274113_control_full/candidates/GSE274113_NT_timepoint_candidates.rds",
-    validation = "data/gse274113/objects/GSE274113_control_full/candidates/candidate_validation.tsv",
     output = "results/gse274113/stability"
   )
   do.call(fit_replicate_stability, options)

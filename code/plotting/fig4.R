@@ -559,13 +559,11 @@ gsea_paths <- file.path(
   gsea_root,
   c(
     "gsea.rds",
-    "gsea_selected_terms.tsv",
     "gene_rank_scores.tsv.gz"
   )
 )
 gsea_result <- readRDS(gsea_paths[[1L]])
-gsea_selected <- fread(gsea_paths[[2L]])
-gene_ranks <- fread(gsea_paths[[3L]])
+gene_ranks <- fread(gsea_paths[[2L]])
 # Export the exact ranking and running score used by GSEAPlot.
 gsea_curve <- as.data.table(getFromNamespace("gsInfo", "scop")(
   gsea_result$results[["IPC_RG-GO_BP"]], "GO:0006259"

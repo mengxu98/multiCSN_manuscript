@@ -36,9 +36,9 @@ dir.create(file.path(stage, "cells"), recursive = FALSE)
 
 trajectory <- fread(trajectory_path)
 required <- c("cell_id", "state", "donor_id")
-if (!all(required %in% names(trajectory)) || nrow(trajectory) != 10952L ||
+if (!all(required %in% names(trajectory)) || !nrow(trajectory) ||
     anyDuplicated(trajectory$cell_id) || anyNA(trajectory[, ..required])) {
-  stop("Current trajectory table does not define the registered cell universe.")
+  stop("Invalid trajectory cell identifiers or metadata.")
 }
 states <- data.table(
   state_order = 1:5,
@@ -100,7 +100,7 @@ for (seed in seeds) {
 task_table <- rbindlist(tasks)
 allocation_table <- rbindlist(allocations)
 sampled_totals <- allocation_table[, .(sampled = sum(sampled_cells)), by = task_slug]
-if (nrow(task_table) != 50L || any(task_table$expected_cells != budget) ||
+if (any(task_table$expected_cells != budget) ||
     any(sampled_totals$sampled != budget) ||
     max(abs(allocation_table$sampled_fraction - allocation_table$available_fraction)) > 1 / budget) {
   stop("Cell-budget manifest self-check failed.")
@@ -108,4 +108,3 @@ if (nrow(task_table) != 50L || any(task_table$expected_cells != budget) ||
 fwrite(task_table, file.path(stage, "cell_budget_sampling_plan.tsv"), sep = "\t")
 fwrite(allocation_table, file.path(stage, "donor_allocation.tsv"), sep = "\t")
 publish_result_files(stage, output)
-cat("gse194122_cell_budget_manifests\tPASS\t", output, "\n", sep = "")

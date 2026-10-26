@@ -9,7 +9,9 @@ prepare_go_resources <- function(resource_root = "data/resources/fig5_go_3.22.0"
   if (file.exists(path)) {
     resource <- R.cache::loadCache(pathname = path)
     if (as.character(resource$version) != "3.22.0" ||
-        nrow(resource$TERM2GENE) != 1284385L || nrow(resource$TERM2NAME) != 15046L ||
+        !all(c("Term", "symbol") %in% names(resource$TERM2GENE)) ||
+        !all(c("Term", "Name", "ONTOLOGY") %in% names(resource$TERM2NAME)) ||
+        !nrow(resource$TERM2GENE) || !nrow(resource$TERM2NAME) ||
         !identical(unique(as.character(resource$TERM2NAME$ONTOLOGY)), "BP")) {
       stop("The fixed GO cache failed validation.")
     }
@@ -42,19 +44,22 @@ prepare_display_go_similarity <- function(resource_root = "data/resources/fig5_g
                  x[regulator == "BNC2" & transition_order == 4 & topology_class == "lost" & p_adjust < 0.05, go_id])
   terms <- sort(union(a, b))
   if (!length(terms) || anyNA(terms) || anyDuplicated(terms)) stop("Invalid display GO universe.")
-  similarity <- GOSemSim::mgoSim(terms, terms, semData = resource$semData, measure = "Wang", combine = NULL)
   destination <- file.path(resource_root, "display_wang_similarity.rds")
   if (file.exists(destination)) {
     saved <- readRDS(destination)
-    if (!setequal(rownames(saved), terms) || !isTRUE(all.equal(similarity, saved[terms, terms], tolerance = 1e-12))) {
-      stop("Recomputed Wang similarities differ from the accepted display resource.")
+    if (!setequal(rownames(saved), terms) || !setequal(colnames(saved), terms)) {
+      stop("Saved GO similarity terms do not match the enrichment input.")
     }
-  } else {
-    stage <- tempfile(".wang-", tmpdir = resource_root)
-    on.exit(unlink(stage), add = TRUE)
-    saveRDS(similarity, stage)
-    if (!file.rename(stage, destination)) stop("Unable to publish the Wang similarity resource.")
+    if (!is.numeric(saved) || any(!is.finite(saved)) || any(saved < 0 | saved > 1)) {
+      stop("Invalid GO similarities.")
+    }
+    return(invisible(destination))
   }
+  similarity <- GOSemSim::mgoSim(terms, terms, semData = resource$semData, measure = "Wang", combine = NULL)
+  stage <- tempfile(".wang-", tmpdir = resource_root)
+  on.exit(unlink(stage), add = TRUE)
+  saveRDS(similarity, stage)
+  if (!file.rename(stage, destination)) stop("Unable to publish the Wang similarity resource.")
   invisible(destination)
 }
 

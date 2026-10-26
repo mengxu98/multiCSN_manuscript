@@ -33,17 +33,17 @@ dir.create(stage, recursive = FALSE)
 
 set.seed(20260822L)
 cell_ids <- h5read(input, "/obs/_index")
-if (length(cell_ids) != 69249L || anyDuplicated(cell_ids)) {
-  stop("The H5AD cell universe is not the registered 69,249-cell release.")
+if (!length(cell_ids) || anyDuplicated(cell_ids)) {
+  stop("Invalid H5AD cell identifiers.")
 }
 current <- fread(cell_path)
 if (!identical(names(current), c("cell_id", "state")) ||
-  nrow(current) != 10952L || anyDuplicated(current$cell_id)) {
-  stop("Current erythroid cell manifest is invalid.")
+  !nrow(current) || anyDuplicated(current$cell_id)) {
+  stop("Invalid erythroid cell manifest.")
 }
 cell_index <- match(current$cell_id, cell_ids)
 if (anyNA(cell_index) || anyDuplicated(cell_index)) {
-  stop("Current erythroid cells do not map one-to-one to the H5AD.")
+  stop("Invalid cell mapping.")
 }
 
 feature_names <- h5read(input, "/var/_index")
@@ -52,13 +52,13 @@ feature_levels <- h5read(input, "/var/__categories/feature_types")
 feature_types <- feature_levels[feature_codes + 1L]
 gex_index <- which(feature_types == "GEX")
 gex_names <- as.character(feature_names[gex_index])
-if (length(gex_index) != 13431L || anyDuplicated(gex_names)) {
-  stop("The registered 13,431-feature GEX universe changed.")
+if (!length(gex_index) || anyDuplicated(gex_names)) {
+  stop("Invalid GEX feature identifiers.")
 }
 
 released_states <- read_hdf5_category(input, "cell_type")[cell_index]
 if (anyNA(released_states) || any(released_states != current$state)) {
-  stop("Released cell states differ from the current cell manifest.")
+  stop("Cell states do not match.")
 }
 metadata <- data.frame(
   state = released_states,
@@ -75,7 +75,7 @@ h5_counts <- H5SparseMatrix(input, "/layers/counts")
 counts <- as(h5_counts[gex_index, cell_index], "dgCMatrix")
 rownames(counts) <- gex_names
 colnames(counts) <- current$cell_id
-if (!identical(dim(counts), c(13431L, 10952L)) || any(counts@x < 0)) {
+if (!identical(dim(counts), c(length(gex_index), nrow(current))) || any(counts@x < 0)) {
   stop("Extracted erythroid GEX count matrix is invalid.")
 }
 
@@ -135,9 +135,10 @@ embedding <- merge(
   as.data.table(metadata, keep.rownames = "cell_id"),
   by = "cell_id", all.x = TRUE, sort = FALSE
 )
-if (nrow(embedding) != 10952L || any(!is.finite(embedding$UMAP_1)) ||
+if (!setequal(embedding$cell_id, current$cell_id) || anyDuplicated(embedding$cell_id) ||
+  any(!is.finite(embedding$UMAP_1)) ||
   any(!is.finite(embedding$UMAP_2)) || anyNA(embedding$state)) {
-  stop("The recomputed erythroid UMAP failed its completeness checks.")
+  stop("Invalid erythroid UMAP.")
 }
 setorder(embedding, cell_id)
 
@@ -166,4 +167,3 @@ fwrite(
   sep = "\t", quote = FALSE
 )
 publish_result_files(stage, output)
-cat("gse194122_erythroid_gex_umap\tPASS\t", output, "\n", sep = "")

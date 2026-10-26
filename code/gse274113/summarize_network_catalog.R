@@ -3,8 +3,6 @@ suppressPackageStartupMessages(library(data.table))
 source("code/functions/network_io.R")
 root <- "results/gse274113/networks"
 methods <- c("multiCSN", "Pando", "SCENICplus")
-if (!all(methods %in% list.dirs(root, recursive = FALSE, full.names = FALSE)))
-  stop("Missing canonical method suite.")
 endpoints <- c("tf_gene", "tf_region", "region_gene", "triplet")
 rows <- list()
 for (method in methods) for (slug in c("day_7", "day_9", "day_11", "day_14")) {

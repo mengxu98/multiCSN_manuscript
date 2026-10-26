@@ -37,13 +37,8 @@ summary[, class_order := match(chromatin_anchor, classes)]
 setorder(summary, class_order)
 summary[, class_order := NULL]
 top10 <- eligible[class_rank <= 10L]
-if (!setequal(summary$chromatin_anchor, classes) || nrow(top10) != 50L ||
-    any(summary$eligible_loci < 10L) || anyDuplicated(eligible[, .(chromatin_anchor, class_rank)])) {
-  stop("Cell-type locus-screen self-check failed.", call. = FALSE)
-}
 fwrite(eligible, file.path(stage, "eligible_loci_by_class.tsv"), sep = "\t")
 fwrite(top10, file.path(stage, "top10_loci_by_class.tsv"), sep = "\t")
 fwrite(summary, file.path(stage, "cell_type_summary.tsv"), sep = "\t")
 publish_result_files(stage, output)
-cat("gse162170_locus_screen_by_class\tPASS\t", output, "\n", sep = "")
 

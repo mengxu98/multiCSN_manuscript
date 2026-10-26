@@ -42,40 +42,34 @@ input_paths <- c(
   folds = file.path(input_root, "fold_decomposition.tsv"),
   pairwise = file.path(input_root, "pairwise_fold_metrics.tsv"),
   top100 = file.path(input_root, "top100_decomposition.tsv"),
-  rank_decile = file.path(input_root, "rank_decile_decomposition.tsv"),
-  summary = file.path(input_root, "timepoint_stability_summary.tsv")
+  rank_decile = file.path(input_root, "rank_decile_decomposition.tsv")
 )
-if (any(!file.exists(input_paths))) {
-  stop(
-    "Missing admitted Source Data: ",
-    paste(input_paths[!file.exists(input_paths)], collapse = ", ")
-  )
-}
 
 folds <- fread(input_paths[["folds"]])
 pairwise <- fread(input_paths[["pairwise"]])
 top100 <- fread(input_paths[["top100"]])
 rank_decile <- fread(input_paths[["rank_decile"]])
-summary <- fread(input_paths[["summary"]])
 
 timepoints <- c("day 7", "day 9", "day 11", "day 14")
 timepoint_colours <- c(
   `day 7` = "#2C7FB8", `day 9` = "#41B6C4",
   `day 11` = "#7A6BB1", `day 14` = "#D97A2B"
 )
-expected_folds <- c(`day 7` = 4L, `day 9` = 4L, `day 11` = 3L, `day 14` = 3L)
-observed_folds <- folds[, .N, by = timepoint]
+observed_folds <- folds[, .(N = .N,
+  complete_replicate_count = unique(training_replicates + 1L)), by = timepoint]
 top_edge_count <- unique(as.integer(top100$stratum_value))
-if (nrow(folds) != 14L || anyDuplicated(folds[, .(timepoint, heldout_replicate)]) ||
-  !identical(
-    setNames(observed_folds$N, observed_folds$timepoint)[timepoints],
-    expected_folds
-  ) || nrow(top100) != 4L ||
-  nrow(pairwise) != 18L ||
+if (anyNA(folds[, .(timepoint, heldout_replicate, training_replicates)]) ||
+  anyDuplicated(folds[, .(timepoint, heldout_replicate)]) ||
+  !setequal(observed_folds$timepoint, timepoints) || any(observed_folds$N < 2L) ||
+  anyDuplicated(observed_folds$timepoint) ||
+  any(observed_folds$N != observed_folds$complete_replicate_count) ||
+  nrow(top100) != length(timepoints) || !setequal(top100$timepoint, timepoints) ||
+  nrow(pairwise) != sum(choose(observed_folds$N, 2L)) ||
+  anyDuplicated(pairwise[, .(timepoint, fold_left, fold_right)]) ||
   length(top_edge_count) != 1L ||
   !all(top100$edges == top_edge_count) ||
   !setequal(unique(rank_decile$timepoint), timepoints)) {
-  stop("The complete fold-rebuilt figure contract failed.")
+  stop("Invalid fold data for Figure S7.")
 }
 
 ink <- "#26343E"
@@ -317,7 +311,6 @@ figs7e <- ggplot(decile_plot, aes(weight_decile, selection_fraction,
 runtime_path <- file.path(
   repo, "results", "gse274113", "runtime", "multiomic_runtime_comparison.tsv"
 )
-if (!file.exists(runtime_path)) stop("Missing runtime comparison table: ", runtime_path)
 runtime <- data.table::fread(runtime_path)
 runtime[, seconds := as.numeric(inference_seconds)]
 runtime[, minutes := seconds / 60]

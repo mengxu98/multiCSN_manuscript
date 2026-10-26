@@ -80,4 +80,3 @@ paired_truth <- data.frame(
 write_tsv(combined, file.path(output_root, "per_seed_diagnostics.tsv"), writer = "table")
 write_tsv(summary, file.path(output_root, "endpoint_diagnostic_summary.tsv"), writer = "table")
 write_tsv(paired_truth, file.path(output_root, "static_dynamic_truth_sensitivity.tsv"), writer = "table")
-cat("scMultiSim multiseed analysis: PASS\n")

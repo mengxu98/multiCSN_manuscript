@@ -13,10 +13,6 @@ def read_table(path):
 
 def summarize_runtime(measurements=MEASUREMENTS, output=ROOT / "results/gse274113/runtime", comparators=MEASUREMENTS / "comparator_timings.tsv"):
     measurements, output = Path(measurements), Path(output)
-    try:
-        timing_source = measurements.resolve().relative_to(ROOT)
-    except ValueError:
-        timing_source = measurements.resolve()
     timings = []
     configurations = (("optimized_1core", 1, "single core"), ("optimized_8core", 8, "8 cores (fork)"))
     for configuration, _, _ in configurations:
@@ -27,12 +23,14 @@ def summarize_runtime(measurements=MEASUREMENTS, output=ROOT / "results/gse27411
     for configuration, cores, label in configurations:
         selected = [row for row in timings if row["configuration"] == configuration]
         seconds = sum(float(row["inference_export_seconds"]) for row in selected)
-        wrapper = sum(float(row["wrapper_seconds"]) for row in selected)
         comparison.append(dict(method="multiCSN", core_configuration=label, cores_measured=cores,
-            inference_seconds=f"{seconds:.3f}", scope="timepoint normalization, candidate preparation, three-layer fitting, checkpoints, chain projection, export and validation; four timepoints",
-            timing_source=f"{timing_source}/*_timing.tsv", cited_in="Figure S7a",
-            note=f"Full wrapper including input reading and initial identity checks: {wrapper:.3f} s."))
-    comparison.extend(read_table(comparators))
+            inference_seconds=f"{seconds:.3f}", scope="data preparation, three-layer fitting, chain projection, export and checking; four timepoints",
+            cited_in="Figure S7a"))
+    fields = ("method", "core_configuration", "cores_measured", "inference_seconds", "scope", "cited_in")
+    comparison.extend({key: row[key] for key in fields} for row in read_table(comparators))
+    timings = [{("overall_seconds" if key == "wrapper_seconds" else "export_check_seconds" if key == "export_validation_seconds" else key):
+                (row["cores"] + "core" if key == "configuration" else value)
+                for key, value in row.items() if key != "variant"} for row in timings]
     tables = {"multiomic_runtime_comparison.tsv": comparison,
               "multiomic_runtime_timepoints.tsv": timings}
     output.mkdir(parents=True, exist_ok=True)
@@ -40,7 +38,7 @@ def summarize_runtime(measurements=MEASUREMENTS, output=ROOT / "results/gse27411
         for name, rows in tables.items():
             path = Path(temporary) / name
             with path.open("w", newline="") as handle:
-                writer = csv.DictWriter(handle, rows[0], delimiter="\t")
+                writer = csv.DictWriter(handle, rows[0], delimiter="\t", lineterminator="\n")
                 writer.writeheader()
                 writer.writerows(rows)
             path.replace(output / name)

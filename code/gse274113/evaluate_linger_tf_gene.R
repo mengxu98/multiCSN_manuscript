@@ -22,17 +22,16 @@ timepoints <- c("day 7", "day 9", "day 11", "day 14")
 
 formal <- fread(formal_metrics_path)
 targets <- sort(unique(formal[endpoint == "TF-gene"]$regulator))
-if (length(targets) != 19L) stop("Expected 19 perturbed TFs in the formal comparison.")
+if (!length(targets) || anyNA(targets) || any(!nzchar(targets))) stop("Invalid perturbation TF identifiers in the formal comparison.")
 
 rows <- list()
 cursor <- 1L
 for (timepoint in timepoints) {
   slug <- gsub(" ", "_", timepoint, fixed = TRUE)
   network_path <- file.path(network_root, slug, "networks", "tf_gene.tsv.gz")
-  if (!file.exists(network_path)) stop("Missing LINGER network: ", network_path)
   network <- fread(network_path)
   if (!all(c("regulator", "target", "score") %in% names(network))) {
-    stop("LINGER TF-gene schema changed at ", slug)
+    stop("Invalid LINGER TF-gene columns: ", slug)
   }
   network <- network[, .(
     regulator = as.character(regulator),
@@ -51,7 +50,7 @@ for (timepoint in timepoints) {
     truth_path <- file.path(truth_root, "rna_effects", paste0(slug, "__", tf, ".tsv.gz"))
     truth <- fread(truth_path)
     if (!all(c("feature", "logFC", "FDR") %in% names(truth)) || anyDuplicated(truth$feature)) {
-      stop("Held-out RNA truth schema changed for ", tf, " at ", timepoint)
+      stop("Invalid RNA truth columns: ", tf, " at ", timepoint)
     }
     prediction <- network[regulator == tf, .(feature, score)]
     joined <- merge(
@@ -98,9 +97,10 @@ for (timepoint in timepoints) {
 }
 
 linger <- rbindlist(rows)
-if (nrow(linger) != 76L || anyDuplicated(linger[, .(regulator, timepoint)]) ||
+if (nrow(linger) != length(targets) * length(timepoints) ||
+    !fsetequal(linger[, .(regulator, timepoint)], CJ(regulator = targets, timepoint = timepoints)) || anyDuplicated(linger[, .(regulator, timepoint)]) ||
     any(linger$predicted_nonzero > linger$evaluable_features)) {
-  stop("LINGER evaluation did not produce the declared 19 TF x 4 time-point design.")
+  stop("LINGER evaluation did not cover the input TF/timepoint design.")
 }
 dir.create(result_root, recursive = TRUE, showWarnings = FALSE)
 fwrite(linger, file.path(result_root, "linger_stratum_metrics.tsv"), sep = "\t", na = "NA")

@@ -25,7 +25,6 @@ for (truth_path in truths) {
 }
 dir.create(out, recursive=TRUE)
 fwrite(rbindlist(rows),file.path(out,'case_metrics.tsv'),sep='\t')
-cat('PASS',i,'network evaluations from network and truth files\n')
 }
 
 

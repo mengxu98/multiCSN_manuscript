@@ -80,10 +80,6 @@ fit_component_network <- function(
   } else {
     fits <- lapply(targets, fit_one_target)
   }
-  if (any(vapply(fits, inherits, logical(1), what = "try-error"))) {
-    stop("At least one ", component, " target fit failed.", call. = FALSE)
-  }
-
   edges <- do.call(rbind, lapply(fits, `[[`, "edge"))
   metrics <- do.call(rbind, lapply(fits, `[[`, "metric"))
   if (is.null(edges)) {

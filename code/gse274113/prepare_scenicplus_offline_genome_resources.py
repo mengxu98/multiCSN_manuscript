@@ -109,7 +109,6 @@ def validate(
     if len(chromsizes) != 25:
         raise RuntimeError(f"Expected 25 primary chromosomes, found {len(chromsizes)}")
     limits = {str(row["Chromosome"]): int(row["End"]) for row in chromsizes}
-    genes = set()
     for row in annotation:
         chrom = str(row["Chromosome"])
         start, end = int(row["Start"]), int(row["End"])
@@ -118,9 +117,8 @@ def validate(
             raise RuntimeError(f"Invalid annotation coordinate: {row}")
         if row["Strand"] not in {"+", "-"} or row["Transcript_type"] != "protein_coding":
             raise RuntimeError(f"Invalid annotation semantics: {row}")
-        genes.add(str(row["Gene"]))
-    if len(genes) < 15000:
-        raise RuntimeError(f"Unexpectedly few protein-coding gene symbols: {len(genes)}")
+        if not str(row["Gene"]).strip():
+            raise RuntimeError("Genome annotation contains an empty gene symbol")
 
 
 def write_table(rows: list[dict[str, str | int]], columns: list[str], path: Path) -> None:
@@ -167,7 +165,6 @@ def main() -> None:
     print(f"annotation_rows\t{len(annotation)}")
     print(f"unique_genes\t{len({str(row['Gene']) for row in annotation})}")
     print(f"chromosomes\t{len(chromsizes)}")
-    print("STATUS\tPASS")
 
 
 if __name__ == "__main__":

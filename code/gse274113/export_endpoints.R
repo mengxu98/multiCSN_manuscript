@@ -195,7 +195,6 @@ export_endpoints <- function(method, input, output) {
     }
   }
   if (!file.rename(stage_root, output)) stop("Unable to promote canonical endpoints.")
-  cat("PASS canonical endpoint export:", method, output, "\n")
 }
 if (sys.nframe() == 0L) {
   # Default: export the three formal methods from their method-specific fit trees.

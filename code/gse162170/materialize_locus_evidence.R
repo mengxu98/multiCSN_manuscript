@@ -19,7 +19,6 @@ expression_samples <- read_table("focal_expression_samples")
 expression_cells <- read_table("focal_expression_cells")
 accessibility_samples <- read_table("focal_accessibility_samples")
 annotation <- read_table("focal_gene_annotation")
-join_check <- read_table("exact_join_check")
 
 
 parse_regions <- function(x) {

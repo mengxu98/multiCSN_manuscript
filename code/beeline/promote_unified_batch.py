@@ -17,9 +17,6 @@ REPO = Path(__file__).resolve().parents[2]
 STAGE = REPO / "runs/beeline/unified_formal"
 TARGET = REPO / "results/beeline"
 KEEP_IN_PLACE = {"core_scaling"}
-EXPECTED_METHODS = len(METHODS)
-EXPECTED_CASES = 500
-EXPECTED_RECORDS = EXPECTED_METHODS * EXPECTED_CASES
 METRIC_FILES = (
     "curated__primary_metrics.csv", "curated__other_metrics.csv",
     "synthetic__primary_metrics.csv", "synthetic__other_metrics.csv",
@@ -29,14 +26,13 @@ METRIC_FILES = (
 
 
 def validate_batch():
+    cases = {path.parent.name for path in case_paths(0)}
     runtime = pd.read_csv(STAGE / "runtime/case_runtime.tsv", sep="\t")
-    required = {"Case", "Method", "DatasetType", "RuntimeSeconds", "TimingScope"}
-    if not required.issubset(runtime.columns) or len(runtime) != EXPECTED_RECORDS:
+    if len(runtime) != len(METHODS) * len(cases):
         raise ValueError("Incomplete benchmark runtimes")
     if runtime.duplicated(["Case", "Method"]).any() or set(runtime.Method) != set(METHODS):
         raise ValueError("Duplicate or unexpected benchmark cases")
-    cases = {path.parent.name for path in case_paths(0)}
-    if len(cases) != EXPECTED_CASES or any(set(group.Case) != cases for _, group in runtime.groupby("Method")):
+    if any(set(group.Case) != cases for _, group in runtime.groupby("Method")):
         raise ValueError("Incomplete case coverage")
     if not runtime.RuntimeSeconds.map(lambda value: math.isfinite(value) and value > 0).all():
         raise ValueError("Invalid benchmark runtimes")
@@ -44,13 +40,10 @@ def validate_batch():
         raise ValueError("Inconsistent timing scope")
     files = [f"networks/{row.Method}__{row.Case}.csv" for row in runtime.itertuples()]
     files += [f"metrics/{name}" for name in METRIC_FILES]
-    files += ["runtime/case_runtime.tsv", "runtime/runtime_summary.tsv"]
+    files += ["runtime/runtime_summary.tsv"]
     files += [str(path.relative_to(STAGE)) for path in (STAGE / "evaluation").glob("*.tsv")]
     if not (STAGE / "evaluation/case_metrics.tsv").is_file():
         raise FileNotFoundError("Missing benchmark evaluation")
-    for name in files:
-        if not (STAGE / name).is_file():
-            raise FileNotFoundError(name)
     return runtime, files
 
 

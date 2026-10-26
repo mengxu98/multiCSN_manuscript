@@ -687,7 +687,6 @@ synthetic_cell_level_medians <- function(evaluation_data, metrics) {
     dplyr::summarise(Value = mean(Value, na.rm = TRUE), .groups = "drop")
 
   fam_order <- sort(unique(as.character(med$Family)))
-  cell_order <- sort(unique(med$CellsNum))
   med$Family <- factor(med$Family, levels = fam_order)
   med$Cells <- factor(
     med$Cells,

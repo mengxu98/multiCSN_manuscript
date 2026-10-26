@@ -68,10 +68,6 @@ def export_go_tests(source, selected, destination, keys):
 def export_sensitivity_tables(root=REPO, output=None):
     root = Path(root).resolve()
     output = Path(output).resolve() if output is not None else root / "source_data/supplementary_tables/multilayer_sensitivity"
-    required = [name for name, _, _ in SPECIFICATIONS] + [name for name, _ in PRIMARY_TERM_SELECTIONS.values()]
-    missing = [name for name in required if not (root / name).is_file()]
-    if missing:
-        raise FileNotFoundError("Missing supplementary sources: " + ", ".join(missing))
     output.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.TemporaryDirectory(prefix=".sensitivity-tables-", dir=output.parent) as temporary:
         candidate = Path(temporary) / "tables"
