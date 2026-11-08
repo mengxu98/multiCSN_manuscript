@@ -24,6 +24,7 @@ tied_top <- function(scores, y, correct, k) {
   tp <- sum(w * y)
   list(precision = tp / k, recall = if (sum(y)) tp / sum(y) else NA_real_, direction_accuracy = if (tp) sum(w * correct) / tp else NA_real_, cutoff_ties = sum(equal))
 }
+metrics <- budgets <- distributions <- list()
 for (day in c(7, 9, 11, 14)) {
   slug <- paste0("day_", day)
   paths <- file.path(raw_root, slug, c("tf_gene.tsv", "tf_region.tsv", "region_gene.tsv", "triplets.tsv"))
