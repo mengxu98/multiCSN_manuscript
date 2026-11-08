@@ -49,6 +49,7 @@ precrec
 processx
 ps
 purrr
+R.utils
 RColorBrewer
 readxl
 remotes
