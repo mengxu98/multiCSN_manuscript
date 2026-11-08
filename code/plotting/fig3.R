@@ -124,7 +124,8 @@ build_fig3_retention_heatmap <- function(repo_root) {
   )
 }
 
-build_gse274113_runx1_panels <- function(repo_root) {
+build_gse274113_runx1_panels <- function(repo_root, compact = FALSE) {
+  text_scale <- if (compact) 1.45 else 1
   repo <- repo_root
   analysis_root <- file.path(
     repo, "results", "gse274113", "neighborhood"
@@ -223,9 +224,9 @@ build_gse274113_runx1_panels <- function(repo_root) {
     default = 2.4
   )]
   hierarchy_nodes[, label_size := data.table::fcase(
-    role == "Perturbed TF", 6.2 / ggplot2::.pt,
-    role == "Intermediate TF", 5.2 / ggplot2::.pt,
-    role == "Direct target", 5.0 / ggplot2::.pt,
+    role == "Perturbed TF", 6.2 * text_scale / ggplot2::.pt,
+    role == "Intermediate TF", 5.2 * text_scale / ggplot2::.pt,
+    role == "Direct target", 5.0 * text_scale / ggplot2::.pt,
     default = 0
   )]
   hierarchy_nodes[, label_face := data.table::fcase(
@@ -256,7 +257,7 @@ build_gse274113_runx1_panels <- function(repo_root) {
     node_coord = c("x", "y"),
     edge_width = c(0.25, 1),
     edge_alpha = 0.5,
-    label = TRUE,
+    label = !compact,
     label_nodes = hierarchy_nodes[role != "Second-order target", name],
     label_size = "label_size",
     label_face = "label_face",
@@ -265,6 +266,37 @@ build_gse274113_runx1_panels <- function(repo_root) {
     legend.position = "none",
     aspect.ratio = 1
   )
+  if (compact) {
+    label_positions <- data.table(
+      name = c("ALAS2", "ARID5B", "BACH1", "E2F7", "EPB42", "ESR2", "HBA1", "HEMGN",
+               "IKZF1", "JUNB", "KLF1", "MXI1", "RUNX1", "SLC25A37", "SLC4A1", "SOX6"),
+      label_x = c(.53, .28, .64, .73, .85, .36, .70, -.70,
+                  -.18, -.12, -.75, -.69, 0, -.79, -.64, -.29),
+      label_y = c(1.06, .70, .45, -.04, -.53, -.62, -.96, -.96,
+                  -.68, -.25, -.18, .26, 0, .47, 1.07, .75)
+    )
+    label_nodes <- hierarchy_nodes[role != "Second-order target"]
+    stopifnot(setequal(label_nodes$name, label_positions$name))
+    label_nodes <- label_nodes[label_positions, on = "name"]
+    label_nodes[role == "Perturbed TF", label_size := 7.3 / ggplot2::.pt]
+    guides <- label_nodes[role != "Perturbed TF"]
+    guides[, `:=`(dx = label_x - x, dy = label_y - y)]
+    guides <- guides[sqrt(dx^2 + dy^2) > 0.2]
+    hierarchy <- hierarchy +
+      scale_x_continuous(expand = expansion(mult = 0.13)) +
+      scale_y_continuous(limits = c(-1.10, 1.08), expand = expansion(mult = 0.07)) +
+      geom_segment(
+        data = guides,
+        aes(x = x + 0.27 * dx, y = y + 0.27 * dy,
+            xend = x + 0.66 * dx, yend = y + 0.66 * dy),
+        colour = "#657481", linewidth = 0.15, inherit.aes = FALSE
+      ) +
+      geom_text(
+        data = label_nodes,
+        aes(x = label_x, y = label_y, label = name, size = label_size, fontface = label_face),
+        family = "Arial", colour = INK_COLOUR, inherit.aes = FALSE, show.legend = FALSE
+      ) + scale_size_identity() + theme(plot.margin = margin(2, 2, 2, 2))
+  }
 
   chains <- fread(paths[["annotations"]])[
     perturbation_regulator == hero_tf &
@@ -304,21 +336,24 @@ build_gse274113_runx1_panels <- function(repo_root) {
     geom_text_repel(
       data = labels,
       aes(label = target),
-      size = 5.0 / ggplot2::.pt,
+      size = 5.0 * text_scale / ggplot2::.pt,
       max.overlaps = Inf,
       min.segment.length = 0,
       fontface = "italic",
+      box.padding = if (compact) 0.42 else 0.25,
+      point.padding = if (compact) 0.20 else 1e-6,
+      force = if (compact) 1.7 else 1,
       seed = 20260903
     ) +
     scale_fill_manual(
       values = c(`FALSE` = "#3C78A8", `TRUE` = "#b91702"),
-      labels = c("Predicted negative", "Predicted positive"),
+      labels = if (compact) c("Negative", "Positive") else c("Predicted negative", "Predicted positive"),
       name = NULL,
-      guide = guide_legend(nrow = 2, byrow = TRUE)
+      guide = guide_legend(nrow = if (compact) 1 else 2, byrow = TRUE)
     ) +
     labs(
-      x = "Held-out CRE accessibility logFC",
-      y = "Held-out target RNA logFC"
+      x = if (compact) "CRE accessibility logFC" else "Held-out CRE accessibility logFC",
+      y = if (compact) "Target RNA logFC" else "Held-out target RNA logFC"
     ) +
     coord_equal() +
     theme(
@@ -330,15 +365,17 @@ build_gse274113_runx1_panels <- function(repo_root) {
       legend.margin = margin(t = -2, b = -2)
     )
 
+  if (compact) {
+    plane <- plane + theme(
+      axis.title = element_text(size = 10),
+      axis.text = element_text(size = 9),
+      legend.text = element_text(size = 9),
+      plot.margin = margin(2, 3, 2, 3)
+    )
+  }
   list(hierarchy = hierarchy, plane = plane)
 }
 
-if (!panel_a_only) {
-  runx1_panels <- build_gse274113_runx1_panels(repo)
-  fig3e <- runx1_panels$hierarchy
-  fig3f <- runx1_panels$plane
-  fig3i <- build_fig3_retention_heatmap(repo)
-}
 
 methods <- c("multiCSN", "SCENIC+", "Pando", "LINGER")
 colours <- method_colours[methods]
@@ -360,6 +397,135 @@ theme_paper <- function(base_size = 6.4) {
       legend.text = element_text(size = base_size - 0.5, colour = INK_COLOUR),
       plot.margin = margin(3, 4, 3, 4)
     )
+}
+
+build_fig3_binding <- function(binding, compact = FALSE) {
+  contour_colour <- if (compact) "grey44" else "grey82"
+  contour_label_size <- if (compact) 5.7 else 4.4
+  contour_label_colour <- if (compact) "grey30" else "grey55"
+  method_label_size <- if (compact) 6.0 else 5.6
+  r_seq <- seq(0.005, 1.0, length.out = 300)
+  f1_levels <- c(0.10, 0.20, 0.40)
+  contour_dt <- rbindlist(lapply(f1_levels, function(f1) {
+    p_vals <- (f1 * r_seq) / (2 * r_seq - f1)
+    valid <- which(p_vals >= 0.24 & p_vals <= 0.92 & r_seq >= 0.005 & r_seq <= 1.0)
+    if (length(valid)) {
+      data.table(Recall = r_seq[valid], Precision = p_vals[valid], F1 = as.character(f1))
+    } else NULL
+  }))
+
+  ggplot() +
+    geom_line(
+      data = contour_dt,
+      aes(x = Recall, y = Precision, group = F1),
+      colour = contour_colour, linetype = "dotted", linewidth = 0.45, inherit.aes = FALSE
+    ) +
+    annotate("text", x = 0.19, y = 0.25, label = "F[1]==0.20", parse = TRUE,
+             size = contour_label_size / ggplot2::.pt, colour = contour_label_colour, family = "Arial") +
+    annotate("text", x = 0.52, y = 0.36, label = "F[1]==0.40", parse = TRUE,
+             size = contour_label_size / ggplot2::.pt, colour = contour_label_colour, family = "Arial") +
+    geom_point(
+      data = binding,
+      aes(micro_recall, micro_precision, colour = method, shape = method,
+          size = predicted_regions_in_universe),
+      stroke = 0.45
+    ) +
+    geom_label_repel(
+      data = binding,
+      aes(micro_recall, micro_precision, label = method, colour = method),
+      family = "Arial", size = method_label_size / ggplot2::.pt, fontface = "bold",
+      fill = alpha("white", 0.95),
+      label.padding = unit(0.14, "lines"), label.r = unit(0.10, "lines"),
+      linewidth = 0.25, min.segment.length = 0, segment.size = 0.25,
+      nudge_x = c(0.15, 0.15, 0.15, 0.00),
+      nudge_y = c(0.00, 0.00, 0.00, 0.13),
+      box.padding = 0.20, point.padding = 0.25, seed = 42,
+      show.legend = FALSE
+    ) +
+    scale_colour_manual(values = colours, drop = FALSE) +
+    scale_shape_manual(values = shapes, drop = FALSE) +
+    scale_size_continuous(range = c(2.2, 4.5)) +
+    scale_x_continuous(
+      breaks = seq(0, 1, 0.25), labels = scales::label_percent(accuracy = 1),
+      limits = c(0, 1.02), expand = expansion(mult = c(0.04, 0.04))
+    ) +
+    scale_y_continuous(
+      breaks = seq(0.3, 0.9, 0.2), labels = scales::label_percent(accuracy = 1),
+      limits = c(0.22, 0.96), expand = expansion(mult = c(0.02, 0.04))
+    ) +
+    labs(x = "Recall", y = "Precision", colour = NULL, shape = NULL,
+         size = "Predicted regions") +
+    theme_paper(if (compact) 8.4 else 8.0) +
+    theme(legend.position = "none")
+}
+
+build_fig3_joint <- function(joint, compact = FALSE) {
+  joint[, method := factor(method, levels = methods)]
+  finite_counts <- joint[, .(
+    finite_tf_clusters = sum(is.finite(joint_positive_fraction)),
+    total_tf_clusters = .N
+  ), by = method]
+  finite_labels <- setNames(
+    sprintf("%s\n%d/%d TFs", finite_counts$method,
+            finite_counts$finite_tf_clusters, finite_counts$total_tf_clusters),
+    finite_counts$method
+  )
+  panel <- ggplot(
+    joint[is.finite(joint_positive_fraction)],
+    aes(method, joint_positive_fraction, colour = method)
+  ) +
+    geom_violin(aes(fill = method), width = 0.8, alpha = 0.12,
+                linewidth = 0.35, trim = FALSE) +
+    geom_boxplot(width = 0.20, outlier.shape = NA, linewidth = 0.35, fill = "white") +
+    geom_jitter(aes(size = evaluable_triplets), width = 0.10, height = 0,
+                alpha = 0.75, stroke = 0.25) +
+    scale_colour_manual(values = colours, drop = FALSE) +
+    scale_fill_manual(values = colours, drop = FALSE) +
+    scale_size_continuous(range = c(1.2, 4.2)) +
+    scale_x_discrete(labels = finite_labels) +
+    scale_y_continuous(labels = scales::label_percent(accuracy = 1)) +
+    labs(x = NULL, y = "Joint ATAC + RNA\nsignificant fraction",
+         colour = NULL, fill = NULL, size = "Evaluable\ntriplets") +
+    theme_paper(8.0) +
+    theme(
+      legend.position = "none",
+      axis.title.y = element_text(size = 6.8, lineheight = 0.95),
+      axis.text.x = element_text(size = 6.6, angle = 25, hjust = 1, vjust = 1,
+                                  lineheight = 0.9),
+      plot.margin = margin(2, 4, 2, 4)
+    )
+  if (compact) {
+    panel <- panel + theme(
+      axis.text.x = element_text(size = 6.0, angle = 0, hjust = 0.5, vjust = 1,
+                                lineheight = 0.95, margin = margin(t = 1)),
+      plot.margin = margin(2, 2, 1, 2)
+    )
+  }
+  panel
+}
+
+compact_arg <- grep("^--compact-panels=", commandArgs(trailingOnly = TRUE), value = TRUE)
+if (length(compact_arg)) {
+  output <- sub("^--compact-panels=", "", compact_arg)
+  binding <- fread(file.path(result_root, "TF_region_binding_four_method_common_nonempty.tsv"))[
+    evidence_source == "UniBind_direct_TFBS"
+  ]
+  binding[, method := factor(method, levels = methods)]
+  joint <- fread(file.path(result_root, "chain_response_four_methods.tsv"))
+  runx1 <- build_gse274113_runx1_panels(repo, compact = TRUE)
+  set.seed(20261108)
+  save_pdf(build_fig3_binding(binding, compact = TRUE), file.path(output, "panel_b.pdf"), 1.80, 1.46)
+  save_pdf(build_fig3_joint(joint, compact = TRUE), file.path(output, "panel_c.pdf"), 2.25, 1.44)
+  save_pdf(runx1$hierarchy, file.path(output, "panel_e.pdf"), 2.30, 1.94)
+  save_pdf(runx1$plane, file.path(output, "panel_f.pdf"), 2.08, 1.78)
+  quit(save = "no", status = 0L)
+}
+
+if (!panel_a_only) {
+  runx1_panels <- build_gse274113_runx1_panels(repo)
+  fig3e <- runx1_panels$hierarchy
+  fig3f <- runx1_panels$plane
+  fig3i <- build_fig3_retention_heatmap(repo)
 }
 
 metric_labels <- c(
@@ -502,59 +668,7 @@ fwrite(binding, file.path(analysis_root, "fig3b_tf_region_source.tsv"),
        sep = "\t", quote = FALSE, na = "NA")
 
 binding[, method := factor(method, levels = methods)]
-r_seq <- seq(0.005, 1.0, length.out = 300)
-f1_levels <- c(0.10, 0.20, 0.40)
-contour_dt <- rbindlist(lapply(f1_levels, function(f1) {
-  p_vals <- (f1 * r_seq) / (2 * r_seq - f1)
-  valid <- which(p_vals >= 0.24 & p_vals <= 0.92 & r_seq >= 0.005 & r_seq <= 1.0)
-  if (length(valid)) {
-    data.table(Recall = r_seq[valid], Precision = p_vals[valid], F1 = as.character(f1))
-  } else NULL
-}))
-
-fig3b <- ggplot() +
-  geom_line(
-    data = contour_dt,
-    aes(x = Recall, y = Precision, group = F1),
-    colour = "grey82", linetype = "dotted", linewidth = 0.45, inherit.aes = FALSE
-  ) +
-  annotate("text", x = 0.19, y = 0.25, label = "F[1]==0.20", parse = TRUE,
-           size = 4.4 / ggplot2::.pt, colour = "grey55", family = "Arial") +
-  annotate("text", x = 0.52, y = 0.36, label = "F[1]==0.40", parse = TRUE,
-           size = 4.4 / ggplot2::.pt, colour = "grey55", family = "Arial") +
-  geom_point(
-    data = binding,
-    aes(micro_recall, micro_precision, colour = method, shape = method,
-        size = predicted_regions_in_universe),
-    stroke = 0.45
-  ) +
-  geom_label_repel(
-    data = binding,
-    aes(micro_recall, micro_precision, label = method, colour = method),
-    family = "Arial", size = 5.6 / ggplot2::.pt, fontface = "bold",
-    fill = alpha("white", 0.95),
-    label.padding = unit(0.14, "lines"), label.r = unit(0.10, "lines"),
-    linewidth = 0.25, min.segment.length = 0, segment.size = 0.25,
-    nudge_x = c(0.15, 0.15, 0.15, 0.00),
-    nudge_y = c(0.00, 0.00, 0.00, 0.13),
-    box.padding = 0.20, point.padding = 0.25, seed = 42,
-    show.legend = FALSE
-  ) +
-  scale_colour_manual(values = colours, drop = FALSE) +
-  scale_shape_manual(values = shapes, drop = FALSE) +
-  scale_size_continuous(range = c(2.2, 4.5)) +
-  scale_x_continuous(
-    breaks = seq(0, 1, 0.25), labels = scales::label_percent(accuracy = 1),
-    limits = c(0, 1.02), expand = expansion(mult = c(0.04, 0.04))
-  ) +
-  scale_y_continuous(
-    breaks = seq(0.3, 0.9, 0.2), labels = scales::label_percent(accuracy = 1),
-    limits = c(0.22, 0.96), expand = expansion(mult = c(0.02, 0.04))
-  ) +
-  labs(x = "Recall", y = "Precision", colour = NULL, shape = NULL,
-       size = "Predicted regions") +
-  theme_paper(8.0) +
-  theme(legend.position = "none")
+fig3b <- build_fig3_binding(binding)
 
 contact[, `:=`(
   method = factor(method, levels = methods),
@@ -1020,40 +1134,7 @@ fig3h <- ggplot(
     plot.margin = margin(2, 3, 2, 3)
   )
 
-joint[, method := factor(method, levels = methods)]
-finite_counts <- joint[, .(
-  finite_tf_clusters = sum(is.finite(joint_positive_fraction)),
-  total_tf_clusters = .N
-), by = method]
-finite_labels <- setNames(
-  sprintf("%s\n%d/%d TFs", finite_counts$method,
-          finite_counts$finite_tf_clusters, finite_counts$total_tf_clusters),
-  finite_counts$method
-)
-fig3j <- ggplot(
-  joint[is.finite(joint_positive_fraction)],
-  aes(method, joint_positive_fraction, colour = method)
-) +
-  geom_violin(aes(fill = method), width = 0.8, alpha = 0.12,
-              linewidth = 0.35, trim = FALSE) +
-  geom_boxplot(width = 0.20, outlier.shape = NA, linewidth = 0.35, fill = "white") +
-  geom_jitter(aes(size = evaluable_triplets), width = 0.10, height = 0,
-              alpha = 0.75, stroke = 0.25) +
-  scale_colour_manual(values = colours, drop = FALSE) +
-  scale_fill_manual(values = colours, drop = FALSE) +
-  scale_size_continuous(range = c(1.2, 4.2)) +
-  scale_x_discrete(labels = finite_labels) +
-  scale_y_continuous(labels = scales::label_percent(accuracy = 1)) +
-  labs(x = NULL, y = "Joint ATAC + RNA\nsignificant fraction",
-       colour = NULL, fill = NULL, size = "Evaluable\ntriplets") +
-  theme_paper(8.0) +
-  theme(
-    legend.position = "none",
-    axis.title.y = element_text(size = 6.8, lineheight = 0.95),
-    axis.text.x = element_text(size = 6.6, angle = 25, hjust = 1, vjust = 1,
-                                lineheight = 0.9),
-    plot.margin = margin(2, 4, 2, 4)
-  )
+fig3j <- build_fig3_joint(joint)
 
 draw_fig3d <- function() {
   grid::grid.newpage()

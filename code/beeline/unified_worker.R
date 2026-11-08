@@ -34,7 +34,7 @@ method_runners <- list(
   },
   # LEAP and PPCOR expect genes x cells
   LEAP = function(expr, pseudotime, cores, out_file) {
-    run_LEAP(matrix = t(expr), filename = out_file)
+    run_LEAP(matrix = t(expr), pseudotime = pseudotime, filename = out_file)
   },
   PPCOR = function(expr, pseudotime, cores, out_file) {
     run_PPCOR(matrix = t(expr), filename = out_file)
