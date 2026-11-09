@@ -165,7 +165,7 @@ figs7c <- ggplot(edge_overlap, aes(timepoint, edge_jaccard,
     position = position_dodge(width = 0.64)
   ) +
   geom_point(position = position_jitterdodge(
-    jitter.width = 0.12, dodge.width = 0.64
+    jitter.width = 0.12, dodge.width = 0.64, seed = 42L
   ), size = 1.25, stroke = 0.45, aes(fill = timepoint)) +
   scale_colour_manual(values = timepoint_colours) +
   scale_fill_manual(values = timepoint_colours) +

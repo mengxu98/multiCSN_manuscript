@@ -29,8 +29,8 @@ Use the commands below for analysis, figures, and Source Data:
 | `bash 04_gse162170.sh` | Cortex analysis |
 | `bash 05_gse194122.sh` | Erythroid differentiation analysis |
 | `bash 06_plotting.sh` | Run the main plotting workflow |
-| `Rscript --vanilla code/plotting/assemble_perturbation_validation.R` | Fig. 3 and Supplementary Figs. S8 and S9 |
-| `Rscript --vanilla code/plotting/figs2_compact.R` | Supplementary Fig. S2 |
+| `Rscript --vanilla code/plotting/figs2.R` | Supplementary Fig. S2 |
+| `Rscript --vanilla code/plotting/figs8.R` | Fig. 3 and Supplementary Figs. S8 and S9 |
 | `bash 07_source_data.sh` | Generate Source Data |
 | `Rscript --vanilla code/beeline/compare_static_pseudotime.R runs/beeline/static_comparison_new` | Optional static and supplied-pseudotime comparison; requires prepared benchmark inputs and a new output directory. Set OpenMP and the active BLAS library to one thread for timing. |
 | `python3 code/gse274113/run_timing_benchmark.py` | Optional matched-host timing |
