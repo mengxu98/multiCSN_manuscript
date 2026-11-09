@@ -21,23 +21,6 @@ source(file.path(repo, "code", "functions", "common.R"), local = TRUE)
 input_root <- file.path(repo, "results", "gse274113", "stability")
 output_root <- file.path(repo, "figures")
 
-assemble_supp_fig7 <- function() {
-  source(file.path(repo, "code", "functions", "pdf_assembly.R"), local = TRUE)
-  assemble_pdf_figure(
-    stem = "figs7",
-    page = c(183, 156),
-    panels = list(
-      pdf_panel("a", 11.5, 152, 160),
-      pdf_panel("b", 11.5, 108, 160),
-      pdf_panel("c", 11.5, 56, 48),
-      pdf_panel("d", 63.0, 56, 49.5),
-      pdf_panel("e", 116.0, 56, 55.5)
-    ),
-    repo = repo,
-    figure_root = output_root
-  )
-}
-
 input_paths <- c(
   folds = file.path(input_root, "fold_decomposition.tsv"),
   pairwise = file.path(input_root, "pairwise_fold_metrics.tsv"),
@@ -428,6 +411,3 @@ save_pdf(figs7b, file.path(output_root, "figs7b.pdf"), 6.30, 1.75)
 save_pdf(figs7c, file.path(output_root, "figs7c.pdf"), 1.89, 1.7)
 save_pdf(figs7d, file.path(output_root, "figs7d.pdf"), 1.95, 1.7)
 save_pdf(figs7e, file.path(output_root, "figs7e.pdf"), 2.19, 1.7)
-
-assemble_supp_fig7()
-message("Rendered Supplementary Fig. S7a-e and assembled S7 independently.")

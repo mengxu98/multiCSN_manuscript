@@ -55,8 +55,9 @@ assemble_perturbation_validation <- function() {
     pdf_panel("c", 54, 89, 63, source = "fig3c.pdf")
   ), repo, stage)
 
-  output <- file.path(repo, "figures", "perturbation_validation")
-  dir.create(output, recursive = TRUE, showWarnings = FALSE)
+  output <- file.path(repo, "figures", paste0(c("perturbation_validation",
+                                              "perturbation_runtime_stability",
+                                              "perturbation_representation_sensitivity"), ".pdf"))
   stopifnot(all(file.copy(file.path(stage, c("fig3.pdf", "figS8.pdf", "figS9.pdf")),
                          output, overwrite = TRUE)))
 }

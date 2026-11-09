@@ -12,7 +12,7 @@ observations[, Dataset := factor(DatasetType, levels = c("curated", "synthetic")
 models <- c("GSD", "HSC", "VSC", "mCAD", "dyn-BF", "dyn-BFC", "dyn-CY", "dyn-LI", "dyn-LL", "dyn-TF")
 observations[, Model := factor(DatasetGroup, levels = rev(models))]
 colours <- c(Curated = "#4D8877", Synthetic = method_colours[["GENIE3"]])
-output <- "figures/beeline_s2_compact_20261106"
+output <- tempfile("beeline_controls_", tmpdir = tempdir())
 source_output <- "source_data/supplementary_tables/beeline_s2_compact_20261106"
 dir.create(output, recursive = TRUE, showWarnings = FALSE)
 dir.create(source_output, recursive = TRUE, showWarnings = FALSE)
@@ -89,20 +89,16 @@ stopifnot(isTRUE(all.equal(current_boxes[, ..statistics], previous_boxes[, ..sta
 for (panel_id in names(panels)) {
   height <- if (panel_id %in% c("a", "b")) 59 else 53
   save_pdf(panels[[panel_id]], file.path(output, paste0("figs2", panel_id, ".pdf")), 66 / 25.4, height / 25.4)
-  ggsave(file.path(output, paste0("figs2", panel_id, ".svg")), panels[[panel_id]],
-         width = 66, height = height, units = "mm", device = svglite::svglite)
-  ggsave(file.path(output, paste0("figs2", panel_id, ".png")), panels[[panel_id]],
-         width = 66, height = height, units = "mm", dpi = 300, bg = "white")
+
 }
 assemble_pdf_figure("figs2", page = c(140, 120), repo = repo, figure_root = output,
                     panels = list(pdf_panel("a", 4, 117, 66, label_x = 3, crop = FALSE),
                                   pdf_panel("b", 73, 117, 66, label_x = 72, crop = FALSE),
                                   pdf_panel("c", 4, 56, 66, label_x = 3, crop = FALSE),
                                   pdf_panel("d", 73, 56, 66, label_x = 72, crop = FALSE)))
-stopifnot(system2("pdftoppm", c("-scale-to", "1800", "-singlefile", "-png",
-                               file.path(output, "figs2.pdf"), file.path(output, "figs2"))) == 0L,
-          system2("pdftocairo", c("-svg", file.path(output, "figs2.pdf"),
-                                 file.path(output, "figs2.svg"))) == 0L)
+stopifnot(file.copy(file.path(output, "figs2.pdf"),
+                    file.path(repo, "figures", "beeline_state_order_controls.pdf"), overwrite = TRUE))
+unlink(output, recursive = TRUE)
 fwrite(current_boxes, file.path(source_output, "figs2_box_summaries.tsv"), sep = "\t")
 stopifnot(file.copy(file.path(root, "paired_mode_controls.tsv"),
                     file.path(source_output, "figs2_source.tsv"), overwrite = TRUE))

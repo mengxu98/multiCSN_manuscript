@@ -34,4 +34,3 @@ c <- ggplot(sub, aes(representation, precision, group = regulator)) +
   theme(axis.text.x = element_text(size = 5.5), strip.text = element_text(size = 6.4))
 figure <- ((a | b) / c + plot_layout(heights = c(1, 1))) &
   theme(plot.tag = element_text(face = "bold", size = 9))
-if (sys.nframe() == 0L) save_pdf(figure, "figures/figs8.pdf", 7.2, 4.9)

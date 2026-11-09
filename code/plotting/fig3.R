@@ -22,28 +22,6 @@ dir.create(analysis_root, recursive = TRUE, showWarnings = FALSE)
 source(file.path(repo, "code", "functions", "common.R"), local = TRUE)
 source(file.path(repo, "code", "functions", "pdf_assembly.R"), local = TRUE)
 
-panel_a_only <- FALSE
-assemble_fig3 <- function() {
-  assemble_pdf_figure(
-    stem = "fig3",
-    page = c(183, 235),
-    panels = list(
-      pdf_panel("a", 8, 231, 75),
-      pdf_panel("b", 8, 192, 35.5),
-      pdf_panel("c", 47.5, 192, 35.5),
-      pdf_panel("d", 89.2, 231, 88),
-      pdf_panel("e", 8, 154, 35.5),
-      pdf_panel("f", 47.5, 154, 35.5),
-      pdf_panel("g", 8, 112, 81.5),
-      pdf_panel("h", 96.5, 112, 78.5),
-      pdf_panel("i", 8, 68, 120),
-      pdf_panel("j", 130, 68, 45)
-    ),
-    repo = repo,
-    figure_root = figure_root
-  )
-}
-
 build_fig3_retention_heatmap <- function(repo_root) {
   input_path <- file.path(
     repo_root, "results", "gse274113", "stability", "layer_attrition.tsv"
@@ -521,12 +499,7 @@ if (length(compact_arg)) {
   quit(save = "no", status = 0L)
 }
 
-if (!panel_a_only) {
-  runx1_panels <- build_gse274113_runx1_panels(repo)
-  fig3e <- runx1_panels$hierarchy
-  fig3f <- runx1_panels$plane
-  fig3i <- build_fig3_retention_heatmap(repo)
-}
+fig3i <- build_fig3_retention_heatmap(repo)
 
 metric_labels <- c(
   truth_response_coverage = "Truth-response\ncoverage",
@@ -653,12 +626,6 @@ fig3a <- ggplot(effect, aes(estimate, comparator, colour = comparator)) +
         plot.margin = margin(3, 4, 0, 4)) +
   guides(colour = "none", shape = guide_legend(override.aes = list(colour = INK_COLOUR)))
 
-if (panel_a_only) {
-  save_pdf(fig3a, file.path(figure_root, "fig3a.pdf"), 4.0, 2.0)
-  assemble_fig3()
-  quit(save = "no", status = 0L)
-}
-
 binding <- fread(file.path(result_root, "TF_region_binding_four_method_common_nonempty.tsv"))[
   evidence_source == "UniBind_direct_TFBS"
 ]
@@ -668,7 +635,6 @@ fwrite(binding, file.path(analysis_root, "fig3b_tf_region_source.tsv"),
        sep = "\t", quote = FALSE, na = "NA")
 
 binding[, method := factor(method, levels = methods)]
-fig3b <- build_fig3_binding(binding)
 
 contact[, `:=`(
   method = factor(method, levels = methods),
@@ -1134,7 +1100,6 @@ fig3h <- ggplot(
     plot.margin = margin(2, 3, 2, 3)
   )
 
-fig3j <- build_fig3_joint(joint)
 
 draw_fig3d <- function() {
   grid::grid.newpage()
@@ -1154,14 +1119,8 @@ draw_fig3i <- function() {
 }
 
 save_pdf(fig3a, file.path(figure_root, "fig3a.pdf"), 4.0, 2.0)
-save_pdf(fig3b, file.path(figure_root, "fig3b.pdf"), 1.8, 1.7)
 save_pdf(fig3c, file.path(figure_root, "fig3c.pdf"), 2.0, 2.0)
 save_grid_pdf(draw_fig3d, file.path(figure_root, "fig3d.pdf"), 5, 5)
-save_pdf(fig3e, file.path(figure_root, "fig3e.pdf"), 2.4, 2.2)
-save_pdf(fig3f, file.path(figure_root, "fig3f.pdf"), 1.9, 1.8)
 save_pdf(fig3g, file.path(figure_root, "fig3g.pdf"), 3.5, 1.8)
 save_pdf(fig3h, file.path(figure_root, "fig3h.pdf"), 3.0, 1.5)
 save_grid_pdf(draw_fig3i, file.path(figure_root, "fig3i.pdf"), 6.55, 2.55)
-save_pdf(fig3j, file.path(figure_root, "fig3j.pdf"), 2.45, 1.9)
-
-assemble_fig3()
