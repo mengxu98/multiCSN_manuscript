@@ -51,7 +51,7 @@ validate_ordinal <- function(direction, evidence, weight, label) {
   if (!length(weight)) {
     return(invisible(TRUE))
   }
-  expected <- multiCSN::network_ordinal_weight(direction, evidence)
+  expected <- inferCSN::deletion_rank_weight(direction, evidence)
   if (max(abs(expected - weight)) > 1e-12) stop("Ordinal weight mismatch in ", label)
   invisible(TRUE)
 }
